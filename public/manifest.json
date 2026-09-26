@@ -1,0 +1,27 @@
+{
+  "name": "NutriPlan - Dieta e Nutrizione",
+  "short_name": "NutriPlan",
+  "description": "Gestione dieta multi-settimana, tracciamento nutrizione, integratori e composizione corporea",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#064e3b",
+  "theme_color": "#10b981",
+  "lang": "it",
+  "dir": "ltr",
+  "categories": ["health", "fitness", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
