@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { createEmptyWeek, createEmptyMeal, uid, todayISO } from '@/lib/data';
+import { extractPdfText, parsePdfToWeek } from '@/lib/pdfParser';
 import { DAYS_OF_WEEK, MEAL_TYPES, MEAL_ICONS, type Meal, type MealType, type WeekPlan } from '@/types';
 import { Modal } from '@/components/Modal';
 import { Sheet } from '@/components/Sheet';
 import {
   ChevronLeft, ChevronRight, Plus, Check, Trash2, Pencil, Upload, FileText,
-  Sunrise, Apple, Utensils, Cookie, Moon, ShoppingCart, X,
+  Sunrise, Apple, Utensils, Cookie, Moon, ShoppingCart, X, Loader2,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -24,6 +25,8 @@ export function DietView() {
   const [editingMeal, setEditingMeal] = useState<{ dayIdx: number; meal: Meal } | null>(null);
   const [showWeekManager, setShowWeekManager] = useState(false);
   const [showPdfModal, setShowPdfModal] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   const week = state.weeks[weekIdx];
 
@@ -101,15 +104,39 @@ export function DietView() {
     setState((prev) => ({ ...prev, shoppingList: list }));
   }
 
-  function handlePdfUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handlePdfUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      setState((prev) => ({ ...prev, pdfText: `PDF: ${file.name}` }));
+    setPdfLoading(true);
+    setPdfError(null);
+    try {
+      const text = await extractPdfText(file);
+      if (!text.trim()) {
+        setPdfError('Impossibile estrarre testo dal PDF. Il file potrebbe essere un\'immagine scansita.');
+        setPdfLoading(false);
+        return;
+      }
+      const newWeek = parsePdfToWeek(text, `Dieta: ${file.name.replace(/\.pdf$/i, '')}`);
+      const totalMeals = newWeek.days.reduce((s, d) => s + d.meals.filter((m) => m.name !== m.type || m.foods.length > 0 || m.calories > 0).length, 0);
+      if (totalMeals === 0) {
+        setState((prev) => ({ ...prev, pdfText: `PDF caricato: ${file.name} (nessun pasto rilevato, testo salvato per consultazione)` }));
+        setPdfError('Il PDF e stato caricato ma non e stato possibile riconoscere la struttura dei pasti. Puoi aggiungerli manualmente.');
+        setPdfLoading(false);
+        return;
+      }
+      setState((prev) => ({
+        ...prev,
+        weeks: [...prev.weeks, newWeek],
+        activeWeekId: newWeek.id,
+        pdfText: `PDF caricato: ${file.name} (${totalMeals} pasti)`,
+      }));
+      setWeekIdx(state.weeks.length);
       setShowPdfModal(false);
-    };
-    reader.readAsText(file);
+    } catch (err) {
+      setPdfError(`Errore durante la lettura del PDF: ${err instanceof Error ? err.message : 'errore sconosciuto'}`);
+    } finally {
+      setPdfLoading(false);
+    }
   }
 
   const dayPlan = week.days[selectedDay];
@@ -301,10 +328,22 @@ export function DietView() {
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Importa il file PDF della tua dieta per consultarla facilmente.
           </p>
-          <label className="btn-primary w-full cursor-pointer">
-            <Upload className="w-4 h-4" /> Carica PDF
-            <input type="file" accept=".pdf" className="hidden" onChange={handlePdfUpload} />
-          </label>
+          {pdfLoading ? (
+            <div className="flex items-center justify-center py-4 text-primary-600 dark:text-primary-400">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span className="ml-2 text-sm font-medium">Lettura del PDF in corso...</span>
+            </div>
+          ) : (
+            <label className="btn-primary w-full cursor-pointer">
+              <Upload className="w-4 h-4" /> Carica PDF
+              <input type="file" accept=".pdf" className="hidden" onChange={handlePdfUpload} />
+            </label>
+          )}
+          {pdfError && (
+            <div className="p-3 rounded-xl bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800">
+              <span className="text-sm text-error-700 dark:text-error-300">{pdfError}</span>
+            </div>
+          )}
           {state.pdfText && (
             <div className="p-3 rounded-xl bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800 flex items-center gap-2">
               <FileText className="w-5 h-5 text-success-600" />
