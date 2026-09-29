@@ -1,7 +1,7 @@
-import { Home, Salad, Dumbbell, Scale, Settings } from 'lucide-react';
+import { Home, Salad, Dumbbell, Scale, Settings, BookOpen } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
-export type TabKey = 'home' | 'diet' | 'nutrition' | 'body' | 'settings';
+export type TabKey = 'home' | 'diet' | 'nutrition' | 'food' | 'body' | 'settings';
 
 interface TabDef {
   key: TabKey;
@@ -13,6 +13,7 @@ export const TABS: TabDef[] = [
   { key: 'home', label: 'Home', icon: Home },
   { key: 'diet', label: 'Dieta', icon: Salad },
   { key: 'nutrition', label: 'Nutri', icon: Dumbbell },
+  { key: 'food', label: 'Alimenti', icon: BookOpen },
   { key: 'body', label: 'Corpo', icon: Scale },
   { key: 'settings', label: 'Impost.', icon: Settings },
 ];

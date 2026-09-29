@@ -70,6 +70,7 @@ function MacroTab({ today }: { today: string }) {
     protein: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.protein, 0),
     carbs: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.carbs, 0),
     fat: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.fat, 0),
+    saturatedFat: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.saturatedFat, 0),
     sugar: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.sugar, 0),
     fiber: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.fiber, 0),
     sodium: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.sodium, 0),
@@ -127,10 +128,11 @@ function MacroTab({ today }: { today: string }) {
       </div>
 
       {/* Extended nutrients */}
-      {(consumed.sugar > 0 || consumed.fiber > 0 || consumed.sodium > 0 || consumed.potassium > 0 || consumed.calcium > 0 || consumed.iron > 0) && (
+      {(consumed.saturatedFat > 0 || consumed.sugar > 0 || consumed.fiber > 0 || consumed.sodium > 0 || consumed.potassium > 0 || consumed.calcium > 0 || consumed.iron > 0) && (
         <div className="card p-5 space-y-4">
           <h2 className="section-title">Altri Nutrienti (da pasti consumati)</h2>
           <div className="grid grid-cols-2 gap-3">
+            <ExtNutrientCard label="Grassi Saturi" value={consumed.saturatedFat} unit="g" color="text-rose-600" />
             <ExtNutrientCard label="Zuccheri" value={consumed.sugar} unit="g" color="text-pink-500" />
             <ExtNutrientCard label="Fibre" value={consumed.fiber} unit="g" color="text-green-600" />
             <ExtNutrientCard label="Sodio" value={consumed.sodium} unit="mg" color="text-orange-500" />

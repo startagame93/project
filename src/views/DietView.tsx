@@ -237,6 +237,7 @@ export function DietView() {
                       <span className="text-blue-600 dark:text-blue-400">P {meal.protein}g</span>
                       <span className="text-accent-600 dark:text-accent-400">C {meal.carbs}g</span>
                       <span className="text-secondary-600 dark:text-secondary-400">G {meal.fat}g</span>
+                      {meal.saturatedFat > 0 && <span className="text-rose-600">Sat {meal.saturatedFat}g</span>}
                       {meal.sugar > 0 && <span className="text-pink-500">Zuc {meal.sugar}g</span>}
                       {meal.fiber > 0 && <span className="text-green-600">Fib {meal.fiber}g</span>}
                       {meal.sodium > 0 && <span className="text-orange-500">Na {meal.sodium}mg</span>}
@@ -453,6 +454,10 @@ function MealEditor({ meal, onSave, onClose }: { meal: Meal; onSave: (m: Meal) =
           <div>
             <label className="label">Grassi (g)</label>
             <input type="number" className="input" value={draft.fat || ''} onChange={(e) => setDraft({ ...draft, fat: +e.target.value })} />
+          </div>
+          <div>
+            <label className="label">Grassi Saturi (g)</label>
+            <input type="number" className="input" value={draft.saturatedFat || ''} onChange={(e) => setDraft({ ...draft, saturatedFat: +e.target.value })} />
           </div>
           <div>
             <label className="label">Zuccheri (g)</label>

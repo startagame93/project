@@ -23,6 +23,7 @@ export function Dashboard({ onNavigate }: { onNavigate: (tab: 'diet' | 'nutritio
   const consumedProtein = todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.protein, 0);
   const consumedCarbs = todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.carbs, 0);
   const consumedFat = todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.fat, 0);
+  const consumedSaturatedFat = todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.saturatedFat, 0);
   const consumedSugar = todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.sugar, 0);
   const consumedFiber = todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.fiber, 0);
   const consumedSodium = todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.sodium, 0);
@@ -105,10 +106,11 @@ export function Dashboard({ onNavigate }: { onNavigate: (tab: 'diet' | 'nutritio
       </div>
 
       {/* Extended nutrients summary */}
-      {(consumedSugar > 0 || consumedFiber > 0 || consumedSodium > 0 || consumedPotassium > 0 || consumedCalcium > 0 || consumedIron > 0) && (
+      {(consumedSaturatedFat > 0 || consumedSugar > 0 || consumedFiber > 0 || consumedSodium > 0 || consumedPotassium > 0 || consumedCalcium > 0 || consumedIron > 0) && (
         <div className="card p-5">
           <h2 className="section-title mb-3">Dettaglio Nutrienti di Oggi</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <NutrientStat label="Grassi Saturi" value={consumedSaturatedFat} unit="g" color="text-rose-600" />
             <NutrientStat label="Zuccheri" value={consumedSugar} unit="g" color="text-pink-500" />
             <NutrientStat label="Fibre" value={consumedFiber} unit="g" color="text-green-600" />
             <NutrientStat label="Sodio" value={consumedSodium} unit="mg" color="text-orange-500" />

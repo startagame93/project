@@ -7,6 +7,7 @@ import { NutritionView } from '@/views/NutritionView';
 import { BodyView } from '@/views/BodyView';
 import { ShoppingView } from '@/views/ShoppingView';
 import { SettingsView } from '@/views/SettingsView';
+import { FoodDatabaseView } from '@/views/FoodDatabaseView';
 import { Moon, Sun, ShoppingCart } from 'lucide-react';
 
 const TAB_TITLES: Record<TabKey | 'shopping', string> = {
@@ -14,6 +15,7 @@ const TAB_TITLES: Record<TabKey | 'shopping', string> = {
   diet: 'Piano Alimentare',
   nutrition: 'Nutrizione',
   body: 'Composizione Corporea',
+  food: 'Database Alimenti',
   settings: 'Impostazioni',
   shopping: 'Lista della Spesa',
 };
@@ -84,6 +86,7 @@ function AppContent() {
         {tab === 'home' && <Dashboard onNavigate={(t) => setTab(t)} />}
         {tab === 'diet' && <DietView />}
         {tab === 'nutrition' && <NutritionView />}
+        {tab === 'food' && <FoodDatabaseView />}
         {tab === 'body' && <BodyView />}
         {tab === 'shopping' && <ShoppingView />}
         {tab === 'settings' && <SettingsView onNavigate={(t) => setTab(t)} />}
