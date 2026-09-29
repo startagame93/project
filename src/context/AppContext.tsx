@@ -10,7 +10,7 @@ function loadState(): AppState {
     if (raw) {
       const parsed = JSON.parse(raw);
       const def = getDefaultState();
-      return { ...def, ...parsed, weeks: migrateWeeks(parsed.weeks ?? def.weeks), notifications: { ...def.notifications, ...parsed.notifications } };
+      return { ...def, ...parsed, weeks: migrateWeeks(parsed.weeks ?? def.weeks), customFoods: parsed.customFoods ?? [], notifications: { ...def.notifications, ...parsed.notifications } };
     }
   } catch {
     // ignore

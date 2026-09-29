@@ -61,6 +61,7 @@ export function createEmptyMeal(type: Meal['type']): Meal {
     protein: 0,
     carbs: 0,
     fat: 0,
+    saturatedFat: 0,
     sugar: 0,
     fiber: 0,
     sodium: 0,
@@ -72,7 +73,7 @@ export function createEmptyMeal(type: Meal['type']): Meal {
 }
 
 const NUTRIENT_DEFAULTS = {
-  sugar: 0, fiber: 0, sodium: 0, potassium: 0, calcium: 0, iron: 0,
+  saturatedFat: 0, sugar: 0, fiber: 0, sodium: 0, potassium: 0, calcium: 0, iron: 0,
 };
 
 export function migrateMeal(meal: Partial<Meal>): Meal {
@@ -136,5 +137,6 @@ export function getDefaultState(): AppState {
     waterLogs: [],
     theme: 'system',
     pdfText: null,
+    customFoods: [],
   };
 }

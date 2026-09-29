@@ -19,6 +19,7 @@ export interface Meal {
   protein: number;
   carbs: number;
   fat: number;
+  saturatedFat: number;
   sugar: number;
   fiber: number;
   sodium: number;
@@ -33,6 +34,7 @@ export const NUTRIENT_FIELDS = [
   { key: 'protein', label: 'Proteine', unit: 'g' },
   { key: 'carbs', label: 'Carboidrati', unit: 'g' },
   { key: 'fat', label: 'Grassi', unit: 'g' },
+  { key: 'saturatedFat', label: 'Grassi Saturi', unit: 'g' },
   { key: 'sugar', label: 'Zuccheri', unit: 'g' },
   { key: 'fiber', label: 'Fibre', unit: 'g' },
   { key: 'sodium', label: 'Sodio', unit: 'mg' },
@@ -162,6 +164,23 @@ export interface WaterLog {
 
 export type Theme = 'light' | 'dark' | 'system';
 
+export interface CustomFoodEntry {
+  id: string;
+  name: string;
+  category: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  saturatedFat: number;
+  sugar: number;
+  fiber: number;
+  sodium: number;
+  potassium: number;
+  calcium: number;
+  iron: number;
+}
+
 export interface AppState {
   profile: UserProfile;
   weeks: WeekPlan[];
@@ -174,4 +193,5 @@ export interface AppState {
   waterLogs: WaterLog[];
   theme: Theme;
   pdfText: string | null;
+  customFoods: CustomFoodEntry[];
 }

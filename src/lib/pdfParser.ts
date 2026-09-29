@@ -1,6 +1,7 @@
 import type { Meal, MealType, WeekPlan } from '@/types';
 import { MEAL_TYPES } from '@/types';
 import { uid, createEmptyWeek } from '@/lib/data';
+import { findFoodByName, calculateNutrients, type FoodEntry } from '@/lib/foodDatabase';
 
 let pdfjsPromise: Promise<typeof import('pdfjs-dist')> | null = null;
 
@@ -48,8 +49,6 @@ const MEAL_VARIANTS: Record<MealType, string[]> = {
   Cena: ['cena', 'dinner', 'serale'],
 };
 
-const WEEK_VARIANTS = ['settimana 1', 'settimana1', 'prima settimana', 'sett 1', 's1', 'settimana 2', 'settimana2', 'seconda settimana', 'sett 2', 's2'];
-
 function normalize(s: string): string {
   return s.toLowerCase().trim();
 }
@@ -82,40 +81,51 @@ function tryParseNumber(s: string): number {
   return isNaN(n) ? 0 : n;
 }
 
+interface FoodIngredient {
+  name: string;
+  grams: number;
+  food: FoodEntry | null;
+  calc: FoodEntry | null;
+}
+
 interface ParsedMeal {
   type: MealType;
   name: string;
   foods: string[];
+  ingredients: FoodIngredient[];
   calories: number;
   protein: number;
   carbs: number;
   fat: number;
+  saturatedFat: number;
   sugar: number;
   fiber: number;
   sodium: number;
   potassium: number;
   calcium: number;
   iron: number;
+  hasExplicitNutrients: boolean;
 }
 
 function emptyParsedMeal(type: MealType): ParsedMeal {
-  return { type, name: '', foods: [], calories: 0, protein: 0, carbs: 0, fat: 0, sugar: 0, fiber: 0, sodium: 0, potassium: 0, calcium: 0, iron: 0 };
+  return {
+    type, name: '', foods: [], ingredients: [],
+    calories: 0, protein: 0, carbs: 0, fat: 0, saturatedFat: 0,
+    sugar: 0, fiber: 0, sodium: 0, potassium: 0, calcium: 0, iron: 0,
+    hasExplicitNutrients: false,
+  };
 }
 
-interface NutrientPattern {
-  key: keyof ParsedMeal;
-  regex: RegExp;
-}
-
-const NUTRIENT_PATTERNS: NutrientPattern[] = [
+const NUTRIENT_PATTERNS: { key: keyof ParsedMeal; regex: RegExp }[] = [
   { key: 'calories', regex: /(\d+(?:[.,]\d+)?)\s*k?cal/i },
-  { key: 'protein', regex: /(?:prot|proteine|p)\s*:?\s*(\d+(?:[.,]\d+)?)\s*g/i },
-  { key: 'carbs', regex: /(?:carb|carbo|c(?:ar)?)\s*:?\s*(\d+(?:[.,]\d+)?)\s*g/i },
-  { key: 'fat', regex: /(?:grassi|fat|g|lipidi)\s*:?\s*(\d+(?:[.,]\d+)?)\s*g/i },
-  { key: 'sugar', regex: /(?:zuccheri|sugar|z)\s*:?\s*(\d+(?:[.,]\d+)?)\s*g/i },
+  { key: 'protein', regex: /(?:prot|proteine)\s*:?\s*(\d+(?:[.,]\d+)?)\s*g/i },
+  { key: 'carbs', regex: /(?:carb|carbo)\s*:?\s*(\d+(?:[.,]\d+)?)\s*g/i },
+  { key: 'fat', regex: /(?:grassi|fat|lipidi)\s*:?\s*(\d+(?:[.,]\d+)?)\s*g/i },
+  { key: 'saturatedFat', regex: /(?:saturi|grassi\s+saturi|sat)\s*:?\s*(\d+(?:[.,]\d+)?)\s*g/i },
+  { key: 'sugar', regex: /(?:zuccheri|sugar)\s*:?\s*(\d+(?:[.,]\d+)?)\s*g/i },
   { key: 'fiber', regex: /(?:fibre|fiber|fib)\s*:?\s*(\d+(?:[.,]\d+)?)\s*g/i },
   { key: 'sodium', regex: /(?:sodio|sodium|na)\s*:?\s*(\d+(?:[.,]\d+)?)\s*(?:mg|g)/i },
-  { key: 'potassium', regex: /(?:potassio|potassium|k)\s*:?\s*(\d+(?:[.,]\d+)?)\s*(?:mg|g)/i },
+  { key: 'potassium', regex: /(?:potassio|potassium)\s*:?\s*(\d+(?:[.,]\d+)?)\s*(?:mg|g)/i },
   { key: 'calcium', regex: /(?:calcio|calcium|ca)\s*:?\s*(\d+(?:[.,]\d+)?)\s*(?:mg|g)/i },
   { key: 'iron', regex: /(?:ferro|iron|fe)\s*:?\s*(\d+(?:[.,]\d+)?)\s*(?:mg|g)/i },
 ];
@@ -124,48 +134,129 @@ function isNutrientLine(line: string): boolean {
   return NUTRIENT_PATTERNS.some((p) => p.regex.test(line));
 }
 
+function extractGrams(text: string): number {
+  const m = text.match(/(\d+(?:[.,]\d+)?)\s*(?:g|gr|grammi)\b/i);
+  if (m) return tryParseNumber(m[1]);
+  const m2 = text.match(/(\d+)\s*(?:ml)\b/i);
+  if (m2) return tryParseNumber(m2[1]);
+  const m3 = text.match(/\b(\d+)\b/);
+  if (m3) return tryParseNumber(m3[1]);
+  return 0;
+}
+
+function stripGramsAndNumbers(text: string): string {
+  return text
+    .replace(/\d+(?:[.,]\d+)?\s*(?:g|gr|grammi|ml|pz|pezzo|pezzi|cucchiaio|cucchiai|tazza|tazze)\b/gi, '')
+    .replace(/\b\d+\b/g, '')
+    .replace(/[:\-–•·*]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function parseIngredient(line: string): FoodIngredient {
+  const grams = extractGrams(line);
+  const cleanName = stripGramsAndNumbers(line);
+  const food = cleanName ? findFoodByName(cleanName) : null;
+  const calc = food && grams > 0 ? calculateNutrients(food, grams) : null;
+  return { name: cleanName || line.trim(), grams, food, calc };
+}
+
+function sumIngredients(ingredients: FoodIngredient[]): Partial<ParsedMeal> {
+  const sums = {
+    calories: 0, protein: 0, carbs: 0, fat: 0, saturatedFat: 0,
+    sugar: 0, fiber: 0, sodium: 0, potassium: 0, calcium: 0, iron: 0,
+  };
+  let hasAny = false;
+  for (const ing of ingredients) {
+    if (!ing.calc) continue;
+    hasAny = true;
+    sums.calories += ing.calc.calories;
+    sums.protein += ing.calc.protein;
+    sums.carbs += ing.calc.carbs;
+    sums.fat += ing.calc.fat;
+    sums.saturatedFat += ing.calc.saturatedFat;
+    sums.sugar += ing.calc.sugar;
+    sums.fiber += ing.calc.fiber;
+    sums.sodium += ing.calc.sodium;
+    sums.potassium += ing.calc.potassium;
+    sums.calcium += ing.calc.calcium;
+    sums.iron += ing.calc.iron;
+  }
+  if (!hasAny) return {};
+  return {
+    calories: Math.round(sums.calories),
+    protein: Math.round(sums.protein * 10) / 10,
+    carbs: Math.round(sums.carbs * 10) / 10,
+    fat: Math.round(sums.fat * 10) / 10,
+    saturatedFat: Math.round(sums.saturatedFat * 10) / 10,
+    sugar: Math.round(sums.sugar * 10) / 10,
+    fiber: Math.round(sums.fiber * 10) / 10,
+    sodium: Math.round(sums.sodium * 10) / 10,
+    potassium: Math.round(sums.potassium * 10) / 10,
+    calcium: Math.round(sums.calcium * 10) / 10,
+    iron: Math.round(sums.iron * 10) / 10,
+  };
+}
+
 function parseMealsFromBlock(block: string): ParsedMeal[] {
   const meals: ParsedMeal[] = [];
   const lines = block.split('\n').map((l) => l.trim()).filter(Boolean);
 
   let currentMeal: ParsedMeal | null = null;
   let currentFoods: string[] = [];
+  let currentIngredients: FoodIngredient[] = [];
 
   for (const line of lines) {
     const mealType = matchMeal(line);
     if (mealType) {
       if (currentMeal) {
         currentMeal.foods = [...currentFoods];
+        currentMeal.ingredients = [...currentIngredients];
+        if (!currentMeal.hasExplicitNutrients) {
+          const dbSums = sumIngredients(currentIngredients);
+          if (Object.keys(dbSums).length > 0) Object.assign(currentMeal, dbSums);
+        }
         meals.push(currentMeal);
       }
       currentFoods = [];
+      currentIngredients = [];
       currentMeal = emptyParsedMeal(mealType);
       continue;
     }
 
     if (!currentMeal) continue;
 
-    let matched = false;
+    let matchedNutrient = false;
     for (const pattern of NUTRIENT_PATTERNS) {
       const m = line.match(pattern.regex);
       if (m) {
         (currentMeal as unknown as Record<string, unknown>)[pattern.key as string] = tryParseNumber(m[1]);
-        matched = true;
+        currentMeal.hasExplicitNutrients = true;
+        matchedNutrient = true;
         break;
       }
     }
 
-    if (!matched) {
-      if (!currentMeal.name) {
-        currentMeal.name = line;
-      } else {
-        currentFoods.push(line);
-      }
+    if (matchedNutrient) continue;
+
+    if (!currentMeal.name) {
+      currentMeal.name = line;
+    }
+
+    const ing = parseIngredient(line);
+    if (ing.name) {
+      currentFoods.push(ing.name + (ing.grams > 0 ? ` (${ing.grams}g)` : ''));
+      currentIngredients.push(ing);
     }
   }
 
   if (currentMeal) {
     currentMeal.foods = [...currentFoods];
+    currentMeal.ingredients = [...currentIngredients];
+    if (!currentMeal.hasExplicitNutrients) {
+      const dbSums = sumIngredients(currentIngredients);
+      if (Object.keys(dbSums).length > 0) Object.assign(currentMeal, dbSums);
+    }
     meals.push(currentMeal);
   }
 
@@ -296,6 +387,7 @@ function toMeal(pm: ParsedMeal): Meal {
     protein: pm.protein,
     carbs: pm.carbs,
     fat: pm.fat,
+    saturatedFat: pm.saturatedFat,
     sugar: pm.sugar,
     fiber: pm.fiber,
     sodium: pm.sodium,
