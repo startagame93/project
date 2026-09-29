@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { createEmptyWeek, createEmptyMeal, uid, todayISO } from '@/lib/data';
-import { extractPdfText, parsePdfToWeek } from '@/lib/pdfParser';
+import { extractPdfText, parsePdfToWeeks } from '@/lib/pdfParser';
 import { DAYS_OF_WEEK, MEAL_TYPES, MEAL_ICONS, type Meal, type MealType, type WeekPlan } from '@/types';
 import { Modal } from '@/components/Modal';
 import { Sheet } from '@/components/Sheet';
@@ -116,19 +116,19 @@ export function DietView() {
         setPdfLoading(false);
         return;
       }
-      const newWeek = parsePdfToWeek(text, `Dieta: ${file.name.replace(/\.pdf$/i, '')}`);
-      const totalMeals = newWeek.days.reduce((s, d) => s + d.meals.filter((m) => m.name !== m.type || m.foods.length > 0 || m.calories > 0).length, 0);
-      if (totalMeals === 0) {
-        setState((prev) => ({ ...prev, pdfText: `PDF caricato: ${file.name} (nessun pasto rilevato, testo salvato per consultazione)` }));
-        setPdfError('Il PDF e stato caricato ma non e stato possibile riconoscere la struttura dei pasti. Puoi aggiungerli manualmente.');
+      const result = parsePdfToWeeks(text, file.name);
+      if (result.totalMeals === 0) {
+        setState((prev) => ({ ...prev, pdfText: `PDF caricato: ${file.name} (nessun pasto rilevato)` }));
+        setPdfError('Il PDF è stato caricato ma non è stato possibile riconoscere la struttura dei pasti. Puoi aggiungerli manualmente.');
         setPdfLoading(false);
         return;
       }
+      const newWeeks = result.weeks;
       setState((prev) => ({
         ...prev,
-        weeks: [...prev.weeks, newWeek],
-        activeWeekId: newWeek.id,
-        pdfText: `PDF caricato: ${file.name} (${totalMeals} pasti)`,
+        weeks: [...prev.weeks, ...newWeeks],
+        activeWeekId: newWeeks[0].id,
+        pdfText: `Dieta "${result.dietName}" importata: ${result.totalMeals} pasti in ${newWeeks.length} settimana/e`,
       }));
       setWeekIdx(state.weeks.length);
       setShowPdfModal(false);
@@ -233,10 +233,16 @@ export function DietView() {
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{meal.foods.join(', ')}</p>
                   )}
                   {(meal.protein > 0 || meal.carbs > 0 || meal.fat > 0) && (
-                    <div className="flex gap-3 mt-2 text-xs">
+                    <div className="flex flex-wrap gap-3 mt-2 text-xs">
                       <span className="text-blue-600 dark:text-blue-400">P {meal.protein}g</span>
                       <span className="text-accent-600 dark:text-accent-400">C {meal.carbs}g</span>
                       <span className="text-secondary-600 dark:text-secondary-400">G {meal.fat}g</span>
+                      {meal.sugar > 0 && <span className="text-pink-500">Zuc {meal.sugar}g</span>}
+                      {meal.fiber > 0 && <span className="text-green-600">Fib {meal.fiber}g</span>}
+                      {meal.sodium > 0 && <span className="text-orange-500">Na {meal.sodium}mg</span>}
+                      {meal.potassium > 0 && <span className="text-teal-500">K {meal.potassium}mg</span>}
+                      {meal.calcium > 0 && <span className="text-amber-600">Ca {meal.calcium}mg</span>}
+                      {meal.iron > 0 && <span className="text-red-500">Fe {meal.iron}mg</span>}
                     </div>
                   )}
                 </div>
@@ -441,12 +447,36 @@ function MealEditor({ meal, onSave, onClose }: { meal: Meal; onSave: (m: Meal) =
             <input type="number" className="input" value={draft.protein || ''} onChange={(e) => setDraft({ ...draft, protein: +e.target.value })} />
           </div>
           <div>
-            <label className="label">Carbo (g)</label>
+            <label className="label">Carboidrati (g)</label>
             <input type="number" className="input" value={draft.carbs || ''} onChange={(e) => setDraft({ ...draft, carbs: +e.target.value })} />
           </div>
           <div>
             <label className="label">Grassi (g)</label>
             <input type="number" className="input" value={draft.fat || ''} onChange={(e) => setDraft({ ...draft, fat: +e.target.value })} />
+          </div>
+          <div>
+            <label className="label">Zuccheri (g)</label>
+            <input type="number" className="input" value={draft.sugar || ''} onChange={(e) => setDraft({ ...draft, sugar: +e.target.value })} />
+          </div>
+          <div>
+            <label className="label">Fibre (g)</label>
+            <input type="number" className="input" value={draft.fiber || ''} onChange={(e) => setDraft({ ...draft, fiber: +e.target.value })} />
+          </div>
+          <div>
+            <label className="label">Sodio (mg)</label>
+            <input type="number" className="input" value={draft.sodium || ''} onChange={(e) => setDraft({ ...draft, sodium: +e.target.value })} />
+          </div>
+          <div>
+            <label className="label">Potassio (mg)</label>
+            <input type="number" className="input" value={draft.potassium || ''} onChange={(e) => setDraft({ ...draft, potassium: +e.target.value })} />
+          </div>
+          <div>
+            <label className="label">Calcio (mg)</label>
+            <input type="number" className="input" value={draft.calcium || ''} onChange={(e) => setDraft({ ...draft, calcium: +e.target.value })} />
+          </div>
+          <div>
+            <label className="label">Ferro (mg)</label>
+            <input type="number" className="input" value={draft.iron || ''} onChange={(e) => setDraft({ ...draft, iron: +e.target.value })} />
           </div>
         </div>
 

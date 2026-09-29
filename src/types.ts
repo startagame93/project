@@ -19,8 +19,29 @@ export interface Meal {
   protein: number;
   carbs: number;
   fat: number;
+  sugar: number;
+  fiber: number;
+  sodium: number;
+  potassium: number;
+  calcium: number;
+  iron: number;
   completed: boolean;
 }
+
+export const NUTRIENT_FIELDS = [
+  { key: 'calories', label: 'Calorie', unit: 'kcal' },
+  { key: 'protein', label: 'Proteine', unit: 'g' },
+  { key: 'carbs', label: 'Carboidrati', unit: 'g' },
+  { key: 'fat', label: 'Grassi', unit: 'g' },
+  { key: 'sugar', label: 'Zuccheri', unit: 'g' },
+  { key: 'fiber', label: 'Fibre', unit: 'g' },
+  { key: 'sodium', label: 'Sodio', unit: 'mg' },
+  { key: 'potassium', label: 'Potassio', unit: 'mg' },
+  { key: 'calcium', label: 'Calcio', unit: 'mg' },
+  { key: 'iron', label: 'Ferro', unit: 'mg' },
+] as const;
+
+export type NutrientKey = typeof NUTRIENT_FIELDS[number]['key'];
 
 export interface DayPlan {
   day: string;

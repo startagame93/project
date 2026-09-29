@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
 import type { AppState, Theme } from '@/types';
-import { getDefaultState } from '@/lib/data';
+import { getDefaultState, migrateWeeks } from '@/lib/data';
 
 const STORAGE_KEY = 'nutriplan-state-v1';
 
@@ -10,7 +10,7 @@ function loadState(): AppState {
     if (raw) {
       const parsed = JSON.parse(raw);
       const def = getDefaultState();
-      return { ...def, ...parsed, notifications: { ...def.notifications, ...parsed.notifications } };
+      return { ...def, ...parsed, weeks: migrateWeeks(parsed.weeks ?? def.weeks), notifications: { ...def.notifications, ...parsed.notifications } };
     }
   } catch {
     // ignore

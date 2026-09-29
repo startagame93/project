@@ -70,6 +70,12 @@ function MacroTab({ today }: { today: string }) {
     protein: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.protein, 0),
     carbs: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.carbs, 0),
     fat: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.fat, 0),
+    sugar: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.sugar, 0),
+    fiber: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.fiber, 0),
+    sodium: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.sodium, 0),
+    potassium: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.potassium, 0),
+    calcium: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.calcium, 0),
+    iron: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.iron, 0),
   };
 
   const targetCal = calcTargetCalories(state.profile);
@@ -119,6 +125,21 @@ function MacroTab({ today }: { today: string }) {
         <MacroRow icon={Wheat} label="Carboidrati" value={consumed.carbs} max={macroTargets.carbs} color="bg-accent-500" unit="g" />
         <MacroRow icon={Fish} label="Grassi" value={consumed.fat} max={macroTargets.fat} color="bg-secondary-500" unit="g" />
       </div>
+
+      {/* Extended nutrients */}
+      {(consumed.sugar > 0 || consumed.fiber > 0 || consumed.sodium > 0 || consumed.potassium > 0 || consumed.calcium > 0 || consumed.iron > 0) && (
+        <div className="card p-5 space-y-4">
+          <h2 className="section-title">Altri Nutrienti (da pasti consumati)</h2>
+          <div className="grid grid-cols-2 gap-3">
+            <ExtNutrientCard label="Zuccheri" value={consumed.sugar} unit="g" color="text-pink-500" />
+            <ExtNutrientCard label="Fibre" value={consumed.fiber} unit="g" color="text-green-600" />
+            <ExtNutrientCard label="Sodio" value={consumed.sodium} unit="mg" color="text-orange-500" />
+            <ExtNutrientCard label="Potassio" value={consumed.potassium} unit="mg" color="text-teal-500" />
+            <ExtNutrientCard label="Calcio" value={consumed.calcium} unit="mg" color="text-amber-600" />
+            <ExtNutrientCard label="Ferro" value={consumed.iron} unit="mg" color="text-red-500" />
+          </div>
+        </div>
+      )}
 
       {/* Water tracking */}
       <div className="card p-5">
@@ -170,6 +191,15 @@ function MacroRow({ icon: Icon, label, value, max, color, unit }: {
         <span className="text-sm text-gray-500">{value} / {max}{unit} ({pct}%)</span>
       </div>
       <ProgressBar value={value} max={max} color={color} height={8} showOverflow />
+    </div>
+  );
+}
+
+function ExtNutrientCard({ label, value, unit, color }: { label: string; value: number; unit: string; color: string }) {
+  return (
+    <div className="p-3 rounded-xl bg-gray-50 dark:bg-gray-800">
+      <p className={`text-lg font-bold ${color}`}>{value}{unit}</p>
+      <p className="text-xs text-gray-500">{label}</p>
     </div>
   );
 }

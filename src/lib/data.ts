@@ -61,8 +61,32 @@ export function createEmptyMeal(type: Meal['type']): Meal {
     protein: 0,
     carbs: 0,
     fat: 0,
+    sugar: 0,
+    fiber: 0,
+    sodium: 0,
+    potassium: 0,
+    calcium: 0,
+    iron: 0,
     completed: false,
   };
+}
+
+const NUTRIENT_DEFAULTS = {
+  sugar: 0, fiber: 0, sodium: 0, potassium: 0, calcium: 0, iron: 0,
+};
+
+export function migrateMeal(meal: Partial<Meal>): Meal {
+  return { ...createEmptyMeal(meal.type ?? 'Colazione'), ...meal, ...NUTRIENT_DEFAULTS };
+}
+
+export function migrateWeeks(weeks: WeekPlan[]): WeekPlan[] {
+  return weeks.map((w) => ({
+    ...w,
+    days: w.days.map((d) => ({
+      ...d,
+      meals: d.meals.map((m) => migrateMeal(m)),
+    })),
+  }));
 }
 
 function createEmptyDay(day: string): DayPlan {

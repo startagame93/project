@@ -23,6 +23,12 @@ export function Dashboard({ onNavigate }: { onNavigate: (tab: 'diet' | 'nutritio
   const consumedProtein = todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.protein, 0);
   const consumedCarbs = todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.carbs, 0);
   const consumedFat = todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.fat, 0);
+  const consumedSugar = todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.sugar, 0);
+  const consumedFiber = todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.fiber, 0);
+  const consumedSodium = todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.sodium, 0);
+  const consumedPotassium = todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.potassium, 0);
+  const consumedCalcium = todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.calcium, 0);
+  const consumedIron = todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.iron, 0);
 
   const todayWater = state.waterLogs.find((w) => w.date === today)?.glasses ?? 0;
   const waterTarget = 8;
@@ -97,6 +103,21 @@ export function Dashboard({ onNavigate }: { onNavigate: (tab: 'diet' | 'nutritio
           </div>
         </div>
       </div>
+
+      {/* Extended nutrients summary */}
+      {(consumedSugar > 0 || consumedFiber > 0 || consumedSodium > 0 || consumedPotassium > 0 || consumedCalcium > 0 || consumedIron > 0) && (
+        <div className="card p-5">
+          <h2 className="section-title mb-3">Dettaglio Nutrienti di Oggi</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <NutrientStat label="Zuccheri" value={consumedSugar} unit="g" color="text-pink-500" />
+            <NutrientStat label="Fibre" value={consumedFiber} unit="g" color="text-green-600" />
+            <NutrientStat label="Sodio" value={consumedSodium} unit="mg" color="text-orange-500" />
+            <NutrientStat label="Potassio" value={consumedPotassium} unit="mg" color="text-teal-500" />
+            <NutrientStat label="Calcio" value={consumedCalcium} unit="mg" color="text-amber-600" />
+            <NutrientStat label="Ferro" value={consumedIron} unit="mg" color="text-red-500" />
+          </div>
+        </div>
+      )}
 
       {/* Meals summary */}
       <div className="card p-5">
@@ -199,5 +220,14 @@ function StatCard({ icon: Icon, label, value, color, onClick }: {
         <p className="text-xs text-gray-500">{label}</p>
       </div>
     </button>
+  );
+}
+
+function NutrientStat({ label, value, unit, color }: { label: string; value: number; unit: string; color: string }) {
+  return (
+    <div className="p-3 rounded-xl bg-gray-50 dark:bg-gray-800">
+      <p className={`text-lg font-bold ${color}`}>{value}{unit}</p>
+      <p className="text-xs text-gray-500">{label}</p>
+    </div>
   );
 }
