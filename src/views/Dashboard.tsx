@@ -3,7 +3,7 @@ import { useApp } from '@/context/AppContext';
 import { calcBMR, calcTDEE, calcTargetCalories, calcMacroTargets, todayISO } from '@/lib/data';
 import { ProgressRing } from '@/components/ProgressRing';
 import { ProgressBar } from '@/components/ProgressBar';
-import { Droplet, Flame, Beef, Wheat, Fish, Dumbbell, Pill, TrendingUp, Bell, Activity, Zap, Minus, Plus, ChevronDown } from 'lucide-react';
+import { Droplet, Flame, Beef, Wheat, Fish, Dumbbell, Pill, TrendingUp, Bell, Activity, Zap, Minus, Plus } from 'lucide-react';
 import { SUPPLEMENT_TYPES, MICRONUTRIENT_TARGETS, MEAL_TYPES, ACTIVITY_LEVELS } from '@/types';
 import type { ActivityLevel } from '@/types';
 
@@ -228,7 +228,6 @@ function TdeeCalculator({ bmr, tdee, targetCal, weight, activityLabel, activityL
   activityLevel: ActivityLevel;
   setState: (updater: (prev: import('@/types').AppState) => import('@/types').AppState) => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
   const [selectedWorkout, setSelectedWorkout] = useState(0);
   const [minutes, setMinutes] = useState(30);
   const [burned, setBurned] = useState(0);
@@ -247,149 +246,134 @@ function TdeeCalculator({ bmr, tdee, targetCal, weight, activityLabel, activityL
   }
 
   return (
-    <div className="card p-5">
-      <button
-        onClick={() => setExpanded((e) => !e)}
-        className="w-full flex items-center justify-between text-left"
-        aria-expanded={expanded}
-        aria-label="Calcolatore dispendio calorico e allenamento. Tocca per espandere."
-      >
-        <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-xl bg-accent-100 dark:bg-accent-900/30 flex items-center justify-center shrink-0">
-            <Activity className="w-5 h-5 text-accent-600 dark:text-accent-400" />
-          </div>
-          <div>
-            <h2 className="section-title">Dispendio Calorico (TDEE)</h2>
-            <p className="text-xs text-gray-500">BMR, attivita e calorie da allenamento</p>
-          </div>
+    <div className="card p-5 space-y-4">
+      {/* Header */}
+      <div className="flex items-center gap-2">
+        <div className="w-9 h-9 rounded-xl bg-accent-100 dark:bg-accent-900/30 flex items-center justify-center shrink-0">
+          <Activity className="w-5 h-5 text-accent-600 dark:text-accent-400" />
         </div>
-        <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${expanded ? 'rotate-180' : ''}`} />
-      </button>
-
-      {!expanded && (
-        <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-          <div className="p-2 rounded-xl bg-gray-50 dark:bg-gray-800">
-            <p className="text-xs text-gray-500">BMR</p>
-            <p className="text-base font-bold text-gray-900 dark:text-white">{bmr}</p>
-          </div>
-          <div className="p-2 rounded-xl bg-gray-50 dark:bg-gray-800">
-            <p className="text-xs text-gray-500">TDEE</p>
-            <p className="text-base font-bold text-primary-600 dark:text-primary-400">{tdee}</p>
-          </div>
-          <div className="p-2 rounded-xl bg-gray-50 dark:bg-gray-800">
-            <p className="text-xs text-gray-500">Obiettivo</p>
-            <p className="text-base font-bold text-accent-600 dark:text-accent-400">{targetCal}</p>
-          </div>
+        <div>
+          <h2 className="section-title">Dispendio Calorico & Allenamento</h2>
+          <p className="text-xs text-gray-500">BMR, TDEE e calorie bruciate</p>
         </div>
-      )}
+      </div>
 
-      {expanded && (
-        <div className="mt-4 space-y-4 animate-fade-in" role="region" aria-label="Dettagli dispendio calorico">
-          {/* Activity level selector */}
-          <div>
-            <label className="label">Livello di Attivita</label>
-            <select
-              className="input"
-              value={activityLevel}
-              onChange={(e) => setState((prev) => ({ ...prev, profile: { ...prev.profile, activityLevel: e.target.value as ActivityLevel } }))}
-              aria-label="Seleziona il tuo livello di attivita settimanale"
+      {/* TDEE breakdown - always visible */}
+      <div className="grid grid-cols-3 gap-2 text-center">
+        <div className="p-2.5 rounded-xl bg-gray-50 dark:bg-gray-800">
+          <p className="text-xs text-gray-500">BMR</p>
+          <p className="text-base font-bold text-gray-900 dark:text-white">{bmr}</p>
+          <p className="text-[10px] text-gray-400">kcal</p>
+        </div>
+        <div className="p-2.5 rounded-xl bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800">
+          <p className="text-xs text-primary-600 dark:text-primary-400">TDEE</p>
+          <p className="text-base font-bold text-primary-600 dark:text-primary-400">{netTdee}</p>
+          <p className="text-[10px] text-primary-400">kcal/giorno</p>
+        </div>
+        <div className="p-2.5 rounded-xl bg-accent-50 dark:bg-accent-900/20 border border-accent-200 dark:border-accent-800">
+          <p className="text-xs text-accent-600 dark:text-accent-400">Obiettivo</p>
+          <p className="text-base font-bold text-accent-600 dark:text-accent-400">{netTarget}</p>
+          <p className="text-[10px] text-accent-400">kcal/giorno</p>
+        </div>
+      </div>
+
+      {/* Activity level selector */}
+      <div>
+        <label className="label">Livello di Attivita</label>
+        <select
+          className="input"
+          value={activityLevel}
+          onChange={(e) => setState((prev) => ({ ...prev, profile: { ...prev.profile, activityLevel: e.target.value as ActivityLevel } }))}
+          aria-label="Seleziona il tuo livello di attivita settimanale"
+        >
+          {ACTIVITY_LEVELS.map((a) => (
+            <option key={a.value} value={a.value}>{a.label} - {a.description}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Breakdown rows */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-sm p-2.5 rounded-xl bg-gray-50 dark:bg-gray-800">
+          <span className="flex items-center gap-2 text-gray-600 dark:text-gray-400"><Flame className="w-4 h-4 text-orange-500" /> Metabolismo basale</span>
+          <span className="font-semibold text-gray-900 dark:text-white">{bmr} kcal</span>
+        </div>
+        <div className="flex items-center justify-between text-sm p-2.5 rounded-xl bg-gray-50 dark:bg-gray-800">
+          <span className="flex items-center gap-2 text-gray-600 dark:text-gray-400"><Activity className="w-4 h-4 text-accent-500" /> Attivita ({activityLabel})</span>
+          <span className="font-semibold text-gray-900 dark:text-white">+{tdee - bmr} kcal</span>
+        </div>
+        {burned > 0 && (
+          <div className="flex items-center justify-between text-sm p-2.5 rounded-xl bg-accent-50 dark:bg-accent-900/20 border border-accent-200 dark:border-accent-800">
+            <span className="flex items-center gap-2 text-accent-700 dark:text-accent-300"><Zap className="w-4 h-4" /> Allenamento</span>
+            <span className="font-semibold text-accent-700 dark:text-accent-300">+{burned} kcal</span>
+          </div>
+        )}
+      </div>
+
+      {/* Workout calculator - always visible */}
+      <div className="pt-3 border-t border-gray-100 dark:border-gray-800">
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-1.5">
+          <Dumbbell className="w-4 h-4 text-accent-600" /> Calcola Calorie da Allenamento
+        </h3>
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          {WORKOUT_TYPES.map((w, i) => (
+            <button
+              key={w.label}
+              onClick={() => setSelectedWorkout(i)}
+              className={`flex flex-col items-center gap-1 p-2 rounded-xl text-xs font-medium transition-all ${
+                selectedWorkout === i
+                  ? 'bg-primary-600 text-white scale-105'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+              }`}
+              aria-label={`${w.label}, MET ${w.met}`}
+              aria-pressed={selectedWorkout === i}
             >
-              {ACTIVITY_LEVELS.map((a) => (
-                <option key={a.value} value={a.value}>{a.label} - {a.description}</option>
-              ))}
-            </select>
-          </div>
+              <span className="text-lg" aria-hidden="true">{w.icon}</span>
+              {w.label}
+            </button>
+          ))}
+        </div>
 
-          {/* TDEE breakdown */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm p-2.5 rounded-xl bg-gray-50 dark:bg-gray-800">
-              <span className="flex items-center gap-2 text-gray-600 dark:text-gray-400"><Flame className="w-4 h-4 text-orange-500" /> Metabolismo basale (BMR)</span>
-              <span className="font-semibold text-gray-900 dark:text-white">{bmr} kcal</span>
-            </div>
-            <div className="flex items-center justify-between text-sm p-2.5 rounded-xl bg-gray-50 dark:bg-gray-800">
-              <span className="flex items-center gap-2 text-gray-600 dark:text-gray-400"><Activity className="w-4 h-4 text-accent-500" /> Attivita ({activityLabel})</span>
-              <span className="font-semibold text-gray-900 dark:text-white">+{tdee - bmr} kcal</span>
-            </div>
-            {burned > 0 && (
-              <div className="flex items-center justify-between text-sm p-2.5 rounded-xl bg-accent-50 dark:bg-accent-900/20 border border-accent-200 dark:border-accent-800">
-                <span className="flex items-center gap-2 text-accent-700 dark:text-accent-300"><Zap className="w-4 h-4" /> Allenamento registrato</span>
-                <span className="font-semibold text-accent-700 dark:text-accent-300">+{burned} kcal</span>
-              </div>
-            )}
-            <div className="flex items-center justify-between text-sm p-3 rounded-xl bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800">
-              <span className="font-semibold text-primary-700 dark:text-primary-300">TDEE Totale</span>
-              <span className="text-lg font-bold text-primary-700 dark:text-primary-300">{netTdee} kcal</span>
-            </div>
-            <div className="flex items-center justify-between text-sm p-3 rounded-xl bg-accent-50 dark:bg-accent-900/20 border border-accent-200 dark:border-accent-800">
-              <span className="font-semibold text-accent-700 dark:text-accent-300">Obiettivo Calorico Aggiornato</span>
-              <span className="text-lg font-bold text-accent-700 dark:text-accent-300">{netTarget} kcal</span>
-            </div>
-          </div>
-
-          {/* Workout calculator */}
-          <div className="pt-3 border-t border-gray-100 dark:border-gray-800">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Calcola Calorie da Allenamento</h3>
-            <div className="grid grid-cols-3 gap-2 mb-3">
-              {WORKOUT_TYPES.map((w, i) => (
-                <button
-                  key={w.label}
-                  onClick={() => setSelectedWorkout(i)}
-                  className={`flex flex-col items-center gap-1 p-2 rounded-xl text-xs font-medium transition-all ${
-                    selectedWorkout === i
-                      ? 'bg-primary-600 text-white scale-105'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
-                  }`}
-                  aria-label={`${w.label}, MET ${w.met}`}
-                  aria-pressed={selectedWorkout === i}
-                >
-                  <span className="text-lg" aria-hidden="true">{w.icon}</span>
-                  {w.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-sm text-gray-600 dark:text-gray-400">Durata (minuti)</label>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setMinutes((m) => Math.max(5, m - 5))}
-                  className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
-                  aria-label="Riduci durata di 5 minuti"
-                >
-                  <Minus className="w-4 h-4" />
-                </button>
-                <span className="text-lg font-bold text-gray-900 dark:text-white w-12 text-center" aria-live="polite">{minutes}</span>
-                <button
-                  onClick={() => setMinutes((m) => Math.min(180, m + 5))}
-                  className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
-                  aria-label="Aumenta durata di 5 minuti"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-accent-50 to-primary-50 dark:from-accent-900/20 dark:to-primary-900/20 mb-3">
-              <div>
-                <p className="text-xs text-gray-500">Stima sessione</p>
-                <p className="text-xl font-bold text-accent-600 dark:text-accent-400">{sessionCalories} kcal</p>
-              </div>
-              <span className="text-2xl" aria-hidden="true">{workout.icon}</span>
-            </div>
-
-            <div className="flex gap-2">
-              <button onClick={logWorkout} className="btn-primary flex-1 text-sm">
-                <Plus className="w-4 h-4" /> Aggiungi al TDEE
-              </button>
-              {burned > 0 && (
-                <button onClick={resetWorkout} className="btn-secondary flex-1 text-sm">
-                  Azzera
-                </button>
-              )}
-            </div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm text-gray-600 dark:text-gray-400">Durata (minuti)</label>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setMinutes((m) => Math.max(5, m - 5))}
+              className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+              aria-label="Riduci durata di 5 minuti"
+            >
+              <Minus className="w-4 h-4" />
+            </button>
+            <span className="text-lg font-bold text-gray-900 dark:text-white w-12 text-center" aria-live="polite">{minutes}</span>
+            <button
+              onClick={() => setMinutes((m) => Math.min(180, m + 5))}
+              className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+              aria-label="Aumenta durata di 5 minuti"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
           </div>
         </div>
-      )}
+
+        <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-accent-50 to-primary-50 dark:from-accent-900/20 dark:to-primary-900/20 mb-3">
+          <div>
+            <p className="text-xs text-gray-500">Stima sessione</p>
+            <p className="text-xl font-bold text-accent-600 dark:text-accent-400">{sessionCalories} kcal</p>
+          </div>
+          <span className="text-2xl" aria-hidden="true">{workout.icon}</span>
+        </div>
+
+        <div className="flex gap-2">
+          <button onClick={logWorkout} className="btn-primary flex-1 text-sm">
+            <Plus className="w-4 h-4" /> Aggiungi al TDEE
+          </button>
+          {burned > 0 && (
+            <button onClick={resetWorkout} className="btn-secondary flex-1 text-sm">
+              Azzera
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
