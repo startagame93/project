@@ -12,6 +12,209 @@ function isCustom(food: CombinedFood): boolean {
   return !FOOD_DATABASE.some((f) => f.id === food.id);
 }
 
+const CATEGORY_EMOJI: Record<string, string> = {
+  'Cereali': '🌾',
+  'Legumi': '🫘',
+  'Carni Bianche': '🍗',
+  'Carni Rosse': '🥩',
+  'Pesce': '🐟',
+  'Verdure': '🥬',
+  'Frutta': '🍎',
+  'Condimenti': '🫒',
+  'Latticini': '🧀',
+  'Uova': '🥚',
+  'Sushi / Piatti Misti': '🍣',
+  'Snack / Dolci': '🍫',
+  'Bevande': '🥤',
+  'Frutta Secca': '🥜',
+};
+
+const KEYWORD_EMOJI: { kw: string; emoji: string }[] = [
+  { kw: 'riso', emoji: '🍚' },
+  { kw: 'pasta', emoji: '🍝' },
+  { kw: 'pane', emoji: '🍞' },
+  { kw: 'pizza', emoji: '🍕' },
+  { kw: 'pollo', emoji: '🍗' },
+  { kw: 'tacchino', emoji: '🦃' },
+  { kw: 'manzo', emoji: '🥩' },
+  { kw: 'salmone', emoji: '🐟' },
+  { kw: 'tonno', emoji: '🐟' },
+  { kw: 'merluzzo', emoji: '🐟' },
+  { kw: 'gamberi', emoji: '🦐' },
+  { kw: 'calamari', emoji: '🦑' },
+  { kw: 'cozze', emoji: '🦪' },
+  { kw: 'uovo', emoji: '🥚' },
+  { kw: 'albume', emoji: '🥚' },
+  { kw: 'latte', emoji: '🥛' },
+  { kw: 'yogurt', emoji: '🥛' },
+  { kw: 'mozzarella', emoji: '🧀' },
+  { kw: 'parmigiano', emoji: '🧀' },
+  { kw: 'formaggio', emoji: '🧀' },
+  { kw: 'ricotta', emoji: '🧀' },
+  { kw: 'mela', emoji: '🍎' },
+  { kw: 'banana', emoji: '🍌' },
+  { kw: 'arancia', emoji: '🍊' },
+  { kw: 'limone', emoji: '🍋' },
+  { kw: 'uva', emoji: '🍇' },
+  { kw: 'fragole', emoji: '🍓' },
+  { kw: 'kiwi', emoji: '🥝' },
+  { kw: 'ananas', emoji: '🍍' },
+  { kw: 'anguria', emoji: '🍉' },
+  { kw: 'melone', emoji: '🍈' },
+  { kw: 'avocado', emoji: '🥑' },
+  { kw: 'pomodoro', emoji: '🍅' },
+  { kw: 'patate', emoji: '🥔' },
+  { kw: 'carote', emoji: '🥕' },
+  { kw: 'broccoli', emoji: '🥦' },
+  { kw: 'insalata', emoji: '🥗' },
+  { kw: 'spinaci', emoji: '🥬' },
+  { kw: 'cipolle', emoji: '🧅' },
+  { kw: 'aglio', emoji: '🧄' },
+  { kw: 'peperoni', emoji: '🫑' },
+  { kw: 'zucchine', emoji: '🥒' },
+  { kw: 'melanzane', emoji: '🍆' },
+  { kw: 'funghi', emoji: '🍄' },
+  { kw: 'zucca', emoji: '🎃' },
+  { kw: 'mandorle', emoji: '🌰' },
+  { kw: 'noci', emoji: '🌰' },
+  { kw: 'nocciole', emoji: '🌰' },
+  { kw: 'pistacchi', emoji: '🌰' },
+  { kw: 'arachidi', emoji: '🥜' },
+  { kw: 'datteri', emoji: '🌴' },
+  { kw: 'olio', emoji: '🫒' },
+  { kw: 'burro', emoji: '🧈' },
+  { kw: 'miele', emoji: '🍯' },
+  { kw: 'zucchero', emoji: '🧂' },
+  { kw: 'sale', emoji: '🧂' },
+  { kw: 'caffe', emoji: '☕' },
+  { kw: 'the', emoji: '🍵' },
+  { kw: 'cappuccino', emoji: '☕' },
+  { kw: 'cioccolato', emoji: '🍫' },
+  { kw: 'gelato', emoji: '🍦' },
+  { kw: 'biscotti', emoji: '🍪' },
+  { kw: 'croissant', emoji: '🥐' },
+  { kw: 'patatine', emoji: '🍟' },
+  { kw: 'popcorn', emoji: '🍿' },
+  { kw: 'sushi', emoji: '🍣' },
+  { kw: 'sashimi', emoji: '🍣' },
+  { kw: 'tempura', emoji: '🍤' },
+  { kw: 'ramen', emoji: '🍜' },
+  { kw: 'udon', emoji: '🍜' },
+  { kw: 'gyoza', emoji: '🥟' },
+  { kw: 'tofu', emoji: '🧈' },
+  { kw: 'edamame', emoji: '🫛' },
+  { kw: 'hummus', emoji: '🥙' },
+  { kw: 'pesto', emoji: '🌿' },
+  { kw: 'soia', emoji: '🫘' },
+  { kw: 'lenticchie', emoji: '🫘' },
+  { kw: 'ceci', emoji: '🫘' },
+  { kw: 'fagioli', emoji: '🫘' },
+  { kw: 'piselli', emoji: '🫛' },
+  { kw: 'fave', emoji: '🫛' },
+  { kw: 'prosciutto', emoji: '🍖' },
+  { kw: 'bresaola', emoji: '🍖' },
+  { kw: 'salsiccia', emoji: '🌭' },
+  { kw: 'pancetta', emoji: '🥓' },
+  { kw: 'wurstel', emoji: '🌭' },
+  { kw: 'acqua', emoji: '💧' },
+  { kw: 'birra', emoji: '🍺' },
+  { kw: 'vino', emoji: '🍷' },
+  { kw: 'succo', emoji: '🧃' },
+  { kw: 'smoothie', emoji: '🥤' },
+  { kw: 'frullato', emoji: '🥤' },
+  { kw: 'kefir', emoji: '🥛' },
+  { kw: 'frittata', emoji: '🍳' },
+  { kw: 'tuorlo', emoji: '🥚' },
+  { kw: 'cous', emoji: '🍚' },
+  { kw: 'quinoa', emoji: '🌾' },
+  { kw: 'avena', emoji: '🥣' },
+  { kw: 'farro', emoji: '🌾' },
+  { kw: 'grano', emoji: '🌾' },
+  { kw: 'crackers', emoji: '🍘' },
+  { kw: 'tortilla', emoji: '🫓' },
+  { kw: 'polenta', emoji: '🌽' },
+  { kw: 'muesli', emoji: '🥣' },
+  { kw: 'cornflakes', emoji: '🥣' },
+  { kw: 'nutella', emoji: '🍫' },
+  { kw: 'marmellata', emoji: '🍯' },
+  { kw: 'ketchup', emoji: '🥫' },
+  { kw: 'maionese', emoji: '🥚' },
+  { kw: 'salsa', emoji: '🥫' },
+  { kw: 'aceto', emoji: '🫗' },
+  { kw: 'passata', emoji: '🍅' },
+  { kw: 'olive', emoji: '🫒' },
+  { kw: 'barretta', emoji: '🍫' },
+  { kw: 'pudding', emoji: '🍮' },
+  { kw: 'tisana', emoji: '🍵' },
+  { kw: 'chinotto', emoji: '🥤' },
+  { kw: 'cocco', emoji: '🥥' },
+  { kw: 'mandarino', emoji: '🍊' },
+  { kw: 'pompelmo', emoji: '🍊' },
+  { kw: 'mango', emoji: '🥭' },
+  { kw: 'pesca', emoji: '🍑' },
+  { kw: 'ciliegie', emoji: '🍒' },
+  { kw: 'fichi', emoji: ' fig' },
+  { kw: 'albicocca', emoji: '🍑' },
+  { kw: 'pera', emoji: '🍐' },
+  { kw: 'sedano', emoji: '🌱' },
+  { kw: 'asparagi', emoji: '🌱' },
+  { kw: 'finocchi', emoji: '🌱' },
+  { kw: 'radicchio', emoji: '🥬' },
+  { kw: 'cavolo', emoji: '🥬' },
+  { kw: 'verze', emoji: '🥬' },
+  { kw: 'rape', emoji: '🥬' },
+  { kw: 'cetrioli', emoji: '🥒' },
+  { kw: 'rucola', emoji: '🌿' },
+  { kw: 'cicoria', emoji: '🌿' },
+  { kw: 'lattuga', emoji: '🥬' },
+  { kw: 'fagiolini', emoji: '🫛' },
+  { kw: 'piselli surgelati', emoji: '🫛' },
+  { kw: 'surgelati', emoji: '🧊' },
+  { kw: 'scatola', emoji: '🥫' },
+  { kw: 'affumicato', emoji: '💨' },
+  { kw: 'arrosto', emoji: '🍗' },
+  { kw: 'cantonese', emoji: '🍚' },
+  { kw: 'noodles', emoji: '🍜' },
+  { kw: 'jolly', emoji: '🍽️' },
+  { kw: 'misto', emoji: '🍽️' },
+  { kw: 'caciotta', emoji: '🧀' },
+  { kw: 'feta', emoji: '🧀' },
+  { kw: 'gorgonzola', emoji: '🧀' },
+  { kw: 'stracchino', emoji: '🧀' },
+  { kw: 'fontina', emoji: '🧀' },
+  { kw: 'asiago', emoji: '🧀' },
+  { kw: 'philadelphia', emoji: '🧀' },
+  { kw: 'robiola', emoji: '🧀' },
+  { kw: 'cottage', emoji: '🧀' },
+  { kw: 'grana', emoji: '🧀' },
+  { kw: 'pecorino', emoji: '🧀' },
+  { kw: 'creatin', emoji: '💊' },
+  { kw: 'caffein', emoji: '☕' },
+  { kw: 'uva', emoji: '🍇' },
+  { kw: 'uvetta', emoji: '🍇' },
+  { kw: 'prugne', emoji: '🌑' },
+  { kw: 'semi', emoji: '🌱' },
+  { kw: 'tahina', emoji: '🥜' },
+  { kw: 'harissa', emoji: '🌶️' },
+  { kw: 'senape', emoji: '🌶️' },
+  { kw: 'worchester', emoji: '🥫' },
+  { kw: 'tartara', emoji: '🥽' },
+  { kw: 'vinaigrette', emoji: '🫗' },
+  { kw: 'panna', emoji: '🥛' },
+  { kw: 'margarina', emoji: '🧈' },
+  { kw: 'sorbetto', emoji: '🍧' },
+  { kw: 'tiramisu', emoji: '🍰' },
+  { kw: 'ciambella', emoji: '🍩' },
+];
+
+function getFoodEmoji(name: string, category: string): string {
+  const lower = name.toLowerCase();
+  for (const { kw, emoji } of KEYWORD_EMOJI) {
+    if (lower.includes(kw)) return emoji;
+  }
+  return CATEGORY_EMOJI[category] ?? '🍽️';
+}
+
 export function FoodDatabaseView() {
   const { state, setState } = useApp();
   const [query, setQuery] = useState('');
@@ -159,20 +362,28 @@ function FoodCard({ food, custom, onEdit, onDelete }: {
     <div className="card p-4">
       <button
         onClick={() => setExpanded((e) => !e)}
-        className="w-full flex items-center justify-between text-left"
+        className="w-full flex items-center justify-between text-left gap-3"
         aria-expanded={expanded}
         aria-label={`Valori nutrizionali di ${food.name}, ${food.calories} calorie per 100 grammi. Tocca per dettagli.`}
       >
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-gray-900 dark:text-white">{food.name}</span>
-            {custom && (
-              <span className="chip bg-accent-100 text-accent-700 dark:bg-accent-900/30 dark:text-accent-300 text-[10px]">
-                Personalizzato
-              </span>
-            )}
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <span
+            className="w-11 h-11 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-2xl shrink-0"
+            aria-hidden="true"
+          >
+            {getFoodEmoji(food.name, food.category)}
+          </span>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-semibold text-gray-900 dark:text-white">{food.name}</span>
+              {custom && (
+                <span className="chip bg-accent-100 text-accent-700 dark:bg-accent-900/30 dark:text-accent-300 text-[10px]">
+                  Personalizzato
+                </span>
+              )}
+            </div>
+            <span className="text-xs text-gray-500">{food.category}</span>
           </div>
-          <span className="text-xs text-gray-500">{food.category}</span>
         </div>
         <div className="text-right shrink-0">
           <span className="text-lg font-bold text-primary-600 dark:text-primary-400">{food.calories}</span>
