@@ -1,6 +1,7 @@
 {
   "name": "NutriPlan - Dieta e Nutrizione",
   "short_name": "NutriPlan",
+   "id": "/",
   "description": "Gestione dieta multi-settimana, tracciamento nutrizione, integratori e composizione corporea",
   "start_url": "/",
   "display": "standalone",
