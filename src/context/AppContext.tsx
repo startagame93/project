@@ -1,16 +1,28 @@
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from 'react';
 import type { AppState, Theme } from '@/types';
 import { getDefaultState, migrateWeeks } from '@/lib/data';
+import { loadRemoteState, saveRemoteState } from '@/lib/supabase';
 
 const STORAGE_KEY = 'nutriplan-state-v1';
 
-function loadState(): AppState {
+function mergeState(parsed: Partial<AppState>): AppState {
+  const def = getDefaultState();
+  return {
+    ...def,
+    ...parsed,
+    weeks: migrateWeeks(parsed.weeks ?? def.weeks),
+    customFoods: parsed.customFoods ?? [],
+    notifications: { ...def.notifications, ...parsed.notifications },
+    workoutLogs: parsed.workoutLogs ?? [],
+    onboardingComplete: parsed.onboardingComplete ?? false,
+  };
+}
+
+function loadLocalState(): AppState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
-      const parsed = JSON.parse(raw);
-      const def = getDefaultState();
-      return { ...def, ...parsed, weeks: migrateWeeks(parsed.weeks ?? def.weeks), customFoods: parsed.customFoods ?? [], notifications: { ...def.notifications, ...parsed.notifications }, workoutLogs: parsed.workoutLogs ?? [], onboardingComplete: parsed.onboardingComplete ?? false };
+      return mergeState(JSON.parse(raw));
     }
   } catch {
     // ignore
@@ -18,7 +30,7 @@ function loadState(): AppState {
   return getDefaultState();
 }
 
-function saveState(state: AppState) {
+function saveLocalState(state: AppState) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch {
@@ -32,6 +44,7 @@ interface AppContextValue {
   theme: 'light' | 'dark';
   toggleTheme: () => void;
   setTheme: (t: Theme) => void;
+  loading: boolean;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -44,19 +57,46 @@ function resolveTheme(theme: Theme): 'light' | 'dark' {
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [state, setStateInner] = useState<AppState>(loadState);
+  const [state, setStateInner] = useState<AppState>(loadLocalState);
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(() => resolveTheme(state.theme));
+  const [loading, setLoading] = useState(true);
+  const skipRemoteSave = useRef(false);
 
+  // Load from Supabase on startup
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const remote = await loadRemoteState();
+      if (remote && mounted) {
+        skipRemoteSave.current = true;
+        setStateInner(mergeState(remote as Partial<AppState>));
+      }
+      setLoading(false);
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  // Save to localStorage + Supabase on every state change
   const setState = useCallback((updater: (prev: AppState) => AppState) => {
     setStateInner((prev) => {
       const next = updater(prev);
-      saveState(next);
+      saveLocalState(next);
+      if (!skipRemoteSave.current) {
+        saveRemoteState(next as unknown as Record<string, unknown>);
+      }
       return next;
     });
   }, []);
 
+  // After the initial remote load, allow subsequent saves
   useEffect(() => {
-    saveState(state);
+    if (skipRemoteSave.current) {
+      skipRemoteSave.current = false;
+    }
+  }, [state]);
+
+  useEffect(() => {
+    saveLocalState(state);
   }, [state]);
 
   useEffect(() => {
@@ -89,7 +129,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [resolvedTheme, setState]);
 
   return (
-    <AppContext.Provider value={{ state, setState, theme: resolvedTheme, toggleTheme, setTheme }}>
+    <AppContext.Provider value={{ state, setState, theme: resolvedTheme, toggleTheme, setTheme, loading }}>
       {children}
     </AppContext.Provider>
   );
