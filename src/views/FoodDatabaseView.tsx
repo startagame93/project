@@ -3,8 +3,9 @@ import { useApp } from '@/context/AppContext';
 import { FOOD_DATABASE, FOOD_CATEGORIES, type FoodEntry } from '@/lib/foodDatabase';
 import { uid } from '@/lib/data';
 import { Sheet } from '@/components/Sheet';
-import { Search, Plus, Pencil, Trash2, BookOpen, Check, X } from 'lucide-react';
-import type { CustomFoodEntry } from '@/types';
+import { Search, Plus, Pencil, Trash2, BookOpen, Check, ChevronDown, ChevronUp, Calendar, Utensils, Repeat, ArrowRight } from 'lucide-react';
+import type { CustomFoodEntry, MealType, Meal } from '@/types';
+import { MEAL_TYPES, DAYS_OF_WEEK } from '@/types';
 
 type CombinedFood = FoodEntry | CustomFoodEntry;
 
@@ -13,198 +14,70 @@ function isCustom(food: CombinedFood): boolean {
 }
 
 const CATEGORY_EMOJI: Record<string, string> = {
-  'Cereali': '🌾',
-  'Legumi': '🫘',
-  'Carni Bianche': '🍗',
-  'Carni Rosse': '🥩',
-  'Pesce': '🐟',
-  'Verdure': '🥬',
-  'Frutta': '🍎',
-  'Condimenti': '🫒',
-  'Latticini': '🧀',
-  'Uova': '🥚',
-  'Sushi / Piatti Misti': '🍣',
-  'Snack / Dolci': '🍫',
-  'Bevande': '🥤',
-  'Frutta Secca': '🥜',
+  'Cereali': '🌾', 'Legumi': '🫘', 'Carni Bianche': '🍗', 'Carni Rosse': '🥩',
+  'Pesce': '🐟', 'Verdure': '🥬', 'Frutta': '🍎', 'Condimenti': '🫒',
+  'Latticini': '🧀', 'Uova': '🥚', 'Sushi / Piatti Misti': '🍣',
+  'Snack / Dolci': '🍫', 'Bevande': '🥤', 'Frutta Secca': '🥜',
 };
 
 const KEYWORD_EMOJI: { kw: string; emoji: string }[] = [
-  { kw: 'riso', emoji: '🍚' },
-  { kw: 'pasta', emoji: '🍝' },
-  { kw: 'pane', emoji: '🍞' },
-  { kw: 'pizza', emoji: '🍕' },
-  { kw: 'pollo', emoji: '🍗' },
-  { kw: 'tacchino', emoji: '🦃' },
-  { kw: 'manzo', emoji: '🥩' },
-  { kw: 'salmone', emoji: '🐟' },
-  { kw: 'tonno', emoji: '🐟' },
-  { kw: 'merluzzo', emoji: '🐟' },
-  { kw: 'gamberi', emoji: '🦐' },
-  { kw: 'calamari', emoji: '🦑' },
-  { kw: 'cozze', emoji: '🦪' },
-  { kw: 'uovo', emoji: '🥚' },
-  { kw: 'albume', emoji: '🥚' },
-  { kw: 'latte', emoji: '🥛' },
-  { kw: 'yogurt', emoji: '🥛' },
-  { kw: 'mozzarella', emoji: '🧀' },
-  { kw: 'parmigiano', emoji: '🧀' },
-  { kw: 'formaggio', emoji: '🧀' },
-  { kw: 'ricotta', emoji: '🧀' },
-  { kw: 'mela', emoji: '🍎' },
-  { kw: 'banana', emoji: '🍌' },
-  { kw: 'arancia', emoji: '🍊' },
-  { kw: 'limone', emoji: '🍋' },
-  { kw: 'uva', emoji: '🍇' },
-  { kw: 'fragole', emoji: '🍓' },
-  { kw: 'kiwi', emoji: '🥝' },
-  { kw: 'ananas', emoji: '🍍' },
-  { kw: 'anguria', emoji: '🍉' },
-  { kw: 'melone', emoji: '🍈' },
-  { kw: 'avocado', emoji: '🥑' },
-  { kw: 'pomodoro', emoji: '🍅' },
-  { kw: 'patate', emoji: '🥔' },
-  { kw: 'carote', emoji: '🥕' },
-  { kw: 'broccoli', emoji: '🥦' },
-  { kw: 'insalata', emoji: '🥗' },
-  { kw: 'spinaci', emoji: '🥬' },
-  { kw: 'cipolle', emoji: '🧅' },
-  { kw: 'aglio', emoji: '🧄' },
-  { kw: 'peperoni', emoji: '🫑' },
-  { kw: 'zucchine', emoji: '🥒' },
-  { kw: 'melanzane', emoji: '🍆' },
-  { kw: 'funghi', emoji: '🍄' },
-  { kw: 'zucca', emoji: '🎃' },
-  { kw: 'mandorle', emoji: '🌰' },
-  { kw: 'noci', emoji: '🌰' },
-  { kw: 'nocciole', emoji: '🌰' },
-  { kw: 'pistacchi', emoji: '🌰' },
-  { kw: 'arachidi', emoji: '🥜' },
-  { kw: 'datteri', emoji: '🌴' },
-  { kw: 'olio', emoji: '🫒' },
-  { kw: 'burro', emoji: '🧈' },
-  { kw: 'miele', emoji: '🍯' },
-  { kw: 'zucchero', emoji: '🧂' },
-  { kw: 'sale', emoji: '🧂' },
-  { kw: 'caffe', emoji: '☕' },
-  { kw: 'the', emoji: '🍵' },
-  { kw: 'cappuccino', emoji: '☕' },
-  { kw: 'cioccolato', emoji: '🍫' },
-  { kw: 'gelato', emoji: '🍦' },
-  { kw: 'biscotti', emoji: '🍪' },
-  { kw: 'croissant', emoji: '🥐' },
-  { kw: 'patatine', emoji: '🍟' },
-  { kw: 'popcorn', emoji: '🍿' },
-  { kw: 'sushi', emoji: '🍣' },
-  { kw: 'sashimi', emoji: '🍣' },
-  { kw: 'tempura', emoji: '🍤' },
-  { kw: 'ramen', emoji: '🍜' },
-  { kw: 'udon', emoji: '🍜' },
-  { kw: 'gyoza', emoji: '🥟' },
-  { kw: 'tofu', emoji: '🧈' },
-  { kw: 'edamame', emoji: '🫛' },
-  { kw: 'hummus', emoji: '🥙' },
-  { kw: 'pesto', emoji: '🌿' },
-  { kw: 'soia', emoji: '🫘' },
-  { kw: 'lenticchie', emoji: '🫘' },
-  { kw: 'ceci', emoji: '🫘' },
-  { kw: 'fagioli', emoji: '🫘' },
-  { kw: 'piselli', emoji: '🫛' },
-  { kw: 'fave', emoji: '🫛' },
-  { kw: 'prosciutto', emoji: '🍖' },
-  { kw: 'bresaola', emoji: '🍖' },
-  { kw: 'salsiccia', emoji: '🌭' },
-  { kw: 'pancetta', emoji: '🥓' },
-  { kw: 'wurstel', emoji: '🌭' },
-  { kw: 'acqua', emoji: '💧' },
-  { kw: 'birra', emoji: '🍺' },
-  { kw: 'vino', emoji: '🍷' },
-  { kw: 'succo', emoji: '🧃' },
-  { kw: 'smoothie', emoji: '🥤' },
-  { kw: 'frullato', emoji: '🥤' },
-  { kw: 'kefir', emoji: '🥛' },
-  { kw: 'frittata', emoji: '🍳' },
-  { kw: 'tuorlo', emoji: '🥚' },
-  { kw: 'cous', emoji: '🍚' },
-  { kw: 'quinoa', emoji: '🌾' },
-  { kw: 'avena', emoji: '🥣' },
-  { kw: 'farro', emoji: '🌾' },
-  { kw: 'grano', emoji: '🌾' },
-  { kw: 'crackers', emoji: '🍘' },
-  { kw: 'tortilla', emoji: '🫓' },
-  { kw: 'polenta', emoji: '🌽' },
-  { kw: 'muesli', emoji: '🥣' },
-  { kw: 'cornflakes', emoji: '🥣' },
-  { kw: 'nutella', emoji: '🍫' },
-  { kw: 'marmellata', emoji: '🍯' },
-  { kw: 'ketchup', emoji: '🥫' },
-  { kw: 'maionese', emoji: '🥚' },
-  { kw: 'salsa', emoji: '🥫' },
-  { kw: 'aceto', emoji: '🫗' },
-  { kw: 'passata', emoji: '🍅' },
-  { kw: 'olive', emoji: '🫒' },
-  { kw: 'barretta', emoji: '🍫' },
-  { kw: 'pudding', emoji: '🍮' },
-  { kw: 'tisana', emoji: '🍵' },
-  { kw: 'chinotto', emoji: '🥤' },
-  { kw: 'cocco', emoji: '🥥' },
-  { kw: 'mandarino', emoji: '🍊' },
-  { kw: 'pompelmo', emoji: '🍊' },
-  { kw: 'mango', emoji: '🥭' },
-  { kw: 'pesca', emoji: '🍑' },
-  { kw: 'ciliegie', emoji: '🍒' },
-  { kw: 'fichi', emoji: ' fig' },
-  { kw: 'albicocca', emoji: '🍑' },
-  { kw: 'pera', emoji: '🍐' },
-  { kw: 'sedano', emoji: '🌱' },
-  { kw: 'asparagi', emoji: '🌱' },
-  { kw: 'finocchi', emoji: '🌱' },
-  { kw: 'radicchio', emoji: '🥬' },
-  { kw: 'cavolo', emoji: '🥬' },
-  { kw: 'verze', emoji: '🥬' },
-  { kw: 'rape', emoji: '🥬' },
-  { kw: 'cetrioli', emoji: '🥒' },
-  { kw: 'rucola', emoji: '🌿' },
-  { kw: 'cicoria', emoji: '🌿' },
-  { kw: 'lattuga', emoji: '🥬' },
-  { kw: 'fagiolini', emoji: '🫛' },
-  { kw: 'piselli surgelati', emoji: '🫛' },
-  { kw: 'surgelati', emoji: '🧊' },
-  { kw: 'scatola', emoji: '🥫' },
-  { kw: 'affumicato', emoji: '💨' },
-  { kw: 'arrosto', emoji: '🍗' },
-  { kw: 'cantonese', emoji: '🍚' },
-  { kw: 'noodles', emoji: '🍜' },
-  { kw: 'jolly', emoji: '🍽️' },
-  { kw: 'misto', emoji: '🍽️' },
-  { kw: 'caciotta', emoji: '🧀' },
-  { kw: 'feta', emoji: '🧀' },
-  { kw: 'gorgonzola', emoji: '🧀' },
-  { kw: 'stracchino', emoji: '🧀' },
-  { kw: 'fontina', emoji: '🧀' },
-  { kw: 'asiago', emoji: '🧀' },
-  { kw: 'philadelphia', emoji: '🧀' },
-  { kw: 'robiola', emoji: '🧀' },
-  { kw: 'cottage', emoji: '🧀' },
-  { kw: 'grana', emoji: '🧀' },
-  { kw: 'pecorino', emoji: '🧀' },
-  { kw: 'creatin', emoji: '💊' },
-  { kw: 'caffein', emoji: '☕' },
-  { kw: 'uva', emoji: '🍇' },
-  { kw: 'uvetta', emoji: '🍇' },
-  { kw: 'prugne', emoji: '🌑' },
-  { kw: 'semi', emoji: '🌱' },
-  { kw: 'tahina', emoji: '🥜' },
-  { kw: 'harissa', emoji: '🌶️' },
-  { kw: 'senape', emoji: '🌶️' },
-  { kw: 'worchester', emoji: '🥫' },
-  { kw: 'tartara', emoji: '🥽' },
-  { kw: 'vinaigrette', emoji: '🫗' },
-  { kw: 'panna', emoji: '🥛' },
-  { kw: 'margarina', emoji: '🧈' },
-  { kw: 'sorbetto', emoji: '🍧' },
-  { kw: 'tiramisu', emoji: '🍰' },
-  { kw: 'ciambella', emoji: '🍩' },
+  { kw: 'riso', emoji: '🍚' }, { kw: 'pasta', emoji: '🍝' }, { kw: 'pane', emoji: '🍞' },
+  { kw: 'pizza', emoji: '🍕' }, { kw: 'pollo', emoji: '🍗' }, { kw: 'tacchino', emoji: '🦃' },
+  { kw: 'manzo', emoji: '🥩' }, { kw: 'salmone', emoji: '🐟' }, { kw: 'tonno', emoji: '🐟' },
+  { kw: 'merluzzo', emoji: '🐟' }, { kw: 'gamberi', emoji: '🦐' }, { kw: 'calamari', emoji: '🦑' },
+  { kw: 'cozze', emoji: '🦪' }, { kw: 'uovo', emoji: '🥚' }, { kw: 'albume', emoji: '🥚' },
+  { kw: 'latte', emoji: '🥛' }, { kw: 'yogurt', emoji: '🥛' }, { kw: 'mozzarella', emoji: '🧀' },
+  { kw: 'parmigiano', emoji: '🧀' }, { kw: 'formaggio', emoji: '🧀' }, { kw: 'ricotta', emoji: '🧀' },
+  { kw: 'mela', emoji: '🍎' }, { kw: 'banana', emoji: '🍌' }, { kw: 'arancia', emoji: '🍊' },
+  { kw: 'limone', emoji: '🍋' }, { kw: 'uva', emoji: '🍇' }, { kw: 'fragole', emoji: '🍓' },
+  { kw: 'kiwi', emoji: '🥝' }, { kw: 'ananas', emoji: '🍍' }, { kw: 'anguria', emoji: '🍉' },
+  { kw: 'melone', emoji: '🍈' }, { kw: 'avocado', emoji: '🥑' }, { kw: 'pomodoro', emoji: '🍅' },
+  { kw: 'patate', emoji: '🥔' }, { kw: 'carote', emoji: '🥕' }, { kw: 'broccoli', emoji: '🥦' },
+  { kw: 'insalata', emoji: '🥗' }, { kw: 'spinaci', emoji: '🥬' }, { kw: 'cipolle', emoji: '🧅' },
+  { kw: 'aglio', emoji: '🧄' }, { kw: 'peperoni', emoji: '🫑' }, { kw: 'zucchine', emoji: '🥒' },
+  { kw: 'melanzane', emoji: '🍆' }, { kw: 'funghi', emoji: '🍄' }, { kw: 'zucca', emoji: '🎃' },
+  { kw: 'mandorle', emoji: '🌰' }, { kw: 'noci', emoji: '🌰' }, { kw: 'nocciole', emoji: '🌰' },
+  { kw: 'pistacchi', emoji: '🌰' }, { kw: 'arachidi', emoji: '🥜' }, { kw: 'datteri', emoji: '🌴' },
+  { kw: 'olio', emoji: '🫒' }, { kw: 'burro', emoji: '🧈' }, { kw: 'miele', emoji: '🍯' },
+  { kw: 'zucchero', emoji: '🧂' }, { kw: 'sale', emoji: '🧂' }, { kw: 'caffe', emoji: '☕' },
+  { kw: 'the', emoji: '🍵' }, { kw: 'cappuccino', emoji: '☕' }, { kw: 'cioccolato', emoji: '🍫' },
+  { kw: 'gelato', emoji: '🍦' }, { kw: 'biscotti', emoji: '🍪' }, { kw: 'croissant', emoji: '🥐' },
+  { kw: 'patatine', emoji: '🍟' }, { kw: 'popcorn', emoji: '🍿' }, { kw: 'sushi', emoji: '🍣' },
+  { kw: 'sashimi', emoji: '🍣' }, { kw: 'tempura', emoji: '🍤' }, { kw: 'ramen', emoji: '🍜' },
+  { kw: 'udon', emoji: '🍜' }, { kw: 'gyoza', emoji: '🥟' }, { kw: 'tofu', emoji: '🧈' },
+  { kw: 'edamame', emoji: '🫛' }, { kw: 'hummus', emoji: '🥙' }, { kw: 'pesto', emoji: '🌿' },
+  { kw: 'soia', emoji: '🫘' }, { kw: 'lenticchie', emoji: '🫘' }, { kw: 'ceci', emoji: '🫘' },
+  { kw: 'fagioli', emoji: '🫘' }, { kw: 'piselli', emoji: '🫛' }, { kw: 'fave', emoji: '🫛' },
+  { kw: 'prosciutto', emoji: '🍖' }, { kw: 'bresaola', emoji: '🍖' }, { kw: 'salsiccia', emoji: '🌭' },
+  { kw: 'pancetta', emoji: '🥓' }, { kw: 'wurstel', emoji: '🌭' }, { kw: 'acqua', emoji: '💧' },
+  { kw: 'birra', emoji: '🍺' }, { kw: 'vino', emoji: '🍷' }, { kw: 'succo', emoji: '🧃' },
+  { kw: 'smoothie', emoji: '🥤' }, { kw: 'frullato', emoji: '🥤' }, { kw: 'kefir', emoji: '🥛' },
+  { kw: 'frittata', emoji: '🍳' }, { kw: 'tuorlo', emoji: '🥚' }, { kw: 'cous', emoji: '🍚' },
+  { kw: 'quinoa', emoji: '🌾' }, { kw: 'avena', emoji: '🥣' }, { kw: 'farro', emoji: '🌾' },
+  { kw: 'grano', emoji: '🌾' }, { kw: 'crackers', emoji: '🍘' }, { kw: 'tortilla', emoji: '🫓' },
+  { kw: 'polenta', emoji: '🌽' }, { kw: 'muesli', emoji: '🥣' }, { kw: 'cornflakes', emoji: '🥣' },
+  { kw: 'nutella', emoji: '🍫' }, { kw: 'marmellata', emoji: '🍯' }, { kw: 'ketchup', emoji: '🥫' },
+  { kw: 'maionese', emoji: '🥚' }, { kw: 'salsa', emoji: '🥫' }, { kw: 'aceto', emoji: '🫗' },
+  { kw: 'passata', emoji: '🍅' }, { kw: 'olive', emoji: '🫒' }, { kw: 'barretta', emoji: '🍫' },
+  { kw: 'pudding', emoji: '🍮' }, { kw: 'tisana', emoji: '🍵' }, { kw: 'chinotto', emoji: '🥤' },
+  { kw: 'cocco', emoji: '🥥' }, { kw: 'mandarino', emoji: '🍊' }, { kw: 'pompelmo', emoji: '🍊' },
+  { kw: 'mango', emoji: '🥭' }, { kw: 'pesca', emoji: '🍑' }, { kw: 'ciliegie', emoji: '🍒' },
+  { kw: 'fichi', emoji: '🍂' }, { kw: 'albicocca', emoji: '🍑' }, { kw: 'pera', emoji: '🍐' },
+  { kw: 'sedano', emoji: '🌱' }, { kw: 'asparagi', emoji: '🌱' }, { kw: 'finocchi', emoji: '🌱' },
+  { kw: 'radicchio', emoji: '🥬' }, { kw: 'cavolo', emoji: '🥬' }, { kw: 'verze', emoji: '🥬' },
+  { kw: 'rape', emoji: '🥬' }, { kw: 'cetrioli', emoji: '🥒' }, { kw: 'rucola', emoji: '🌿' },
+  { kw: 'cicoria', emoji: '🌿' }, { kw: 'lattuga', emoji: '🥬' }, { kw: 'fagiolini', emoji: '🫛' },
+  { kw: 'surgelati', emoji: '🧊' }, { kw: 'scatola', emoji: '🥫' }, { kw: 'affumicato', emoji: '💨' },
+  { kw: 'arrosto', emoji: '🍗' }, { kw: 'cantonese', emoji: '🍚' }, { kw: 'noodles', emoji: '🍜' },
+  { kw: 'jolly', emoji: '🍽️' }, { kw: 'misto', emoji: '🍽️' }, { kw: 'caciotta', emoji: '🧀' },
+  { kw: 'feta', emoji: '🧀' }, { kw: 'gorgonzola', emoji: '🧀' }, { kw: 'stracchino', emoji: '🧀' },
+  { kw: 'fontina', emoji: '🧀' }, { kw: 'asiago', emoji: '🧀' }, { kw: 'philadelphia', emoji: '🧀' },
+  { kw: 'robiola', emoji: '🧀' }, { kw: 'cottage', emoji: '🧀' }, { kw: 'grana', emoji: '🧀' },
+  { kw: 'pecorino', emoji: '🧀' }, { kw: 'uvetta', emoji: '🍇' }, { kw: 'prugne', emoji: '🌑' },
+  { kw: 'semi', emoji: '🌱' }, { kw: 'tahina', emoji: '🥜' }, { kw: 'harissa', emoji: '🌶️' },
+  { kw: 'senape', emoji: '🌶️' }, { kw: 'worchester', emoji: '🥫' }, { kw: 'tartara', emoji: '🥽' },
+  { kw: 'vinaigrette', emoji: '🫗' }, { kw: 'panna', emoji: '🥛' }, { kw: 'margarina', emoji: '🧈' },
+  { kw: 'sorbetto', emoji: '🍧' }, { kw: 'tiramisu', emoji: '🍰' }, { kw: 'ciambella', emoji: '🍩' },
 ];
 
 function getFoodEmoji(name: string, category: string): string {
@@ -221,6 +94,8 @@ export function FoodDatabaseView() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [editingFood, setEditingFood] = useState<CustomFoodEntry | null>(null);
   const [addingFood, setAddingFood] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [addToDietFood, setAddToDietFood] = useState<CombinedFood | null>(null);
 
   const allFoods: CombinedFood[] = useMemo(() => {
     return [...FOOD_DATABASE, ...state.customFoods];
@@ -274,35 +149,44 @@ export function FoodDatabaseView() {
         />
       </div>
 
-      {/* Category filter */}
-      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1" role="tablist" aria-label="Filtra per categoria">
+      {/* Collapsible category filter */}
+      <div className="card p-3">
         <button
-          onClick={() => setSelectedCategory('all')}
-          className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-            selectedCategory === 'all'
-              ? 'bg-primary-600 text-white'
-              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
-          }`}
-          role="tab"
-          aria-selected={selectedCategory === 'all'}
+          onClick={() => setShowFilters((s) => !s)}
+          className="w-full flex items-center justify-between text-sm font-medium text-gray-700 dark:text-gray-300"
+          aria-expanded={showFilters}
+          aria-label="Mostra o nascondi i filtri per categoria"
         >
-          Tutti
+          <span>
+            Filtra per categoria
+            {selectedCategory !== 'all' && (
+              <span className="chip bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 ml-2">{selectedCategory}</span>
+            )}
+          </span>
+          {showFilters ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
-        {FOOD_CATEGORIES.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setSelectedCategory(cat)}
-            className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              selectedCategory === cat
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
-            }`}
-            role="tab"
-            aria-selected={selectedCategory === cat}
-          >
-            {cat}
-          </button>
-        ))}
+
+        {showFilters && (
+          <div className="flex flex-wrap gap-2 mt-3 animate-fade-in" role="group" aria-label="Categorie alimentari">
+            <button
+              onClick={() => setSelectedCategory('all')}
+              className={`chip ${selectedCategory === 'all' ? 'bg-primary-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}
+              aria-pressed={selectedCategory === 'all'}
+            >
+              Tutti
+            </button>
+            {FOOD_CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`chip ${selectedCategory === cat ? 'bg-primary-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}
+                aria-pressed={selectedCategory === cat}
+              >
+                {CATEGORY_EMOJI[cat]} {cat}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Results count */}
@@ -319,6 +203,7 @@ export function FoodDatabaseView() {
             custom={isCustom(food)}
             onEdit={() => startEdit(food)}
             onDelete={() => deleteCustomFood(food.id)}
+            onAddToDiet={() => setAddToDietFood(food)}
           />
         ))}
         {filtered.length === 0 && (
@@ -346,15 +231,24 @@ export function FoodDatabaseView() {
           onClose={() => { setAddingFood(false); setEditingFood(null); }}
         />
       )}
+
+      {/* Add to diet sheet */}
+      {addToDietFood && (
+        <AddToDietSheet
+          food={addToDietFood}
+          onClose={() => setAddToDietFood(null)}
+        />
+      )}
     </div>
   );
 }
 
-function FoodCard({ food, custom, onEdit, onDelete }: {
+function FoodCard({ food, custom, onEdit, onDelete, onAddToDiet }: {
   food: CombinedFood;
   custom: boolean;
   onEdit: () => void;
   onDelete: () => void;
+  onAddToDiet: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -404,6 +298,10 @@ function FoodCard({ food, custom, onEdit, onDelete }: {
           <NutrientRow label="Calcio" value={food.calcium} unit="mg" />
           <NutrientRow label="Ferro" value={food.iron} unit="mg" />
 
+          <button onClick={onAddToDiet} className="btn-primary w-full text-sm mt-2">
+            <Plus className="w-4 h-4" /> Aggiungi alla Dieta
+          </button>
+
           {custom && (
             <div className="flex gap-2 pt-2">
               <button
@@ -436,6 +334,222 @@ function NutrientRow({ label, value, unit }: { label: string; value: number; uni
         {value} {unit}
       </span>
     </div>
+  );
+}
+
+function AddToDietSheet({ food, onClose }: { food: CombinedFood; onClose: () => void }) {
+  const { state, setState } = useApp();
+  const [targetDay, setTargetDay] = useState((new Date().getDay() + 6) % 7);
+  const [targetMeal, setTargetMeal] = useState<MealType>('Pranzo');
+  const [asIngredient, setAsIngredient] = useState(true);
+  const [recurring, setRecurring] = useState(false);
+  const [recurringDays, setRecurringDays] = useState<string[]>([]);
+  const [grams, setGrams] = useState(100);
+
+  const factor = grams / 100;
+
+  function toggleRecurringDay(day: string) {
+    setRecurringDays((d) => d.includes(day) ? d.filter((x) => x !== day) : [...d, day]);
+  }
+
+  function addToDiet() {
+    const scaledCalories = Math.round(food.calories * factor);
+    const scaledProtein = Math.round(food.protein * factor * 10) / 10;
+    const scaledCarbs = Math.round(food.carbs * factor * 10) / 10;
+    const scaledFat = Math.round(food.fat * factor * 10) / 10;
+    const scaledSatFat = Math.round(food.saturatedFat * factor * 10) / 10;
+    const scaledSugar = Math.round(food.sugar * factor * 10) / 10;
+    const scaledFiber = Math.round(food.fiber * factor * 10) / 10;
+    const scaledSodium = Math.round(food.sodium * factor);
+    const scaledPotassium = Math.round(food.potassium * factor);
+    const scaledCalcium = Math.round(food.calcium * factor);
+    const scaledIron = Math.round(food.iron * factor * 100) / 100;
+
+    setState((prev) => {
+      const weeks = [...prev.weeks];
+      if (weeks.length === 0) return prev;
+
+      const applyToDays = recurring && recurringDays.length > 0
+        ? recurringDays.map((d) => DAYS_OF_WEEK.indexOf(d)).filter((i) => i >= 0)
+        : [targetDay];
+
+      const updatedWeeks = weeks.map((w, wi) => {
+        if (wi !== 0) return w;
+        return {
+          ...w,
+          days: w.days.map((d, di) => {
+            if (!applyToDays.includes(di)) return d;
+            if (asIngredient) {
+              const existingMeal = d.meals.find((m) => m.type === targetMeal);
+              if (existingMeal) {
+                return {
+                  ...d,
+                  meals: d.meals.map((m) => {
+                    if (m.id !== existingMeal.id) return m;
+                    return {
+                      ...m,
+                      foods: [...m.foods, `${food.name} (${grams}g)`],
+                      calories: m.calories + scaledCalories,
+                      protein: Math.round((m.protein + scaledProtein) * 10) / 10,
+                      carbs: Math.round((m.carbs + scaledCarbs) * 10) / 10,
+                      fat: Math.round((m.fat + scaledFat) * 10) / 10,
+                      saturatedFat: Math.round((m.saturatedFat + scaledSatFat) * 10) / 10,
+                      sugar: Math.round((m.sugar + scaledSugar) * 10) / 10,
+                      fiber: Math.round((m.fiber + scaledFiber) * 10) / 10,
+                      sodium: m.sodium + scaledSodium,
+                      potassium: m.potassium + scaledPotassium,
+                      calcium: m.calcium + scaledCalcium,
+                      iron: Math.round((m.iron + scaledIron) * 100) / 100,
+                    };
+                  }),
+                };
+              }
+            }
+            const newMeal: Meal = {
+              id: uid(),
+              type: targetMeal,
+              name: asIngredient ? `${food.name} (${grams}g)` : food.name,
+              foods: [`${food.name} (${grams}g)`],
+              calories: scaledCalories,
+              protein: scaledProtein,
+              carbs: scaledCarbs,
+              fat: scaledFat,
+              saturatedFat: scaledSatFat,
+              sugar: scaledSugar,
+              fiber: scaledFiber,
+              sodium: scaledSodium,
+              potassium: scaledPotassium,
+              calcium: scaledCalcium,
+              iron: scaledIron,
+              completed: false,
+              recurring,
+              recurringDays: recurring ? recurringDays : [],
+            };
+            return { ...d, meals: [...d.meals, newMeal] };
+          }),
+        };
+      });
+
+      return { ...prev, weeks: updatedWeeks };
+    });
+
+    onClose();
+  }
+
+  return (
+    <Sheet open onClose={onClose} title={`Aggiungi: ${food.name}`}>
+      <div className="space-y-4">
+        {/* Grams */}
+        <div>
+          <label className="label">Quantita (grammi)</label>
+          <div className="flex items-center gap-3">
+            <input
+              type="number"
+              className="input flex-1"
+              value={grams}
+              min="1"
+              onChange={(e) => setGrams(Math.max(1, +e.target.value))}
+              aria-label="Quantita in grammi"
+            />
+            <span className="text-sm text-gray-500">g</span>
+          </div>
+          <p className="text-xs text-gray-400 mt-1">
+            Calorie: {Math.round(food.calories * factor)} kcal - P: {Math.round(food.protein * factor * 10) / 10}g - C: {Math.round(food.carbs * factor * 10) / 10}g - G: {Math.round(food.fat * factor * 10) / 10}g
+          </p>
+        </div>
+
+        {/* Day selector */}
+        <div>
+          <label className="label flex items-center gap-1.5"><Calendar className="w-4 h-4" /> Giorno</label>
+          <select
+            className="input"
+            value={targetDay}
+            onChange={(e) => setTargetDay(+e.target.value)}
+            aria-label="Seleziona il giorno della settimana"
+          >
+            {DAYS_OF_WEEK.map((d, i) => (
+              <option key={d} value={i}>{d}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Meal selector */}
+        <div>
+          <label className="label flex items-center gap-1.5"><Utensils className="w-4 h-4" /> Pasto</label>
+          <select
+            className="input"
+            value={targetMeal}
+            onChange={(e) => setTargetMeal(e.target.value as MealType)}
+            aria-label="Seleziona il pasto"
+          >
+            {MEAL_TYPES.map((m) => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Main vs ingredient */}
+        <div>
+          <label className="label">Tipo di aggiunta</label>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setAsIngredient(true)}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${asIngredient ? 'bg-primary-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}
+              aria-pressed={asIngredient}
+            >
+              Ingrediente
+            </button>
+            <button
+              onClick={() => setAsIngredient(false)}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${!asIngredient ? 'bg-primary-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}
+              aria-pressed={!asIngredient}
+            >
+              Pasto principale
+            </button>
+          </div>
+          <p className="text-xs text-gray-400 mt-1">
+            {asIngredient ? "Aggiunge i valori nutrizionali al pasto selezionato" : "Crea un nuovo pasto separato"}
+          </p>
+        </div>
+
+        {/* Recurrence */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="label flex items-center gap-1.5 mb-0"><Repeat className="w-4 h-4" /> Ricorrenza</label>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                className="sr-only peer"
+                checked={recurring}
+                onChange={(e) => setRecurring(e.target.checked)}
+                aria-label="Imposta come ricorrente"
+              />
+              <div className="w-11 h-6 bg-gray-200 dark:bg-gray-700 rounded-full peer peer-checked:bg-primary-600 transition-colors">
+                <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform mt-0.5 ${recurring ? 'translate-x-5' : 'translate-x-0.5'}`} />
+              </div>
+            </label>
+          </div>
+          {recurring && (
+            <div className="flex flex-wrap gap-2 animate-fade-in" role="group" aria-label="Giorni di ricorrenza">
+              {DAYS_OF_WEEK.map((d) => (
+                <button
+                  key={d}
+                  onClick={() => toggleRecurringDay(d)}
+                  className={`chip ${recurringDays.includes(d) ? 'bg-primary-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}
+                  aria-pressed={recurringDays.includes(d)}
+                >
+                  {d.slice(0, 3)}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <button onClick={addToDiet} className="btn-primary w-full">
+          <Check className="w-4 h-4" /> Conferma aggiunta
+        </button>
+      </div>
+    </Sheet>
   );
 }
 

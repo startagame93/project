@@ -27,6 +27,17 @@ export interface Meal {
   calcium: number;
   iron: number;
   completed: boolean;
+  recurring?: boolean;
+  recurringDays?: string[];
+}
+
+export interface WorkoutEntry {
+  id: string;
+  type: string;
+  met: number;
+  minutes: number;
+  calories: number;
+  date: string;
 }
 
 export const NUTRIENT_FIELDS = [
@@ -194,4 +205,6 @@ export interface AppState {
   theme: Theme;
   pdfText: string | null;
   customFoods: CustomFoodEntry[];
+  workoutLogs: WorkoutEntry[];
+  onboardingComplete: boolean;
 }

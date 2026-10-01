@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
 import { Modal } from '@/components/Modal';
-import type { Theme, NotificationConfig } from '@/types';
+import type { Theme, NotificationConfig, AppState } from '@/types';
 import {
   User, Bell, Moon, Sun, Monitor, ShoppingBag, Trash2, Save,
-  Droplet, Utensils, Pill, Info,
+  Droplet, Utensils, Pill, Info, Download, Upload, HardDrive,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -92,6 +92,9 @@ export function SettingsView({ onNavigate }: { onNavigate: (tab: 'shopping') => 
         </button>
       </div>
 
+      {/* Backup & Restore */}
+      <BackupRestoreSection state={state} setState={setState} />
+
       {/* About */}
       <div className="card p-5">
         <div className="flex items-center gap-2 mb-2">
@@ -167,6 +170,89 @@ function ProfileModal({ onClose }: { onClose: () => void }) {
         </p>
       </div>
     </Modal>
+  );
+}
+
+function BackupRestoreSection({ state, setState }: { state: AppState; setState: (updater: (prev: AppState) => AppState) => void }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  function exportBackup() {
+    try {
+      const data = JSON.stringify(state, null, 2);
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `nutriplan-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setMessage('Backup esportato con successo!');
+      setError(null);
+    } catch {
+      setError('Errore durante l\'esportazione del backup.');
+    }
+  }
+
+  function importBackup(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result as string);
+        if (!parsed.profile || !parsed.weeks) {
+          setError('File non valido: mancano i dati principali.');
+          return;
+        }
+        setState(() => parsed);
+        setMessage('Backup ripristinato con successo!');
+        setError(null);
+      } catch {
+        setError('Errore: file di backup non valido o danneggiato.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  }
+
+  return (
+    <div className="card p-5">
+      <div className="flex items-center gap-2 mb-3">
+        <HardDrive className="w-5 h-5 text-primary-600" />
+        <h3 className="section-title">Backup & Ripristino</h3>
+      </div>
+      <p className="text-sm text-gray-500 mb-3">
+        Esporta tutti i tuoi dati (dieta, acqua, integratori, allenamenti, misurazioni) in un file da salvare. Puoi ripristinarli in qualsiasi momento.
+      </p>
+      <div className="flex gap-2">
+        <button onClick={exportBackup} className="btn-secondary flex-1 text-sm" aria-label="Esporta un file di backup dei tuoi dati">
+          <Download className="w-4 h-4" /> Esporta
+        </button>
+        <button onClick={() => fileInputRef.current?.click()} className="btn-secondary flex-1 text-sm" aria-label="Ripristina i dati da un file di backup">
+          <Upload className="w-4 h-4" /> Ripristina
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json"
+          className="hidden"
+          onChange={importBackup}
+          aria-label="Seleziona file di backup da ripristinare"
+        />
+      </div>
+      {message && (
+        <div className="mt-3 p-2.5 rounded-xl bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800">
+          <span className="text-sm text-success-700 dark:text-success-300">{message}</span>
+        </div>
+      )}
+      {error && (
+        <div className="mt-3 p-2.5 rounded-xl bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800">
+          <span className="text-sm text-error-700 dark:text-error-300">{error}</span>
+        </div>
+      )}
+    </div>
   );
 }
 

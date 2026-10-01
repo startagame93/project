@@ -77,7 +77,7 @@ const NUTRIENT_DEFAULTS = {
 };
 
 export function migrateMeal(meal: Partial<Meal>): Meal {
-  return { ...createEmptyMeal(meal.type ?? 'Colazione'), ...meal, ...NUTRIENT_DEFAULTS };
+  return { ...createEmptyMeal(meal.type ?? 'Colazione'), ...meal, ...NUTRIENT_DEFAULTS, recurring: meal.recurring ?? false, recurringDays: meal.recurringDays ?? [] };
 }
 
 export function migrateWeeks(weeks: WeekPlan[]): WeekPlan[] {
@@ -138,5 +138,7 @@ export function getDefaultState(): AppState {
     theme: 'system',
     pdfText: null,
     customFoods: [],
+    workoutLogs: [],
+    onboardingComplete: false,
   };
 }
