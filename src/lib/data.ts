@@ -1,4 +1,4 @@
-import type { AppState, WeekPlan, UserProfile, DayPlan, Meal } from '@/types';
+import type { AppState, WeekPlan, UserProfile, DayPlan, Meal, WorkoutLog } from '@/types';
 import { DAYS_OF_WEEK, MEAL_TYPES } from '@/types';
 
 export function uid(): string {
@@ -49,6 +49,35 @@ export function calcMacroTargets(profile: UserProfile): { protein: number; carbs
 
 export function calcLeanMass(weight: number, bodyFat: number): number {
   return Math.round((weight * (1 - bodyFat / 100)) * 10) / 10;
+}
+
+export function calcBMI(weightKg: number, heightCm: number): number {
+  const h = heightCm / 100;
+  return Math.round((weightKg / (h * h)) * 10) / 10;
+}
+
+export type BodyStatus = 'sottopeso' | 'normopeso' | 'sovrappeso' | 'obeso';
+
+export function getBodyStatus(bmi: number): BodyStatus {
+  if (bmi < 18.5) return 'sottopeso';
+  if (bmi < 25) return 'normopeso';
+  if (bmi < 30) return 'sovrappeso';
+  return 'obeso';
+}
+
+export function getBodyAdvice(status: BodyStatus, goal: string): string {
+  if (status === 'sottopeso') {
+    return 'Sei sotto il peso ideale. Aumenta l\'apporto calorico con pasti nutrienti e proteici, e considera allenamenti di forza per costruire massa muscolare.';
+  }
+  if (status === 'normopeso') {
+    if (goal === 'massa') return 'Il tuo peso è nella norma. Per aumentare massa muscolare, mantieni un surplus calorico moderato e allena con pesi regolarmente.';
+    if (goal === 'dimagrimento') return 'Il tuo peso è nella norma. Concentrati sul mantenimento e su una composizione corporea ottimale.';
+    return 'Il tuo peso è nella norma. Mantieni le tue abitudini alimentari e continua l\'attività fisica regolare.';
+  }
+  if (status === 'sovrappeso') {
+    return 'Sei sopra il peso ideale. Riduci l\'apporto calorico del 15-20%, aumenta l\'attività cardiovascolare e mantieni un buon apporto proteico.';
+  }
+  return 'Il tuo BMI indica obesità. Consulta un professionista sanitario, riduci significativamente le calorie e aumenta gradualmente l\'attività fisica.';
 }
 
 export function createEmptyMeal(type: Meal['type']): Meal {
@@ -138,7 +167,8 @@ export function getDefaultState(): AppState {
     theme: 'system',
     pdfText: null,
     customFoods: [],
-    workoutLogs: [],
+    workoutLogs: [] as WorkoutLog[],
     onboardingComplete: false,
+    lastChangelogVersion: '',
   };
 }

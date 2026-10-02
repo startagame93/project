@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useCallback, useRef, ty
 import type { AppState, Theme } from '@/types';
 import { getDefaultState, migrateWeeks } from '@/lib/data';
 import { loadRemoteState, saveRemoteState } from '@/lib/supabase';
+import { useAuth } from '@/context/AuthContext';
 
 const STORAGE_KEY = 'nutriplan-state-v1';
 
@@ -15,6 +16,7 @@ function mergeState(parsed: Partial<AppState>): AppState {
     notifications: { ...def.notifications, ...parsed.notifications },
     workoutLogs: parsed.workoutLogs ?? [],
     onboardingComplete: parsed.onboardingComplete ?? false,
+    lastChangelogVersion: parsed.lastChangelogVersion ?? '',
   };
 }
 
@@ -57,13 +59,18 @@ function resolveTheme(theme: Theme): 'light' | 'dark' {
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const [state, setStateInner] = useState<AppState>(loadLocalState);
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(() => resolveTheme(state.theme));
   const [loading, setLoading] = useState(true);
   const skipRemoteSave = useRef(false);
 
-  // Load from Supabase on startup
+  // Load from Supabase when user logs in
   useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     let mounted = true;
     (async () => {
       const remote = await loadRemoteState();
@@ -74,21 +81,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     })();
     return () => { mounted = false; };
-  }, []);
+  }, [user]);
 
-  // Save to localStorage + Supabase on every state change
   const setState = useCallback((updater: (prev: AppState) => AppState) => {
     setStateInner((prev) => {
       const next = updater(prev);
       saveLocalState(next);
-      if (!skipRemoteSave.current) {
+      if (user && !skipRemoteSave.current) {
         saveRemoteState(next as unknown as Record<string, unknown>);
       }
       return next;
     });
-  }, []);
+  }, [user]);
 
-  // After the initial remote load, allow subsequent saves
   useEffect(() => {
     if (skipRemoteSave.current) {
       skipRemoteSave.current = false;

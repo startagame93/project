@@ -14,7 +14,7 @@ export interface Meal {
   id: string;
   type: MealType;
   name: string;
-  foods: string[];
+  foods: MealFood[];
   calories: number;
   protein: number;
   carbs: number;
@@ -31,6 +31,51 @@ export interface Meal {
   recurringDays?: string[];
 }
 
+export interface MealFood {
+  id: string;
+  foodId: string;
+  name: string;
+  grams: number;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  saturatedFat: number;
+  sugar: number;
+  fiber: number;
+  sodium: number;
+  potassium: number;
+  calcium: number;
+  iron: number;
+  isMain: boolean;
+}
+
+// === WORKOUT SYSTEM ===
+
+export type WorkoutCategory = 'strength' | 'time_style' | 'time_only';
+
+export interface StrengthSet {
+  reps: number;
+  weight: number;
+}
+
+export interface WorkoutLog {
+  id: string;
+  date: string;
+  activityName: string;
+  category: WorkoutCategory;
+  // strength
+  sets?: StrengthSet[];
+  // time_style + time_only
+  minutes?: number;
+  // time_style only
+  style?: string;
+  // calculated
+  calories: number;
+  met: number;
+}
+
+// Legacy compat
 export interface WorkoutEntry {
   id: string;
   type: string;
@@ -101,6 +146,10 @@ export interface BodyMetric {
   hip?: number;
   arm?: number;
   thigh?: number;
+  neck?: number;
+  shoulder?: number;
+  abdomen?: number;
+  calf?: number;
 }
 
 export type SupplementType = 'creatina' | 'caffeina' | 'preworkout' | 'bcaa' | 'proteine';
@@ -192,6 +241,22 @@ export interface CustomFoodEntry {
   iron: number;
 }
 
+export interface SupportTicket {
+  id: string;
+  subject: string;
+  message: string;
+  status: 'open' | 'closed';
+  admin_reply?: string | null;
+  created_at: string;
+}
+
+export interface LeaderboardEntry {
+  user_id: string;
+  display_name: string;
+  total_calories: number;
+  total_workouts: number;
+}
+
 export interface AppState {
   profile: UserProfile;
   weeks: WeekPlan[];
@@ -205,6 +270,7 @@ export interface AppState {
   theme: Theme;
   pdfText: string | null;
   customFoods: CustomFoodEntry[];
-  workoutLogs: WorkoutEntry[];
+  workoutLogs: WorkoutLog[];
   onboardingComplete: boolean;
+  lastChangelogVersion?: string;
 }
