@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { AppProvider, useApp } from '@/context/AppContext';
+import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { BottomNav, type TabKey } from '@/components/BottomNav';
 import { Dashboard } from '@/views/Dashboard';
 import { DietView } from '@/views/DietView';
@@ -10,11 +11,17 @@ import { SettingsView } from '@/views/SettingsView';
 import { FoodDatabaseView } from '@/views/FoodDatabaseView';
 import { GymView } from '@/views/GymView';
 import { Onboarding } from '@/views/Onboarding';
-import { Moon, Sun, ShoppingCart } from 'lucide-react';
+import { AuthScreen } from '@/views/AuthScreen';
+import { AdminDashboard } from '@/views/AdminDashboard';
+import { InfoScreen, ChangelogModal } from '@/views/InfoScreen';
+import { SupportModal } from '@/views/SupportModal';
+import { Moon, Sun, ShoppingCart, Info, MessageCircle, LogOut } from 'lucide-react';
+import { signOut } from '@/lib/supabase';
 
+const APP_VERSION = 'alpha-4.0';
 const TAB_ORDER: (TabKey | 'shopping')[] = ['home', 'diet', 'nutrition', 'food', 'gym', 'body', 'settings', 'shopping'];
 
-const TAB_TITLES: Record<TabKey | 'shopping', string> = {
+const TAB_TITLES: Record<TabKey | 'shopping' | 'admin', string> = {
   home: 'NutriPlan',
   diet: 'Piano Alimentare',
   nutrition: 'Nutrizione',
@@ -23,17 +30,22 @@ const TAB_TITLES: Record<TabKey | 'shopping', string> = {
   gym: 'Palestra & Attivita',
   settings: 'Impostazioni',
   shopping: 'Lista della Spesa',
+  admin: 'Dashboard Admin',
 };
 
 function AppContent() {
-  const [tab, setTab] = useState<TabKey | 'shopping'>('home');
+  const [tab, setTab] = useState<TabKey | 'shopping' | 'admin'>('home');
   const { theme, toggleTheme, state, setState } = useApp();
+  const { user, isAdmin, isBanned, profile } = useAuth();
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
+  const [showInfo, setShowInfo] = useState(false);
+  const [showSupport, setShowSupport] = useState(false);
+  const [showChangelog, setShowChangelog] = useState(false);
 
   const switchTab = useCallback((direction: number) => {
     setTab((current) => {
-      const idx = TAB_ORDER.indexOf(current);
+      const idx = TAB_ORDER.indexOf(current as TabKey | 'shopping');
       let nextIdx = idx + direction;
       if (nextIdx < 0) nextIdx = TAB_ORDER.length - 1;
       if (nextIdx >= TAB_ORDER.length) nextIdx = 0;
@@ -56,6 +68,14 @@ function AppContent() {
       switchTab(diff > 0 ? 1 : -1);
     }
   }
+
+  // Show changelog on version update
+  useEffect(() => {
+    if (state.lastChangelogVersion !== APP_VERSION) {
+      setShowChangelog(true);
+      setState((prev) => ({ ...prev, lastChangelogVersion: APP_VERSION }));
+    }
+  }, []);
 
   useEffect(() => {
     if (!state.notifications.enabled) return;
@@ -82,6 +102,17 @@ function AppContent() {
     return () => intervals.forEach(clearInterval);
   }, [state.notifications.enabled, state.notifications.hydration, state.notifications.hydrationInterval]);
 
+  // Banned user screen
+  if (isBanned) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center justify-center px-6 max-w-md mx-auto text-center">
+        <h1 className="text-xl font-bold text-error-600 mb-2">Account sospeso</h1>
+        <p className="text-sm text-gray-500 mb-6">Il tuo account e stato bloccato dall'amministratore. Contatta il supporto per maggiori informazioni.</p>
+        <button onClick={() => signOut()} className="btn-secondary">Esci</button>
+      </div>
+    );
+  }
+
   if (!state.onboardingComplete) {
     return (
       <Onboarding onComplete={() => setState((prev) => ({ ...prev, onboardingComplete: true }))} />
@@ -99,16 +130,32 @@ function AppContent() {
               <button
                 onClick={() => setTab('shopping')}
                 className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative"
-                aria-label={`Lista della spesa, ${state.shoppingList.filter((i) => !i.checked).length} articoli da comprare`}
+                aria-label={`Lista della spesa, ${state.shoppingList.filter((i) => !i.checked).length} articoli`}
               >
                 <ShoppingCart className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                 {state.shoppingList.filter((i) => !i.checked).length > 0 && (
-                  <span className="absolute top-1 right-1 w-4 h-4 bg-primary-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center" aria-hidden="true">
+                  <span className="absolute top-1 right-1 w-4 h-4 bg-primary-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
                     {state.shoppingList.filter((i) => !i.checked).length}
                   </span>
                 )}
               </button>
             )}
+            <button
+              onClick={() => setShowInfo(true)}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              aria-label="Informazioni e manuale d'uso"
+            >
+              <div className="w-5 h-5 rounded-full border-2 border-gray-600 dark:border-gray-400 flex items-center justify-center">
+                <span className="text-[10px] font-bold text-gray-600 dark:text-gray-400">i</span>
+              </div>
+            </button>
+            <button
+              onClick={() => setShowSupport(true)}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              aria-label="Supporto e segnalazioni"
+            >
+              <MessageCircle className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+            </button>
             <button
               onClick={toggleTheme}
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -118,6 +165,17 @@ function AppContent() {
             </button>
           </div>
         </div>
+        {/* Admin badge */}
+        {isAdmin && (
+          <div className="max-w-md mx-auto px-4 pb-2">
+            <button
+              onClick={() => setTab('admin')}
+              className="text-[10px] font-bold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 px-2 py-1 rounded-full"
+            >
+              ADMIN DASHBOARD
+            </button>
+          </div>
+        )}
       </header>
 
       {/* Content */}
@@ -130,6 +188,7 @@ function AppContent() {
         {tab === 'body' && <BodyView />}
         {tab === 'shopping' && <ShoppingView />}
         {tab === 'settings' && <SettingsView onNavigate={(t) => setTab(t)} />}
+        {tab === 'admin' && isAdmin && <AdminDashboard />}
       </main>
 
       {/* Bottom nav (hide on shopping sub-page to show back) */}
@@ -141,18 +200,55 @@ function AppContent() {
             </button>
           </div>
         </div>
+      ) : tab === 'admin' ? (
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 safe-bottom">
+          <div className="max-w-md mx-auto px-4 py-3">
+            <button onClick={() => setTab('home')} className="btn-secondary w-full">
+              Torna all'App
+            </button>
+          </div>
+        </div>
       ) : (
         <BottomNav active={tab as TabKey} onChange={(t) => setTab(t)} />
       )}
+
+      {/* Modals */}
+      {showInfo && <InfoScreen onClose={() => setShowInfo(false)} />}
+      {showSupport && <SupportModal onClose={() => setShowSupport(false)} />}
+      {showChangelog && <ChangelogModal onClose={() => setShowChangelog(false)} />}
     </div>
+  );
+}
+
+function AppInner() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center animate-pulse">
+          <span className="text-white font-bold text-xl">N</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthScreen />;
+  }
+
+  return (
+    <AppProvider>
+      <AppContent />
+    </AppProvider>
   );
 }
 
 function App() {
   return (
-    <AppProvider>
-      <AppContent />
-    </AppProvider>
+    <AuthProvider>
+      <AppInner />
+    </AuthProvider>
   );
 }
 

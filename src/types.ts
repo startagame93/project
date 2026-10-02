@@ -14,7 +14,7 @@ export interface Meal {
   id: string;
   type: MealType;
   name: string;
-  foods: MealFood[];
+  foods: string[];
   calories: number;
   protein: number;
   carbs: number;
