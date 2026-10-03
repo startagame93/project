@@ -22,8 +22,14 @@ export function usePdfImport() {
     setError(null);
     try {
       const key = getGeminiKey();
+      let aiError: AiImportError | null = null;
       if (key) {
-        const result = await analyzePlanPdf(file, key);
+        const result = await analyzePlanPdf(file, key).catch((err: unknown) => {
+          if (err instanceof AiImportError && err.reason === 'key') throw err;
+          aiError = err instanceof AiImportError ? err : new AiImportError('Lettura IA non riuscita.');
+          return null;
+        });
+        if (result) {
         if (result.kind === 'workout') {
           setState((prev) => ({
             ...prev,
@@ -33,16 +39,18 @@ export function usePdfImport() {
           return { kind: 'workout' };
         }
         return addWeeks(result.weeks, `Dieta "${result.title}" importata con IA: ${result.totalMeals} pasti in ${result.weeks.length} settimana/e`);
+        }
       }
+      const aiMessage = (aiError as AiImportError | null)?.message;
 
       const text = await extractPdfText(file);
       if (!text.trim()) {
-        setError('Il PDF sembra una scansione. Aggiungi una chiave Gemini in Impostazioni per leggerlo con l\'IA.');
+        setError(aiMessage ?? 'Il PDF sembra una scansione. Aggiungi una chiave Gemini in Impostazioni per leggerlo con l\'IA.');
         return null;
       }
       const result = parsePdfToWeeks(text, file.name);
       if (result.totalMeals === 0) {
-        setError('Non sono riuscito a riconoscere i pasti. Aggiungi una chiave Gemini in Impostazioni per una lettura intelligente.');
+        setError(aiMessage ?? 'Non sono riuscito a riconoscere i pasti. Aggiungi una chiave Gemini in Impostazioni per una lettura intelligente.');
         return null;
       }
       return addWeeks(result.weeks, `Dieta "${result.dietName}" importata: ${result.totalMeals} pasti in ${result.weeks.length} settimana/e`);

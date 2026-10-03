@@ -6,7 +6,7 @@ import { Modal } from '@/components/Modal';
 import { ACTIVITY_LEVELS, type BodyMetric, type UserProfile, type Sex } from '@/types';
 import {
   Scale, Plus, TrendingDown, TrendingUp, Activity, Ruler, Trash2,
-  Calculator, Flame, Target, AlertTriangle, CheckCircle, Info,
+  Calculator, AlertTriangle, CheckCircle, Info,
 } from 'lucide-react';
 
 const STATUS_CONFIG: Record<BodyStatus, { label: string; color: string; bg: string; icon: typeof Info }> = {
@@ -27,9 +27,6 @@ export function BodyView() {
 
   const weightTrend = latest && first ? latest.weight - first.weight : 0;
   const fatTrend = latest && first ? latest.bodyFat - first.bodyFat : 0;
-
-  const bmr = Math.round(calcBMR(state.profile));
-  const tdee = calcTDEE(state.profile);
 
   const bmi = calcBMI(state.profile.weight, state.profile.height);
   const bodyStatus = getBodyStatus(bmi);
@@ -117,27 +114,18 @@ export function BodyView() {
         </div>
       </div>
 
-      {/* BMR/TDEE Calculator */}
-      <div className="card p-5">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="section-title">Metabolismo</h2>
-          <button onClick={() => setShowCalc(true)} className="text-sm text-primary-600 dark:text-primary-400 font-medium flex items-center gap-1">
-            <Calculator className="w-4 h-4" /> Calcola
-          </button>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="p-3 rounded-xl bg-primary-50 dark:bg-primary-900/20">
-            <Flame className="w-5 h-5 text-primary-600 mb-1" />
-            <p className="text-xs text-gray-500">BMR (Metabolismo Basale)</p>
-            <p className="text-xl font-bold text-gray-900 dark:text-white">{bmr} <span className="text-sm font-normal">kcal</span></p>
-          </div>
-          <div className="p-3 rounded-xl bg-secondary-50 dark:bg-secondary-900/20">
-            <Target className="w-5 h-5 text-secondary-600 mb-1" />
-            <p className="text-xs text-gray-500">TDEE (Spesa Totale)</p>
-            <p className="text-xl font-bold text-gray-900 dark:text-white">{tdee} <span className="text-sm font-normal">kcal</span></p>
-          </div>
-        </div>
-      </div>
+      <button
+        onClick={() => setShowCalc(true)}
+        className="w-full card p-4 flex items-center gap-3 text-left hover:shadow-md transition-all"
+      >
+        <span className="w-10 h-10 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center shrink-0">
+          <Calculator className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+        </span>
+        <span className="flex-1">
+          <span className="block font-semibold text-gray-900 dark:text-white">Metabolismo e parametri</span>
+          <span className="block text-xs text-gray-500">Aggiorna peso, altezza, attivita e obiettivo</span>
+        </span>
+      </button>
 
       {/* Current metrics */}
       {latest && (

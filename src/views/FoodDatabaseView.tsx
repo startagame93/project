@@ -425,8 +425,9 @@ function AddToDietSheet({ food, onClose }: { food: CombinedFood; onClose: () => 
         ? recurringDays.map((d) => DAYS_OF_WEEK.indexOf(d)).filter((i) => i >= 0)
         : [targetDay];
 
+      const activeIdx = Math.max(0, weeks.findIndex((w) => w.id === prev.activeWeekId));
       const updatedWeeks = weeks.map((w, wi) => {
-        if (wi !== 0) return w;
+        if (wi !== activeIdx) return w;
         return {
           ...w,
           days: w.days.map((d, di) => {

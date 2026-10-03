@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { useApp } from '@/context/AppContext';
+import { useApp, mergeState } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { signOut, updateProfileMetrics } from '@/lib/supabase';
 import { PALETTES, paletteSwatch } from '@/lib/palettes';
@@ -309,7 +309,8 @@ function BackupRestoreSection({ state, setState }: { state: AppState; setState: 
           setError('File non valido: mancano i dati principali.');
           return;
         }
-        setState(() => parsed);
+        setState(() => mergeState(parsed));
+        e.target.value = '';
         setMessage('Backup ripristinato con successo!');
         setError(null);
       } catch {

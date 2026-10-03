@@ -35,7 +35,11 @@ export type AiImportResult =
   | { kind: 'diet'; title: string; weeks: WeekPlan[]; totalMeals: number }
   | { kind: 'workout'; plan: WorkoutPlan; totalExercises: number };
 
-export class AiImportError extends Error {}
+export class AiImportError extends Error {
+  constructor(message: string, readonly reason: 'key' | 'other' = 'other') {
+    super(message);
+  }
+}
 
 const PROMPT = `Sei un assistente che legge piani alimentari e schede di allenamento in PDF (in italiano).
 Determina se il documento e una DIETA o una SCHEDA DI ALLENAMENTO e rispondi SOLO con JSON valido in uno di questi formati.
@@ -64,7 +68,45 @@ function toBase64(buf: ArrayBuffer): string {
 
 const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? Math.round(v) : 0);
 const str = (v: unknown, max = 120) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
-const dayIdx = (v: unknown) => (typeof v === 'number' && v >= 0 && v <= 6 ? Math.floor(v) : null);
+const DAY_NAMES = ['lun', 'mar', 'mer', 'gio', 'ven', 'sab', 'dom'];
+function dayIdx(v: unknown, position: number): number | null {
+  if (typeof v === 'number' && Number.isFinite(v)) {
+    if (v >= 0 && v <= 6) return Math.floor(v);
+    if (v === 7) return 6;
+    return null;
+  }
+  if (typeof v === 'string') {
+    const t = v.trim().toLowerCase();
+    if (/^\d+$/.test(t)) return dayIdx(Number(t), position);
+    const named = DAY_NAMES.findIndex((d) => t.startsWith(d));
+    if (named >= 0) return named;
+  }
+  return position >= 0 && position <= 6 ? position : null;
+}
+
+function mealType(v: unknown): MealType | undefined {
+  const t = str(v).toLowerCase();
+  if (!t) return undefined;
+  const exact = MEAL_TYPES.find((m) => m.toLowerCase() === t);
+  if (exact) return exact;
+  if (t.includes('colaz') || t.includes('breakfast')) return 'Colazione';
+  if (t.includes('pranzo') || t.includes('lunch')) return 'Pranzo';
+  if (t.includes('cena') || t.includes('dinner')) return 'Cena';
+  if (t.includes('merenda') || t.includes('pomerid')) return 'Merenda';
+  if (t.includes('spuntino') || t.includes('snack') || t.includes('meta mattina')) return 'Spuntino';
+  return undefined;
+}
+
+function extractJson(text: string): Record<string, unknown> | null {
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start < 0 || end <= start) return null;
+  try {
+    return asObj(JSON.parse(text.slice(start, end + 1)));
+  } catch {
+    return null;
+  }
+}
 const asArray = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
 const asObj = (v: unknown): Record<string, unknown> => (v && typeof v === 'object' ? (v as Record<string, unknown>) : {});
 
@@ -73,12 +115,13 @@ function buildDiet(data: Record<string, unknown>, fallbackTitle: string): AiImpo
   let totalMeals = 0;
   const weeks = asArray(data.weeks).slice(0, 4).map((w, wi) => {
     const week = createEmptyWeek(`${title} - Settimana ${wi + 1}`);
-    for (const d of asArray(asObj(w).days)) {
-      const idx = dayIdx(asObj(d).day);
-      if (idx === null) continue;
+    const filled = new Set<string>();
+    asArray(asObj(w).days).forEach((d, position) => {
+      const idx = dayIdx(asObj(d).day, position);
+      if (idx === null) return;
       for (const m of asArray(asObj(d).meals)) {
         const mo = asObj(m);
-        const type = MEAL_TYPES.find((t) => t.toLowerCase() === str(mo.type).toLowerCase()) as MealType | undefined;
+        const type = mealType(mo.type) ?? mealType(mo.name);
         if (!type) continue;
         const foods = asArray(mo.foods).map((f) => str(f)).filter(Boolean).slice(0, 30);
         if (foods.length === 0 && !mo.name) continue;
@@ -91,10 +134,16 @@ function buildDiet(data: Record<string, unknown>, fallbackTitle: string): AiImpo
           carbs: num(mo.carbs),
           fat: num(mo.fat),
         };
-        week.days[idx].meals = week.days[idx].meals.map((existing) => (existing.type === type ? meal : existing));
+        const slot = `${idx}-${type}`;
+        const day = week.days[idx];
+        day.meals = filled.has(slot)
+          ? [...day.meals, meal]
+          : day.meals.map((existing) => (existing.type === type ? meal : existing));
+        if (!day.meals.includes(meal)) day.meals.push(meal);
+        filled.add(slot);
         totalMeals++;
       }
-    }
+    });
     return week;
   });
   if (totalMeals === 0) throw new AiImportError('Nel PDF non sono stati trovati pasti riconoscibili.');
@@ -103,9 +152,9 @@ function buildDiet(data: Record<string, unknown>, fallbackTitle: string): AiImpo
 
 function buildWorkout(data: Record<string, unknown>, fallbackTitle: string): AiImportResult {
   let totalExercises = 0;
-  const days = asArray(data.days).flatMap((d) => {
+  const days = asArray(data.days).flatMap((d, position) => {
     const dobj = asObj(d);
-    const idx = dayIdx(dobj.day);
+    const idx = dayIdx(dobj.day, [0, 2, 4, 1, 3, 5, 6][position] ?? -1);
     if (idx === null) return [];
     const exercises: PlanExercise[] = asArray(dobj.exercises).flatMap((e) => {
       const eo = asObj(e);
@@ -139,30 +188,40 @@ export async function analyzePlanPdf(file: File, apiKey: string): Promise<AiImpo
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
       body: JSON.stringify({
         contents: [{ role: 'user', parts: [{ inline_data: { mime_type: 'application/pdf', data } }, { text: PROMPT }] }],
-        generationConfig: { responseMimeType: 'application/json', temperature: 0.1 },
+        generationConfig: {
+          responseMimeType: 'application/json',
+          temperature: 0.1,
+          maxOutputTokens: 32768,
+          thinkingConfig: { thinkingBudget: 0 },
+        },
       }),
     });
   } catch {
     throw new AiImportError('Impossibile contattare il servizio IA. Controlla la connessione.');
   }
 
-  if (res.status === 400 || res.status === 401 || res.status === 403) {
-    throw new AiImportError('La chiave Gemini non e valida. Controllala in Impostazioni.');
-  }
-  if (res.status === 429) throw new AiImportError('Limite gratuito di Gemini raggiunto. Riprova tra qualche minuto.');
-  if (!res.ok) throw new AiImportError('Il servizio IA non ha risposto correttamente. Riprova piu tardi.');
-
   const body = asObj(await res.json().catch(() => null));
-  const text = asArray(asObj(asObj(asArray(body.candidates)[0]).content).parts)
-    .map((p) => str(asObj(p).text, 200000))
+  if (!res.ok) {
+    const reason = JSON.stringify(body.error ?? '');
+    if (res.status === 401 || res.status === 403 || reason.includes('API_KEY_INVALID') || reason.includes('API key not valid')) {
+      throw new AiImportError('La chiave Gemini non e valida. Controllala in Impostazioni.', 'key');
+    }
+    if (res.status === 429) throw new AiImportError('Limite gratuito di Gemini raggiunto. Riprova tra qualche minuto.');
+    throw new AiImportError('Il servizio IA non ha potuto leggere questo PDF.');
+  }
+
+  const candidate = asObj(asArray(body.candidates)[0]);
+  const text = asArray(asObj(candidate.content).parts)
+    .map((p) => str(asObj(p).text, 500000))
     .join('');
-  let parsed: Record<string, unknown>;
-  try {
-    parsed = asObj(JSON.parse(text.replace(/^```(?:json)?|```$/g, '').trim()));
-  } catch {
-    throw new AiImportError('L\'IA non e riuscita a interpretare il documento.');
+  const parsed = extractJson(text);
+  if (!parsed) {
+    throw new AiImportError(candidate.finishReason === 'MAX_TOKENS'
+      ? 'Il documento e troppo lungo per una sola lettura. Prova a dividere il PDF.'
+      : 'L\'IA non e riuscita a interpretare il documento.');
   }
 
   const fallbackTitle = file.name.replace(/\.pdf$/i, '');
-  return parsed.kind === 'workout' ? buildWorkout(parsed, fallbackTitle) : buildDiet(parsed, fallbackTitle);
+  const isWorkout = parsed.kind === 'workout' || (!parsed.weeks && Array.isArray(parsed.days));
+  return isWorkout ? buildWorkout(parsed, fallbackTitle) : buildDiet(parsed, fallbackTitle);
 }

@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import type { LucideIcon } from 'lucide-react';
 import { X } from 'lucide-react';
 
@@ -11,9 +13,16 @@ interface SheetProps {
 }
 
 export function Sheet({ open, onClose, icon: Icon, iconColor, title, children }: SheetProps) {
+  useEffect(() => {
+    if (!open) return;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, [open]);
+
   if (!open) return null;
 
-  return (
+  // Portal: animated page wrappers create a containing block that would trap `fixed` overlays
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={onClose} />
       <div className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-t-3xl shadow-xl animate-slide-up max-h-[85vh] flex flex-col">
@@ -24,12 +33,13 @@ export function Sheet({ open, onClose, icon: Icon, iconColor, title, children }:
             </div>
           )}
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex-1">{title}</h2>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" aria-label="Chiudi">
             <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
         <div className="p-4 overflow-y-auto flex-1">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
