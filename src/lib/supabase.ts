@@ -23,6 +23,8 @@ export interface UserProfileDB {
   age: number;
   activity_level: string;
   avatar_url?: string | null;
+  onboarding_completed?: boolean;
+  last_seen_at?: string | null;
 }
 
 // === AUTH ===
@@ -126,33 +128,10 @@ export async function saveRemoteState(state: Record<string, unknown>): Promise<b
 
 // === SUPPORT TICKETS ===
 
-export async function createTicket(subject: string, message: string, userEmail: string): Promise<boolean> {
-  const { data: user } = await supabase.auth.getUser();
-  if (!user.user) return false;
-  const { error } = await supabase.from('support_tickets').insert({
-    user_id: user.user.id,
-    user_email: userEmail,
-    subject,
-    message,
-  });
-  return !error;
-}
-
-export async function loadUserTickets(): Promise<SupportTicketRow[]> {
-  const { data, error } = await supabase
-    .from('support_tickets')
-    .select('*')
-    .order('created_at', { ascending: false });
-  if (error) return [];
-  return (data ?? []) as SupportTicketRow[];
-}
-
-// === ADMIN FUNCTIONS ===
-
 export interface SupportTicketRow {
   id: string;
   user_id: string;
-  user_email: string;
+  author_name: string;
   subject: string;
   message: string;
   status: string;
@@ -160,39 +139,55 @@ export interface SupportTicketRow {
   created_at: string;
 }
 
+const TICKET_COLUMNS = 'id, user_id, author_name, subject, message, status, admin_reply, created_at';
+
+export async function createTicket(subject: string, message: string): Promise<boolean> {
+  const { error } = await supabase.from('support_tickets').insert({ subject, message });
+  if (error) console.error('ticket create failed', error);
+  return !error;
+}
+
+export async function loadTickets(): Promise<SupportTicketRow[]> {
+  const { data, error } = await supabase
+    .from('support_tickets')
+    .select(TICKET_COLUMNS)
+    .order('created_at', { ascending: false });
+  if (error) {
+    console.error('tickets load failed', error);
+    return [];
+  }
+  return (data ?? []) as SupportTicketRow[];
+}
+
+// === ADMIN FUNCTIONS ===
+
 export interface AdminUserRow {
   id: string;
   email: string;
   display_name: string;
+  avatar_url: string | null;
   is_admin: boolean;
   is_banned: boolean;
+  last_seen_at: string | null;
   created_at: string;
 }
 
-export async function adminLoadUsers(): Promise<AdminUserRow[]> {
+export async function adminLoadUsers(): Promise<AdminUserRow[] | null> {
   const { data, error } = await supabase
     .from('user_profiles')
-    .select('*')
-    .order('created_at', { ascending: false });
-  if (error) return [];
+    .select('id, email, display_name, avatar_url, is_admin, is_banned, last_seen_at, created_at')
+    .order('last_seen_at', { ascending: false, nullsFirst: false });
+  if (error) {
+    console.error('users load failed', error);
+    return null;
+  }
   return (data ?? []) as AdminUserRow[];
 }
 
 export async function adminToggleBan(userId: string, banned: boolean): Promise<boolean> {
-  const { error } = await supabase
-    .from('user_profiles')
-    .update({ is_banned: banned })
-    .eq('id', userId);
+  const { error } = await supabase.rpc('admin_set_ban', { p_user: userId, p_banned: banned });
+  if (error) console.error('ban failed', error);
   return !error;
-}
-
-export async function adminLoadTickets(): Promise<SupportTicketRow[]> {
-  const { data, error } = await supabase
-    .from('support_tickets')
-    .select('*')
-    .order('created_at', { ascending: false });
-  if (error) return [];
-  return (data ?? []) as SupportTicketRow[];
 }
 
 export async function adminReplyTicket(ticketId: string, reply: string, status: string): Promise<boolean> {
@@ -200,6 +195,7 @@ export async function adminReplyTicket(ticketId: string, reply: string, status: 
     .from('support_tickets')
     .update({ admin_reply: reply, status })
     .eq('id', ticketId);
+  if (error) console.error('ticket reply failed', error);
   return !error;
 }
 
@@ -208,7 +204,28 @@ export async function adminDeleteTicket(ticketId: string): Promise<boolean> {
     .from('support_tickets')
     .delete()
     .eq('id', ticketId);
+  if (error) console.error('ticket delete failed', error);
   return !error;
+}
+
+// === PRESENCE ===
+
+export const ONLINE_WINDOW_MS = 5 * 60 * 1000;
+
+export async function touchPresence(userId: string): Promise<void> {
+  await supabase
+    .from('user_profiles')
+    .update({ last_seen_at: new Date().toISOString() })
+    .eq('id', userId);
+}
+
+export async function markOnboardingCompleted(): Promise<void> {
+  const { data: user } = await supabase.auth.getUser();
+  if (!user.user) return;
+  await supabase
+    .from('user_profiles')
+    .update({ onboarding_completed: true })
+    .eq('id', user.user.id);
 }
 
 // === LEADERBOARD ===

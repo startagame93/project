@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { createTicket, loadUserTickets, adminDeleteTicket, type SupportTicketRow } from '@/lib/supabase';
+import { createTicket, loadTickets, adminDeleteTicket, type SupportTicketRow } from '@/lib/supabase';
 import { Modal } from '@/components/Modal';
-import { MessageCircle, Send, Clock, CheckCircle2, AlertCircle, Loader2, Trash2, Mail } from 'lucide-react';
+import { MessageCircle, Send, Clock, CheckCircle2, AlertCircle, Loader2, Trash2, User } from 'lucide-react';
 
 export function SupportModal({ onClose }: { onClose: () => void }) {
-  const { user, isAdmin } = useAuth();
+  const { isAdmin } = useAuth();
+  const [error, setError] = useState('');
   const [tickets, setTickets] = useState<SupportTicketRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -16,14 +17,14 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     (async () => {
-      const t = await loadUserTickets();
+      const t = await loadTickets();
       setTickets(t);
       setLoading(false);
     })();
   }, []);
 
   async function refresh() {
-    const t = await loadUserTickets();
+    const t = await loadTickets();
     setTickets(t);
   }
 
@@ -31,8 +32,11 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
     e.preventDefault();
     if (!subject.trim() || !message.trim()) return;
     setSending(true);
-    const ok = await createTicket(subject, message, user?.email ?? '');
+    setError('');
+    const ok = await createTicket(subject.trim(), message.trim());
+    if (!ok) setError('Invio non riuscito. Riprova tra poco.');
     if (ok) {
+      setShowForm(false);
       setSuccess(true);
       setSubject('');
       setMessage('');
@@ -46,7 +50,9 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
     if (!confirm('Eliminare questa segnalazione dalla bacheca?')) return;
     const ok = await adminDeleteTicket(ticketId);
     if (ok) {
-      await refresh();
+      setTickets((prev) => prev.filter((t) => t.id !== ticketId));
+    } else {
+      setError('Eliminazione non riuscita. Riprova.');
     }
   }
 
@@ -62,6 +68,12 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
             <div className="flex items-center gap-2 p-3 rounded-xl bg-success-50 dark:bg-success-900/20 text-success-600 dark:text-success-400 text-sm animate-fade-in">
               <CheckCircle2 className="w-4 h-4" />
               Segnalazione inviata con successo!
+            </div>
+          )}
+
+          {error && (
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-error-50 dark:bg-error-900/20 text-error-600 dark:text-error-400 text-sm">
+              <AlertCircle className="w-4 h-4" /> {error}
             </div>
           )}
 
@@ -81,7 +93,7 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
                           ? 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400'
                           : 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400'
                       }`}>
-                        {t.status === 'open' ? 'Aperto' : 'Chiuso'}
+                        {t.status === 'open' ? 'Aperto' : 'Risolto'}
                       </span>
                       {isAdmin && (
                         <button
@@ -96,8 +108,8 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
                   </div>
                   <p className="text-xs text-gray-500 mb-1">{t.message}</p>
                   <div className="flex items-center gap-2 text-[10px] text-gray-400 mt-1">
-                    <Mail className="w-3 h-3" />
-                    <span>{t.user_email}</span>
+                    <User className="w-3 h-3" />
+                    <span>{t.author_name || 'Utente'}</span>
                     <span className="mx-1">·</span>
                     <Clock className="w-3 h-3" />
                     <span>{new Date(t.created_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' })}</span>

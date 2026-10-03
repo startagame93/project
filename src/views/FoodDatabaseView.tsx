@@ -3,7 +3,10 @@ import { useApp } from '@/context/AppContext';
 import { FOOD_DATABASE, FOOD_CATEGORIES, type FoodEntry } from '@/lib/foodDatabase';
 import { uid } from '@/lib/data';
 import { Sheet } from '@/components/Sheet';
-import { Search, Plus, Pencil, Trash2, BookOpen, Check, ChevronDown, ChevronUp, Calendar, Utensils, Repeat, ArrowRight } from 'lucide-react';
+import { FOOD_FAMILIES, getFoodFamily } from '@/lib/foodFamilies';
+import { FoodPicker } from '@/components/food/FoodPicker';
+import { BarcodeScanner } from '@/components/food/BarcodeScanner';
+import { Search, Plus, Pencil, Trash2, BookOpen, Check, ChevronDown, ChevronUp, Calendar, Utensils, Repeat, ArrowRight, ScanBarcode } from 'lucide-react';
 import type { CustomFoodEntry, MealType, Meal } from '@/types';
 import { MEAL_TYPES, DAYS_OF_WEEK } from '@/types';
 
@@ -18,6 +21,7 @@ const CATEGORY_EMOJI: Record<string, string> = {
   'Pesce': '🐟', 'Verdure': '🥬', 'Frutta': '🍎', 'Condimenti': '🫒',
   'Latticini': '🧀', 'Uova': '🥚', 'Sushi / Piatti Misti': '🍣',
   'Snack / Dolci': '🍫', 'Bevande': '🥤', 'Frutta Secca': '🥜',
+  'Pasta': '🍝', 'Pane e Pizza': '🍕', 'Salumi': '🍖', 'Vini e Alcolici': '🍷',
 };
 
 const KEYWORD_EMOJI: { kw: string; emoji: string }[] = [
@@ -96,6 +100,8 @@ export function FoodDatabaseView() {
   const [addingFood, setAddingFood] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [addToDietFood, setAddToDietFood] = useState<CombinedFood | null>(null);
+  const [selectedFamily, setSelectedFamily] = useState('all');
+  const [scanning, setScanning] = useState(false);
 
   const allFoods: CombinedFood[] = useMemo(() => {
     return [...FOOD_DATABASE, ...state.customFoods];
@@ -105,13 +111,21 @@ export function FoodDatabaseView() {
     let result = allFoods;
     if (selectedCategory !== 'all') {
       result = result.filter((f) => f.category === selectedCategory);
+      if (selectedFamily !== 'all') {
+        result = result.filter((f) => getFoodFamily(f) === selectedFamily);
+      }
     }
     if (query.trim()) {
       const q = query.toLowerCase().trim();
       result = result.filter((f) => f.name.toLowerCase().includes(q));
     }
     return result.sort((a, b) => a.name.localeCompare(b.name));
-  }, [allFoods, query, selectedCategory]);
+  }, [allFoods, query, selectedCategory, selectedFamily]);
+
+  function pickCategory(cat: string) {
+    setSelectedCategory(cat);
+    setSelectedFamily('all');
+  }
 
   function deleteCustomFood(id: string) {
     setState((prev) => ({ ...prev, customFoods: prev.customFoods.filter((f) => f.id !== id) }));
@@ -129,6 +143,12 @@ export function FoodDatabaseView() {
     setAddingFood(false);
   }
 
+  function saveScanned(food: CustomFoodEntry) {
+    setState((prev) => ({ ...prev, customFoods: [...prev.customFoods, food] }));
+    setScanning(false);
+    setAddToDietFood(food);
+  }
+
   function startEdit(food: CombinedFood) {
     if (!isCustom(food)) return;
     setEditingFood(food as CustomFoodEntry);
@@ -136,6 +156,22 @@ export function FoodDatabaseView() {
 
   return (
     <div className="space-y-4">
+      <button
+        onClick={() => setScanning(true)}
+        className="w-full card p-4 flex items-center gap-3 text-left hover:shadow-md hover:-translate-y-0.5 transition-all"
+      >
+        <span className="w-11 h-11 rounded-xl bg-primary-600 text-white flex items-center justify-center shrink-0">
+          <ScanBarcode className="w-5 h-5" aria-hidden="true" />
+        </span>
+        <span className="flex-1">
+          <span className="block font-semibold text-gray-900 dark:text-white">Scannerizza Prodotto</span>
+          <span className="block text-xs text-gray-500">Leggi il codice a barre e importa i valori nutrizionali</span>
+        </span>
+        <ArrowRight className="w-4 h-4 text-gray-400" aria-hidden="true" />
+      </button>
+
+      <FoodPicker onAdd={setAddToDietFood} />
+
       {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" aria-hidden="true" />
@@ -169,7 +205,7 @@ export function FoodDatabaseView() {
         {showFilters && (
           <div className="flex flex-wrap gap-2 mt-3 animate-fade-in" role="group" aria-label="Categorie alimentari">
             <button
-              onClick={() => setSelectedCategory('all')}
+              onClick={() => pickCategory('all')}
               className={`chip ${selectedCategory === 'all' ? 'bg-primary-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}
               aria-pressed={selectedCategory === 'all'}
             >
@@ -178,7 +214,7 @@ export function FoodDatabaseView() {
             {FOOD_CATEGORIES.map((cat) => (
               <button
                 key={cat}
-                onClick={() => setSelectedCategory(cat)}
+                onClick={() => pickCategory(cat)}
                 className={`chip ${selectedCategory === cat ? 'bg-primary-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}
                 aria-pressed={selectedCategory === cat}
               >
@@ -186,6 +222,20 @@ export function FoodDatabaseView() {
               </button>
             ))}
           </div>
+        )}
+
+        {selectedCategory !== 'all' && (FOOD_FAMILIES.get(selectedCategory)?.length ?? 0) > 1 && (
+          <select
+            className="input mt-3"
+            value={selectedFamily}
+            onChange={(e) => setSelectedFamily(e.target.value)}
+            aria-label="Filtra per tipologia"
+          >
+            <option value="all">Tutte le tipologie</option>
+            {FOOD_FAMILIES.get(selectedCategory)?.map((fam) => (
+              <option key={fam.name} value={fam.name}>{fam.name} ({fam.foods.length})</option>
+            ))}
+          </select>
         )}
       </div>
 
@@ -232,6 +282,8 @@ export function FoodDatabaseView() {
         />
       )}
 
+      {scanning && <BarcodeScanner onClose={() => setScanning(false)} onSave={saveScanned} />}
+
       {/* Add to diet sheet */}
       {addToDietFood && (
         <AddToDietSheet
@@ -276,7 +328,7 @@ function FoodCard({ food, custom, onEdit, onDelete, onAddToDiet }: {
                 </span>
               )}
             </div>
-            <span className="text-xs text-gray-500">{food.category}</span>
+            <span className="text-xs text-gray-500">{food.category} · {getFoodFamily(food as FoodEntry)}</span>
           </div>
         </div>
         <div className="text-right shrink-0">

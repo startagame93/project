@@ -16,7 +16,7 @@ import { AdminDashboard } from '@/views/AdminDashboard';
 import { InfoScreen, ChangelogModal } from '@/views/InfoScreen';
 import { SupportModal } from '@/views/SupportModal';
 import { Moon, Sun, ShoppingCart, MessageCircle, Flame, User as UserIcon } from 'lucide-react';
-import { signOut } from '@/lib/supabase';
+import { signOut, markOnboardingCompleted } from '@/lib/supabase';
 
 const APP_VERSION = 'alpha-4.0';
 const TAB_ORDER: (TabKey | 'shopping')[] = ['home', 'diet', 'nutrition', 'food', 'gym', 'body', 'settings', 'shopping'];
@@ -56,8 +56,8 @@ function SplashScreen({ name, avatarUrl }: { name: string; avatarUrl?: string | 
 
 function AppContent() {
   const [tab, setTab] = useState<TabKey | 'shopping' | 'admin'>('home');
-  const { theme, toggleTheme, state, setState } = useApp();
-  const { user, isAdmin, isBanned, isFounder, profile } = useAuth();
+  const { theme, toggleTheme, state, setState, loading: dataLoading } = useApp();
+  const { isAdmin, isBanned, isFounder, profile, refreshProfile } = useAuth();
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
   const [showInfo, setShowInfo] = useState(false);
@@ -91,12 +91,23 @@ function AppContent() {
     }
   }
 
+  const onboardingDone = state.onboardingComplete || profile?.onboarding_completed === true;
+
   useEffect(() => {
+    if (dataLoading || !onboardingDone) return;
     if (state.lastChangelogVersion !== APP_VERSION) {
       setShowChangelog(true);
       setState((prev) => ({ ...prev, lastChangelogVersion: APP_VERSION }));
     }
-  }, []);
+  }, [dataLoading, onboardingDone]);
+
+  async function finishOnboarding() {
+    setState((prev) => ({ ...prev, onboardingComplete: true }));
+    setTab('home');
+    window.scrollTo(0, 0);
+    await markOnboardingCompleted();
+    await refreshProfile();
+  }
 
   useEffect(() => {
     const timer = setTimeout(() => setShowSplash(false), 1800);
@@ -126,7 +137,7 @@ function AppContent() {
 
   const displayName = profile?.display_name || state.profile.name || 'Atleta';
 
-  if (showSplash) {
+  if (showSplash || dataLoading) {
     return <SplashScreen name={displayName} avatarUrl={profile?.avatar_url} />;
   }
 
@@ -140,10 +151,8 @@ function AppContent() {
     );
   }
 
-  if (!state.onboardingComplete) {
-    return (
-      <Onboarding onComplete={() => { setState((prev) => ({ ...prev, onboardingComplete: true })); setTab('home'); }} />
-    );
+  if (!onboardingDone) {
+    return <Onboarding onComplete={finishOnboarding} />;
   }
 
   return (

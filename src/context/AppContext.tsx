@@ -75,12 +75,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     let mounted = true;
     (async () => {
-      const remote = await loadRemoteState();
-      if (remote && mounted) {
+      const timedOut = Symbol('timeout');
+      const remote = await Promise.race([
+        loadRemoteState().catch(() => null),
+        new Promise<typeof timedOut>((resolve) => setTimeout(() => resolve(timedOut), 6000)),
+      ]);
+      if (!mounted) return;
+      if (remote === timedOut) {
+        // Offline or slow network: keep the locally cached state so the app still opens
+      } else if (remote) {
         skipRemoteSave.current = true;
         setStateInner(mergeState(remote as Partial<AppState>));
-      } else if (mounted) {
-        // New user with no remote data: start fresh
+      } else {
         setStateInner(getDefaultState());
       }
       setLoading(false);

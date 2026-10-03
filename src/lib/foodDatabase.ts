@@ -1,3 +1,5 @@
+import { EXTRA_FOODS } from '@/lib/foodExtra';
+
 export interface FoodEntry {
   id: string;
   name: string;
@@ -13,12 +15,14 @@ export interface FoodEntry {
   potassium: number;
   calcium: number;
   iron: number;
+  family?: string;
 }
 
 export const FOOD_CATEGORIES = [
   'Cereali', 'Legumi', 'Carni Bianche', 'Carni Rosse', 'Pesce',
   'Verdure', 'Frutta', 'Condimenti', 'Latticini', 'Uova',
   'Sushi / Piatti Misti', 'Snack / Dolci', 'Bevande', 'Frutta Secca',
+  'Pasta', 'Pane e Pizza', 'Salumi', 'Vini e Alcolici',
 ] as const;
 
 export type FoodCategory = typeof FOOD_CATEGORIES[number];
@@ -34,7 +38,7 @@ function f(
   };
 }
 
-export const FOOD_DATABASE: FoodEntry[] = [
+const BASE_FOODS: FoodEntry[] = [
   // === CEREALI ===
   f('Riso Bianco', 'Cereali', 130, 2.7, 28.2, 0.3, 0.1, 0.1, 0.4, 1, 35, 10, 0.2),
   f('Riso Integrale', 'Cereali', 123, 2.6, 25.6, 0.9, 0.2, 0.4, 1.8, 5, 43, 10, 0.5),
@@ -784,6 +788,12 @@ export const FOOD_DATABASE: FoodEntry[] = [
   f('Quiche Lorraine', 'Uova', 250, 8.0, 22.0, 15.0, 6.0, 3.0, 1.0, 400, 130, 80, 1.5),
   f('Stracciatella alla Romana', 'Uova', 60, 4.0, 5.0, 2.5, 1.0, 3.0, 0.2, 30, 80, 30, 0.5),
   f('Zabaione', 'Uova', 240, 5.0, 25.0, 12.0, 5.0, 22.0, 0, 30, 80, 50, 0.8),
+];
+
+const baseIds = new Set(BASE_FOODS.map((f) => f.id));
+export const FOOD_DATABASE: FoodEntry[] = [
+  ...BASE_FOODS,
+  ...EXTRA_FOODS.filter((f) => !baseIds.has(f.id)),
 ];
 
 // Synonyms map for fuzzy matching: normalized name -> FoodEntry id

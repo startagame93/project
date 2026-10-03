@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
-import { supabase, getUserProfile, isFounderEmail, type UserProfileDB } from '@/lib/supabase';
+import { supabase, getUserProfile, isFounderEmail, touchPresence, type UserProfileDB } from '@/lib/supabase';
 
 interface AuthContextValue {
   user: User | null;
@@ -48,6 +48,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => { mounted = false; };
   }, [refreshProfile]);
+
+  const userId = user?.id;
+  useEffect(() => {
+    if (!userId) return;
+    touchPresence(userId);
+    const beat = window.setInterval(() => {
+      if (document.visibilityState === 'visible') touchPresence(userId);
+    }, 60_000);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') touchPresence(userId);
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearInterval(beat);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [userId]);
 
   const isAdmin = profile?.is_admin ?? false;
   const isBanned = profile?.is_banned ?? false;
