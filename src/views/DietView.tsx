@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { createEmptyWeek, createEmptyMeal, uid, todayISO, dateForWeekday } from '@/lib/data';
-import { PdfImportPanel } from '@/components/PdfImportPanel';
+import { PlanImportPanel } from '@/components/PlanImportPanel';
+import { isUnknownFood, stripUnknown, resolveFood, foodLabel, NUTRIENT_KEYS } from '@/lib/dietBuilder';
+import { parseFood } from '@/lib/dietText';
 import { DAYS_OF_WEEK, MEAL_TYPES, MEAL_ICONS, type Meal, type MealType, type WeekPlan } from '@/types';
 import { Modal } from '@/components/Modal';
 import { Sheet } from '@/components/Sheet';
 import {
-  ChevronLeft, ChevronRight, Plus, Check, Trash2, Pencil, Upload,
-  Sunrise, Apple, Utensils, Cookie, Moon, ShoppingCart, X,
+  ChevronLeft, ChevronRight, Plus, Check, Trash2, Pencil, ClipboardPaste,
+  Sunrise, Apple, Utensils, Cookie, Moon, ShoppingCart, X, AlertTriangle,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -152,7 +154,7 @@ export function DietView() {
       {/* Action buttons */}
       <div className="flex gap-2">
         <button onClick={() => setShowPdfModal(true)} className="btn-secondary flex-1 text-xs">
-          <Upload className="w-4 h-4" /> Importa PDF
+          <ClipboardPaste className="w-4 h-4" /> Incolla dieta
         </button>
         <button onClick={generateShoppingList} className="btn-secondary flex-1 text-xs">
           <ShoppingCart className="w-4 h-4" /> Lista Spesa
@@ -212,7 +214,16 @@ export function DietView() {
                     {meal.name || 'Pasto non definito'}
                   </h3>
                   {meal.foods.length > 0 && (
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{meal.foods.join(', ')}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      {meal.foods.map((f, i) => (
+                        <span key={i}>
+                          {i > 0 && ', '}
+                          {isUnknownFood(f) ? (
+                            <span className="text-warning-700 dark:text-warning-400 font-medium">{stripUnknown(f)} (sconosciuto)</span>
+                          ) : f}
+                        </span>
+                      ))}
+                    </p>
                   )}
                   {(meal.protein > 0 || meal.carbs > 0 || meal.fat > 0) && (
                     <div className="flex flex-wrap gap-3 mt-2 text-xs">
@@ -307,13 +318,12 @@ export function DietView() {
         </div>
       </Modal>
 
-      {/* PDF Modal */}
       <Modal
         open={showPdfModal}
         onClose={() => setShowPdfModal(false)}
-        title="Importa dieta o scheda PDF"
+        title="Importa dieta (copia e incolla)"
       >
-        <PdfImportPanel
+        <PlanImportPanel
           onImported={(o) => {
             if (o?.kind === 'diet') {
               setWeekIdx(o.firstWeekIndex);
@@ -336,13 +346,49 @@ export function DietView() {
 }
 
 function MealEditor({ meal, onSave, onClose }: { meal: Meal; onSave: (m: Meal) => void; onClose: () => void }) {
+  const { state } = useApp();
   const [draft, setDraft] = useState<Meal>(meal);
   const [foodInput, setFoodInput] = useState('');
+  const [editing, setEditing] = useState<{ index: number; text: string } | null>(null);
+  const [note, setNote] = useState<string | null>(null);
+  const unknownCount = draft.foods.filter(isUnknownFood).length;
+
+  function lookUp(text: string, addValues: boolean, base: Meal): { label: string; meal: Meal } {
+    const parsed = parseFood(text);
+    if (!parsed) return { label: text, meal: base };
+    const line = resolveFood(parsed.name, parsed.grams, state.customFoods);
+    if (!line.matched) {
+      setNote(`"${parsed.name}" non e nel database: inserisci i valori a mano qui sotto.`);
+      return { label: foodLabel(parsed.name, parsed.grams), meal: base };
+    }
+    setNote(parsed.grams > 0 ? `Trovato: ${line.label}. Valori aggiunti al pasto.` : `Trovato: ${line.label}. Indica i grammi (es. 80 g) per calcolare i valori.`);
+    if (!addValues || parsed.grams <= 0) return { label: line.label, meal: base };
+    const next = { ...base };
+    NUTRIENT_KEYS.forEach((k) => { next[k] = Math.round((base[k] + line.values[k]) * 10) / 10; });
+    return { label: line.label, meal: next };
+  }
 
   function addFood() {
-    if (!foodInput.trim()) return;
-    setDraft({ ...draft, foods: [...draft.foods, foodInput.trim()] });
+    const text = foodInput.trim();
+    if (!text) return;
+    const { label, meal: next } = lookUp(text, true, draft);
+    setDraft({ ...next, foods: [...next.foods, label] });
     setFoodInput('');
+  }
+
+  function confirmEdit() {
+    if (!editing) return;
+    const text = editing.text.trim();
+    const original = draft.foods[editing.index];
+    if (!text) return removeFood(editing.index);
+    const { label, meal: next } = lookUp(text, isUnknownFood(original), draft);
+    setDraft({ ...next, foods: next.foods.map((f, i) => (i === editing.index ? label : f)) });
+    setEditing(null);
+  }
+
+  function removeFood(index: number) {
+    setDraft({ ...draft, foods: draft.foods.filter((_, i) => i !== index) });
+    setEditing(null);
   }
 
   return (
@@ -383,15 +429,61 @@ function MealEditor({ meal, onSave, onClose }: { meal: Meal; onSave: (m: Meal) =
               <Plus className="w-4 h-4" />
             </button>
           </div>
+          {unknownCount > 0 && (
+            <div className="flex items-start gap-2 p-2.5 mb-2 rounded-xl bg-warning-50 dark:bg-warning-900/20 text-warning-700 dark:text-warning-300">
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
+              <p className="text-xs leading-relaxed">
+                {unknownCount === 1 ? '1 alimento non riconosciuto' : `${unknownCount} alimenti non riconosciuti`}: toccalo per correggerlo (es. "riso basmati 80 g") o eliminalo.
+              </p>
+            </div>
+          )}
+          {editing && (
+            <div className="flex gap-2 mb-2 animate-fade-in">
+              <input
+                autoFocus
+                className="input"
+                value={editing.text}
+                aria-label="Correggi alimento"
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); confirmEdit(); } else if (e.key === 'Escape') setEditing(null); }}
+                onChange={(e) => setEditing({ ...editing, text: e.target.value })}
+              />
+              <button onClick={confirmEdit} className="btn-primary shrink-0" aria-label="Conferma correzione">
+                <Check className="w-4 h-4" />
+              </button>
+              <button onClick={() => setEditing(null)} className="btn-secondary shrink-0" aria-label="Annulla correzione">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+          {note && <p className="text-xs text-gray-500 mb-2">{note}</p>}
           <div className="flex flex-wrap gap-2">
-            {draft.foods.map((f, i) => (
-              <span key={i} className="chip bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
-                {f}
-                <button onClick={() => setDraft({ ...draft, foods: draft.foods.filter((_, idx) => idx !== i) })}>
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            ))}
+            {draft.foods.map((f, i) => {
+              const unknown = isUnknownFood(f);
+              const active = editing?.index === i;
+              return (
+                <span
+                  key={i}
+                  className={`chip transition-all ${active ? 'ring-2 ring-primary-500' : ''} ${
+                    unknown
+                      ? 'bg-warning-50 dark:bg-warning-900/30 text-warning-800 dark:text-warning-200 border border-dashed border-warning-400'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+                  }`}
+                >
+                  <button
+                    onClick={() => { setNote(null); setEditing({ index: i, text: stripUnknown(f) }); }}
+                    className="flex items-center gap-1 hover:underline"
+                    aria-label={`Correggi ${stripUnknown(f)}`}
+                  >
+                    {unknown && <AlertTriangle className="w-3 h-3" aria-hidden="true" />}
+                    {stripUnknown(f)}
+                    {unknown && <span className="font-semibold">- sconosciuto</span>}
+                  </button>
+                  <button onClick={() => removeFood(i)} aria-label={`Elimina ${stripUnknown(f)}`} className="hover:text-error-600">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              );
+            })}
           </div>
         </div>
 

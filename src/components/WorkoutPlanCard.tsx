@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { Modal } from '@/components/Modal';
-import { PdfImportPanel } from '@/components/PdfImportPanel';
+import { PlanImportPanel } from '@/components/PlanImportPanel';
 import { todayISO, uid } from '@/lib/data';
 import type { PlanExercise, WorkoutLog } from '@/types';
 import { ClipboardList, FileUp, Check, Plus, Trash2 } from 'lucide-react';
@@ -48,8 +48,8 @@ export function WorkoutPlanCard() {
         <h3 className="flex-1 text-sm font-semibold text-gray-900 dark:text-white truncate">
           {plan ? plan.title : 'La tua scheda'}
         </h3>
-        <button onClick={() => setShowImport(true)} className="btn-ghost !px-2.5 !py-1.5 text-xs" aria-label="Importa scheda da PDF">
-          <FileUp className="w-4 h-4" /> {plan ? 'Sostituisci' : 'Importa PDF'}
+        <button onClick={() => setShowImport(true)} className="btn-ghost !px-2.5 !py-1.5 text-xs" aria-label="Importa scheda incollando il testo">
+          <FileUp className="w-4 h-4" /> {plan ? 'Sostituisci' : 'Incolla scheda'}
         </button>
         {plan && (
           <button onClick={removePlan} className="p-1.5 rounded-lg text-gray-400 hover:text-error-600 transition-colors" aria-label="Rimuovi scheda">
@@ -59,7 +59,7 @@ export function WorkoutPlanCard() {
       </div>
 
       {!plan ? (
-        <p className="text-sm text-gray-500">Carica la tua scheda in PDF: gli esercizi verranno distribuiti automaticamente sui giorni della settimana.</p>
+        <p className="text-sm text-gray-500">Copia e incolla il testo della tua scheda: gli esercizi verranno distribuiti automaticamente sui giorni della settimana.</p>
       ) : (
         <>
           <div className="grid grid-cols-7 gap-1 mb-3">
@@ -114,8 +114,8 @@ export function WorkoutPlanCard() {
         </>
       )}
 
-      <Modal open={showImport} onClose={() => setShowImport(false)} title="Importa scheda PDF" icon={FileUp}>
-        <PdfImportPanel onImported={(o) => { if (o?.kind === 'workout') setShowImport(false); }} />
+      <Modal open={showImport} onClose={() => setShowImport(false)} title="Importa scheda (copia e incolla)" icon={FileUp}>
+        <PlanImportPanel onImported={(o) => { if (o?.kind === 'workout') setShowImport(false); }} />
       </Modal>
     </div>
   );

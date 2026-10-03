@@ -40,10 +40,10 @@ export function AiKeySection() {
     <div className="card p-5">
       <div className="flex items-center gap-2 mb-1">
         <Sparkles className="w-5 h-5 text-primary-600 dark:text-primary-400" />
-        <h3 className="section-title">Lettura PDF con IA</h3>
+        <h3 className="section-title">Lettura testi con IA</h3>
       </div>
       <p className="text-xs text-gray-500 mb-4 leading-relaxed">
-        Con una chiave Google Gemini gratuita l'app legge diete e schede di allenamento in PDF, anche scansionate, e le inserisce nei giorni giusti.
+        Con una chiave Google Gemini gratuita l'app legge il testo incollato di diete e schede di allenamento, anche disordinato, e lo inserisce nei giorni e nei pasti giusti.
         Puoi ottenerla da Google AI Studio (aistudio.google.com/apikey). La chiave resta solo su questo dispositivo.
       </p>
 
