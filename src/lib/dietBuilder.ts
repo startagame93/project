@@ -21,10 +21,12 @@ export interface DietBuildResult {
   totalMeals: number;
   matchedFoods: number;
   totalFoods: number;
+  unknownFoods: string[];
 }
 
 interface FoodLine {
   label: string;
+  name: string;
   matched: boolean;
   values: Record<NutrientKey, number>;
 }
@@ -76,11 +78,14 @@ export function foodLabel(name: string, grams: number) {
 /** Looks a food up in the database; unknown foods keep their text with the "sconosciuto" marker and no values. */
 export function resolveFood(name: string, grams: number, customFoods: FoodEntry[]): FoodLine {
   const match = matchFood(name, customFoods);
-  if (!match) return { label: foodLabel(name, grams) + UNKNOWN_SUFFIX, matched: false, values: zero() };
-  if (grams <= 0) return { label: match.name, matched: true, values: zero() };
+  if (!match) {
+    const label = grams > 0 ? foodLabel(name, grams) : `${name} (quantità sconosciuta)`;
+    return { label: label + UNKNOWN_SUFFIX, matched: false, values: zero(), name };
+  }
+  if (grams <= 0) return { label: match.name, matched: true, values: zero(), name };
   const calc = calculateNutrients(match, grams);
   const values = Object.fromEntries(NUTRIENT_KEYS.map((k) => [k, calc[k]])) as Record<NutrientKey, number>;
-  return { label: foodLabel(match.name, grams), matched: true, values };
+  return { label: foodLabel(match.name, grams), matched: true, values, name };
 }
 
 function readFood(raw: unknown, customFoods: FoodEntry[]): FoodLine | null {
@@ -119,6 +124,7 @@ export function buildDietWeeks(data: unknown, fallbackTitle: string, customFoods
   const title = str(root.title, 60) || fallbackTitle;
   let totalFoods = 0;
   let matchedFoods = 0;
+  const unknownFoods: string[] = [];
 
   const distinct = asArray(root.weeks).slice(0, MAX_WEEKS).map((w, wi) => {
     const week = createEmptyWeek(`${title} - Settimana ${wi + 1}`);
@@ -133,7 +139,7 @@ export function buildDietWeeks(data: unknown, fallbackTitle: string, customFoods
         const lines = asArray(mo.foods).map((f) => readFood(f, customFoods)).filter((l): l is FoodLine => !!l).slice(0, 30);
         if (lines.length === 0) continue;
         totalFoods += lines.length;
-        matchedFoods += lines.filter((l) => l.matched).length;
+        lines.forEach((l) => (l.matched ? matchedFoods++ : unknownFoods.push(l.name)));
 
         const meal: Meal = { ...createEmptyMeal(type), name: str(mo.name, 80) || type, foods: lines.map((l) => l.label) };
         for (const k of NUTRIENT_KEYS) {
@@ -154,5 +160,5 @@ export function buildDietWeeks(data: unknown, fallbackTitle: string, customFoods
     i < distinct.length ? distinct[i] : cloneWeek(distinct[i % distinct.length], `${title} - Settimana ${i + 1}`));
   const totalMeals = weeks.reduce((s, w) => s + w.days.reduce((a, d) => a + d.meals.filter((m) => m.foods.length > 0).length, 0), 0);
 
-  return { title, weeks, totalMeals, matchedFoods, totalFoods };
+  return { title, weeks, totalMeals, matchedFoods, totalFoods, unknownFoods };
 }

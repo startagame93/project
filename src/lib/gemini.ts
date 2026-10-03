@@ -42,8 +42,14 @@ export class AiImportError extends Error {
 }
 
 const PROMPT = `Sei un assistente che legge piani alimentari e schede di allenamento scritti in italiano.
-Il testo e stato incollato dall'utente (da PDF, Word, note o scritto a mano): puo essere disordinato, con righe spezzate o senza formattazione.
-Leggi TUTTO il testo. Determina se e una DIETA o una SCHEDA DI ALLENAMENTO e rispondi SOLO con JSON valido in uno di questi formati.
+Il testo e stato incollato dall'utente (da PDF, Word, note o scritto a mano): puo essere disordinato, con righe spezzate, senza a capo o tutto attaccato in un unico blocco continuo.
+NON affidarti agli a capo o alle righe vuote: individua la struttura SOLO tramite le parole chiave:
+- marcatori di settimana ("Settimana 1", "Sett. 2", "Week 3", "Prima/Seconda settimana") aprono una nuova settimana;
+- nomi dei giorni (Lunedi...Domenica, anche abbreviati Lun/Mar/..., oppure "Giorno 1") aprono un nuovo giorno nella settimana corrente;
+- nomi dei pasti (Colazione, Spuntino, Pranzo, Merenda, Cena, Dopocena) aprono un nuovo pasto nel giorno corrente;
+- tutto cio che segue un nome di pasto, fino alla parola chiave successiva, sono gli alimenti di quel pasto.
+Leggi TUTTO il testo fino alla fine.
+La struttura di output e SEMPRE rigorosamente Settimana -> Giorno -> Pasto -> Alimenti. Determina se e una DIETA o una SCHEDA DI ALLENAMENTO e rispondi SOLO con JSON valido in uno di questi formati.
 
 Dieta:
 {"kind":"diet","title":"nome dieta","durationWeeks":4,"weeks":[{"days":[{"day":0,"meals":[{"type":"Colazione","name":"titolo breve","foods":[{"name":"fiocchi di avena","grams":80},{"name":"latte parzialmente scremato","grams":200}]}]}]}]}
@@ -53,13 +59,14 @@ Scheda:
 
 Regole dieta:
 - "durationWeeks": per quante settimane va seguito il piano in totale (es. "per 4 settimane", "ciclo di 2 settimane", "mese" = 4). Se non indicato, usa il numero di settimane distinte presenti.
-- "weeks": una voce per ogni settimana DIVERSA presente nel testo (massimo 8), nell'ordine del testo. Se tutte le settimane sono uguali, scrivine una sola e indica la durata in "durationWeeks".
+- "weeks": una voce SEPARATA per ogni settimana presente nel testo (massimo 8), nell'ordine del testo. Se il testo contiene "Settimana 2" (o successive), i suoi giorni vanno SOLO nella seconda voce di "weeks": non unire mai settimane diverse nella prima. Se il testo descrive una sola settimana da ripetere, scrivine una sola e indica la durata in "durationWeeks".
 - "day": 0=Lunedi, 1=Martedi, 2=Mercoledi, 3=Giovedi, 4=Venerdi, 5=Sabato, 6=Domenica. Se la dieta non indica i giorni usa "day":"all" (stessi pasti ogni giorno). Se indica "Giorno 1, 2, 3...", Giorno 1 = Lunedi.
 - "type" deve essere uno tra: Colazione, Spuntino, Pranzo, Merenda, Cena. Spuntino = meta mattina, Merenda = pomeriggio, spuntino serale/dopocena = Merenda.
 - Ogni alimento e un oggetto separato: "name" e il nome generico e semplice dell'alimento in italiano, al singolare, senza marche ne quantita (es. "petto di pollo", "riso basmati", "olio extravergine di oliva", "mela").
 - "grams": grammi (o ml) della porzione; converti cucchiai/cucchiaini/fette/pezzi in grammi realistici (cucchiaio olio = 10, cucchiaino = 5, fetta pane = 30, uovo = 60). Se non c'e quantita usa 0.
 - Se un piatto composto ha ingredienti indicati, elenca ogni ingrediente come alimento separato; altrimenti usa il piatto come singolo alimento.
 - Se ci sono alternative ("oppure"), usa solo la prima.
+- Riporta OGNI alimento nel pasto corretto anche se non lo riconosci o il nome ti sembra strano: non saltarlo e non spostarlo. Se la quantita manca o non e leggibile usa 0.
 
 Regole scheda:
 - "day" come sopra. Se la scheda usa "Giorno A/B/C" o "Giorno 1/2/3", distribuiscili su Lunedi, Mercoledi, Venerdi (poi Martedi, Giovedi, Sabato).

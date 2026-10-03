@@ -7,12 +7,19 @@ export interface RawDietPlan { title: string; durationWeeks: number; weeks: { da
 
 const ORDINALS = ['prima', 'seconda', 'terza', 'quarta', 'quinta', 'sesta', 'settima', 'ottava'];
 const WEEK_RE = new RegExp(`^(?:(?:settimana|sett\\.?|week)\\s*(\\d+)|(${ORDINALS.join('|')})\\s+settimana)\\b`, 'i');
-const DAY_RE = /^(luned[iì]|marted[iì]|mercoled[iì]|gioved[iì]|venerd[iì]|sabato|domenica|lun|mar|mer|gio|ven|sab|dom)\b\.?|^giorno\s*(\d+)\b/i;
+const DAY_RE = /^(luned[iì]|marted[iì]|mercoled[iì]|gioved[iì]|venerd[iì]|sabato|domenica|lun|mar|mer|gio|ven|sab|dom)(?![a-zà-ù])\.?|^giorno\s*(\d+)\b/i;
 const MEAL_RE = /^(colazione|prima colazione|spuntino(?:\s+(?:di\s+)?(?:met[aà]\s+mattina|mattutino|pomeridiano|serale))?|snack|pranzo|merenda|cena|dopo\s*cena)\b/i;
 const NUTRIENT_RE = /^(?:totale|tot\.?|kcal|calorie|proteine|carboidrati|grassi|lipidi|fibre)\b|\b\d+\s*kcal\b/i;
 const SKIP_RE = /^(?:oppure|in alternativa|alternativa|note?|n\.?b\.?|consigli)\b/i;
 const DURATION_RE = /\b(?:per|durata(?: di)?)\s+(\d+)\s+settimane\b|\b(\d+)\s+settimane\b/i;
 const DAY_PREFIX = ['lun', 'mar', 'mer', 'gio', 'ven', 'sab', 'dom'];
+// Breaks a continuous block (no line breaks) before every week, day and meal keyword.
+const INLINE_BREAK = new RegExp(
+  '\\s*(?=\\b(?:settimana\\s*\\d+|sett\\.\\s*\\d+|week\\s*\\d+|(?:' + ORDINALS.join('|') + ')\\s+settimana'
+  + '|luned[iì]|marted[iì]|mercoled[iì]|gioved[iì]|venerd[iì]|sabato|domenica|giorno\\s*\\d+'
+  + '|oppure|in\\s+alternativa|prima\\s+colazione|(?<!prima\\s)colazione|spuntino|snack|pranzo|merenda|dopo\\s*cena|(?<!dopo\\s?)cena)(?![a-zà-ù]))',
+  'gi',
+);
 
 const UNIT_GRAMS: [RegExp, number][] = [
   [/^cucchiain[oi]$/, 5],
@@ -100,7 +107,7 @@ function dayFromMatch(m: RegExpMatchArray): number {
 
 /** Reads a diet written as free text (pasted from PDF, Word, notes) into the structure accepted by buildDietWeeks. */
 export function parseDietText(text: string): RawDietPlan {
-  const lines = text.replace(/\r/g, '').split('\n').map(cleanLine).filter(Boolean);
+  const lines = text.replace(/\r/g, '').replace(INLINE_BREAK, '\n').split('\n').map(cleanLine).filter(Boolean);
   const weeks: { days: RawDay[] }[] = [{ days: [] }];
   let durationWeeks = 0;
   let title = '';
@@ -149,7 +156,7 @@ export function parseDietText(text: string): RawDietPlan {
     const mealMatch = MEAL_RE.exec(line);
     if (mealMatch) {
       const type = readMealType(mealMatch[1]);
-      if (type && skipping && meal?.type === type) continue;
+      if (type && skipping && (meal as RawMeal | null)?.type === type) continue;
       if (type) {
         meal = { type, name: type, foods: [] };
         currentDay().meals.push(meal);

@@ -27,8 +27,10 @@ export function DietView() {
   const [editingMeal, setEditingMeal] = useState<{ dayIdx: number; meal: Meal } | null>(null);
   const [showWeekManager, setShowWeekManager] = useState(false);
   const [showPdfModal, setShowPdfModal] = useState(false);
+  const [renaming, setRenaming] = useState<{ id: string; text: string } | null>(null);
+  const [confirmClear, setConfirmClear] = useState(false);
 
-  const week = state.weeks[weekIdx];
+  const week = state.weeks[weekIdx] ?? state.weeks[0];
 
   function updateWeeks(updater: (weeks: WeekPlan[]) => WeekPlan[]) {
     setState((prev) => ({ ...prev, weeks: updater(prev.weeks) }));
@@ -104,6 +106,21 @@ export function DietView() {
     setShowWeekManager(false);
   }
 
+  function saveRename() {
+    if (!renaming) return;
+    const label = renaming.text.trim().slice(0, 40);
+    if (label) updateWeeks((weeks) => weeks.map((w) => (w.id === renaming.id ? { ...w, label } : w)));
+    setRenaming(null);
+  }
+
+  function clearDiet() {
+    const fresh = createEmptyWeek('Settimana 1');
+    setState((prev) => ({ ...prev, weeks: [fresh], activeWeekId: fresh.id, pdfText: null }));
+    setWeekIdx(0);
+    setConfirmClear(false);
+    setShowWeekManager(false);
+  }
+
   function generateShoppingList() {
     const items: Record<string, { name: string; category: string; quantity: string }> = {};
     week.days.forEach((day) => {
@@ -142,6 +159,7 @@ export function DietView() {
           className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 font-semibold text-gray-900 dark:text-white"
         >
           {week.label}
+          <Pencil className="w-3.5 h-3.5 text-gray-400" aria-hidden="true" />
         </button>
         <button
           onClick={() => setWeekIdx((i) => (i + 1) % state.weeks.length)}
@@ -158,6 +176,13 @@ export function DietView() {
         </button>
         <button onClick={generateShoppingList} className="btn-secondary flex-1 text-xs">
           <ShoppingCart className="w-4 h-4" /> Lista Spesa
+        </button>
+        <button
+          onClick={() => setConfirmClear(true)}
+          className="btn-secondary !px-3 text-xs hover:!text-error-600 hover:!border-error-300 transition-colors"
+          aria-label="Cancella dieta"
+        >
+          <X className="w-4 h-4" /> <span className="hidden sm:inline">Cancella dieta</span>
         </button>
       </div>
 
@@ -289,32 +314,72 @@ export function DietView() {
         onClose={() => setShowWeekManager(false)}
         title="Gestione Settimane"
         footer={
-          <button onClick={addWeek} className="btn-primary w-full">
-            <Plus className="w-4 h-4" /> Aggiungi Settimana
-          </button>
+          <div className="flex gap-2 w-full">
+            <button onClick={() => setConfirmClear(true)} className="btn-secondary flex-1 hover:!text-error-600">
+              <X className="w-4 h-4" /> Cancella dieta
+            </button>
+            <button onClick={addWeek} className="btn-primary flex-1">
+              <Plus className="w-4 h-4" /> Aggiungi
+            </button>
+          </div>
         }
       >
+        <p className="text-xs text-gray-500 mb-3">Tocca una settimana per aprirla, la matita per rinominarla.</p>
         <div className="space-y-2">
           {state.weeks.map((w, idx) => (
             <div
               key={w.id}
-              className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${
+              className={`flex items-center gap-1 p-3 rounded-xl border transition-colors ${
                 idx === weekIdx
                   ? 'border-primary-300 dark:border-primary-700 bg-primary-50 dark:bg-primary-900/20'
                   : 'border-gray-200 dark:border-gray-800'
               }`}
             >
-              <button onClick={() => switchWeek(idx)} className="flex-1 text-left">
-                <span className="font-medium text-gray-900 dark:text-white">{w.label}</span>
-                <span className="text-xs text-gray-500 ml-2">{w.days.reduce((s, d) => s + d.meals.length, 0)} pasti</span>
-              </button>
+              {renaming?.id === w.id ? (
+                <input
+                  autoFocus
+                  className="input flex-1 !py-1.5"
+                  value={renaming.text}
+                  maxLength={40}
+                  aria-label="Nome settimana"
+                  onChange={(e) => setRenaming({ id: w.id, text: e.target.value })}
+                  onBlur={saveRename}
+                  onKeyDown={(e) => { if (e.key === 'Enter') saveRename(); else if (e.key === 'Escape') setRenaming(null); }}
+                />
+              ) : (
+                <button onClick={() => switchWeek(idx)} className="flex-1 min-w-0 text-left">
+                  <span className="font-medium text-gray-900 dark:text-white">{w.label}</span>
+                  <span className="text-xs text-gray-500 ml-2">{w.days.reduce((s, d) => s + d.meals.filter((m) => m.foods.length > 0).length, 0)} pasti</span>
+                </button>
+              )}
+              {renaming?.id === w.id ? (
+                <button onMouseDown={(e) => e.preventDefault()} onClick={saveRename} className="p-2 text-primary-600" aria-label="Salva nome">
+                  <Check className="w-4 h-4" />
+                </button>
+              ) : (
+                <button onClick={() => setRenaming({ id: w.id, text: w.label })} className="p-2 text-gray-400 hover:text-primary-600 transition-colors" aria-label={`Rinomina ${w.label}`}>
+                  <Pencil className="w-4 h-4" />
+                </button>
+              )}
               {state.weeks.length > 1 && (
-                <button onClick={() => deleteWeek(idx)} className="p-2 text-gray-400 hover:text-error-600">
+                <button onClick={() => deleteWeek(idx)} className="p-2 text-gray-400 hover:text-error-600 transition-colors" aria-label={`Elimina ${w.label}`}>
                   <Trash2 className="w-4 h-4" />
                 </button>
               )}
             </div>
           ))}
+        </div>
+      </Modal>
+
+      <Modal open={confirmClear} onClose={() => setConfirmClear(false)} title="Cancellare la dieta?">
+        <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
+          Verranno eliminate tutte le settimane ({state.weeks.length}) con i relativi pasti e il piano ripartira da una settimana vuota. Lo storico dei pasti gia consumati resta salvato.
+        </p>
+        <div className="flex gap-2">
+          <button onClick={() => setConfirmClear(false)} className="btn-secondary flex-1">Annulla</button>
+          <button onClick={clearDiet} className="btn-primary flex-1 !bg-error-600 hover:!bg-error-700">
+            <Trash2 className="w-4 h-4" /> Cancella
+          </button>
         </div>
       </Modal>
 
