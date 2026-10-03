@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nutriplan-v2';
+const CACHE_NAME = 'nutriplan-1.5.0';
 const STATIC_ASSETS = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', (event) => {

@@ -3,6 +3,8 @@ import { Loader2, ClipboardPaste, Wand2, X, Sparkles, CheckCircle2, Eraser } fro
 import { useApp } from '@/context/AppContext';
 import { usePlanImport, MIN_PLAN_CHARS, type PlanImportOutcome } from '@/hooks/usePlanImport';
 import { MAX_PLAN_CHARS } from '@/lib/gemini';
+import { PASTE_IMPORT_GUIDE } from '@/lib/manual';
+import { GuideToggle } from '@/components/GuideContent';
 
 const PLACEHOLDER = `Esempio:
 Settimana 1
@@ -47,6 +49,8 @@ export function PlanImportPanel({ onImported }: { onImported?: (outcome: PlanImp
             : 'Copia il testo della dieta da PDF, Word o note e incollalo qui. Per testi disordinati e schede di allenamento aggiungi la chiave Gemini gratuita in Impostazioni.'}
         </p>
       </div>
+
+      <GuideToggle section={PASTE_IMPORT_GUIDE} label="Come funziona? Guida passo passo" />
 
       <div className="relative">
         <label htmlFor="plan-text" className="label">Testo del piano</label>

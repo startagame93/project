@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Modal } from '@/components/Modal';
 import { Info, Flame, ChevronDown, ChevronUp } from 'lucide-react';
 import { MANUAL_SECTIONS, NEW_SECTIONS, APP_VERSION, APP_VERSION_LABEL } from '@/lib/manual';
+import { GuideContent } from '@/components/GuideContent';
 
 function NewBadge() {
   return (
@@ -34,9 +35,9 @@ export function InfoScreen({ onClose }: { onClose: () => void }) {
                 {isOpen ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
               </button>
               {isOpen && (
-                <p className="px-3 pb-3 text-sm text-gray-600 dark:text-gray-400 leading-relaxed animate-fade-in">
-                  {section.content}
-                </p>
+                <div className="px-3 pb-3 animate-fade-in">
+                  <GuideContent section={section} />
+                </div>
               )}
             </div>
           );

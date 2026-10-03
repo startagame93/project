@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Sparkles, Eye, EyeOff, Loader2, CheckCircle2, AlertCircle, Trash2 } from 'lucide-react';
 import { getGeminiKey, setGeminiKey, testGeminiKey } from '@/lib/gemini';
+import { GEMINI_KEY_GUIDE } from '@/lib/manual';
+import { GuideToggle } from '@/components/GuideContent';
 
 type Status = { kind: 'ok' | 'error'; text: string } | null;
 
@@ -42,10 +44,12 @@ export function AiKeySection() {
         <Sparkles className="w-5 h-5 text-primary-600 dark:text-primary-400" />
         <h3 className="section-title">Lettura testi con IA</h3>
       </div>
-      <p className="text-xs text-gray-500 mb-4 leading-relaxed">
-        Con una chiave Google Gemini gratuita l'app legge il testo incollato di diete e schede di allenamento, anche disordinato, e lo inserisce nei giorni e nei pasti giusti.
-        Puoi ottenerla da Google AI Studio (aistudio.google.com/apikey). La chiave resta solo su questo dispositivo.
+      <p className="text-xs text-gray-500 mb-3 leading-relaxed">
+        Con una chiave Google Gemini gratuita l'app legge il testo incollato di diete e schede di allenamento, anche disordinato, e lo inserisce nei giorni e nei pasti giusti. La chiave resta solo su questo dispositivo.
       </p>
+      <div className="mb-4">
+        <GuideToggle section={GEMINI_KEY_GUIDE} label="Come ottengo la chiave? Tutorial passo passo" />
+      </div>
 
       {saved ? (
         <div className="flex items-center gap-3 p-3 rounded-xl bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800">
