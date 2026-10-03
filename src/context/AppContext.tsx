@@ -4,10 +4,7 @@ import { getDefaultState, migrateWeeks } from '@/lib/data';
 import { loadRemoteState, saveRemoteState } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { applyPalette, getPalette } from '@/lib/palettes';
-
-const STORAGE_KEY = 'nutriplan-state-v1';
-const PENDING_KEY = 'nutriplan-pending-sync';
-const OWNER_KEY = 'nutriplan-state-owner';
+import { STORAGE_KEY, PENDING_KEY, OWNER_KEY, STARTUP_TIMEOUT_MS, withTimeout, clearLocalAppData } from '@/lib/localReset';
 
 function getLocalOwner(): string | null {
   try { return localStorage.getItem(OWNER_KEY); } catch { return null; }
@@ -30,30 +27,51 @@ function setPendingSync(pending: boolean) {
   }
 }
 
-export function mergeState(parsed: Partial<AppState>): AppState {
-  const def = getDefaultState();
+const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
+const arr = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
+
+function validWeeks(v: unknown): AppState['weeks'] | null {
+  if (!Array.isArray(v) || v.length === 0) return null;
+  const ok = v.every((w) => isObj(w) && typeof w.id === 'string' && Array.isArray(w.days) && w.days.length === 7
+    && w.days.every((d) => isObj(d) && Array.isArray(d.meals) && d.meals.every((m) => isObj(m) && Array.isArray(m.foods))));
+  return ok ? migrateWeeks(v as AppState['weeks']) : null;
+}
+
+/** Fills missing fields and replaces malformed ones; throws only if the input is not an object at all. */
+export function mergeState(input: unknown): AppState {
+  if (!isObj(input)) throw new Error('invalid state');
+  const parsed = input as Partial<AppState>;
+  const base = getDefaultState();
+  const weeks = validWeeks(parsed.weeks) ?? base.weeks;
   return {
-    ...def,
+    ...base,
     ...parsed,
-    weeks: migrateWeeks(parsed.weeks ?? def.weeks),
-    customFoods: parsed.customFoods ?? [],
-    notifications: { ...def.notifications, ...parsed.notifications },
-    workoutLogs: parsed.workoutLogs ?? [],
-    onboardingComplete: parsed.onboardingComplete ?? false,
-    lastChangelogVersion: parsed.lastChangelogVersion ?? '',
-    mealHistory: parsed.mealHistory ?? {},
-    dayChecks: parsed.dayChecks ?? {},
+    profile: { ...base.profile, ...(isObj(parsed.profile) ? parsed.profile : {}) },
+    weeks,
+    activeWeekId: weeks.some((w) => w.id === parsed.activeWeekId) ? parsed.activeWeekId! : weeks[0].id,
+    bodyMetrics: arr(parsed.bodyMetrics),
+    supplementLogs: arr(parsed.supplementLogs),
+    micronutrientLogs: arr(parsed.micronutrientLogs),
+    shoppingList: arr(parsed.shoppingList),
+    waterLogs: arr(parsed.waterLogs),
+    customFoods: arr(parsed.customFoods),
+    workoutLogs: arr(parsed.workoutLogs),
+    notifications: { ...base.notifications, ...(isObj(parsed.notifications) ? parsed.notifications : {}) },
+    onboardingComplete: parsed.onboardingComplete === true,
+    lastChangelogVersion: typeof parsed.lastChangelogVersion === 'string' ? parsed.lastChangelogVersion : '',
+    mealHistory: isObj(parsed.mealHistory) ? (parsed.mealHistory as AppState['mealHistory']) : {},
+    dayChecks: isObj(parsed.dayChecks) ? (parsed.dayChecks as AppState['dayChecks']) : {},
   };
 }
 
 function loadLocalState(): AppState {
+  let raw: string | null = null;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      return mergeState(JSON.parse(raw));
-    }
+    raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return mergeState(JSON.parse(raw));
   } catch {
-    // ignore
+    // Corrupted or unreadable cache: wipe it so the next start is clean
+    if (raw !== null) clearLocalAppData();
   }
   return getDefaultState();
 }
@@ -136,29 +154,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setPending(false);
     }
     setLocalOwner(user.id);
+    // Hard cap: the UI unlocks after STARTUP_TIMEOUT_MS no matter what the network does
+    const safety = window.setTimeout(() => { if (mounted) setLoading(false); }, STARTUP_TIMEOUT_MS);
     (async () => {
       const unavailable = Symbol('unavailable');
-      const remote = await Promise.race([
-        loadRemoteState().catch(() => unavailable),
-        new Promise<typeof unavailable>((resolve) => setTimeout(() => resolve(unavailable), 6000)),
-      ]);
+      const remote = await withTimeout<Record<string, unknown> | null | typeof unavailable>(loadRemoteState(), unavailable);
       if (!mounted) return;
-      if (remote === unavailable) {
-        // Offline, slow or failing network: keep the local copy, never overwrite it
-      } else if (ownsLocal && hasPendingSync()) {
-        void flush(loadLocalState());
-      } else if (remote) {
-        skipRemoteSave.current = true;
-        setStateInner(mergeState(remote as Partial<AppState>));
-      } else if (ownsLocal && localStorage.getItem(STORAGE_KEY)) {
-        // No cloud copy yet but this device has the user's data: upload it
-        void flush(loadLocalState());
-      } else {
-        setStateInner(getDefaultState());
+      try {
+        if (remote === unavailable) {
+          // Offline, slow or failing network: keep the local copy, never overwrite it
+        } else if (ownsLocal && hasPendingSync()) {
+          void flush(loadLocalState());
+        } else if (remote) {
+          skipRemoteSave.current = true;
+          setStateInner(mergeState(remote));
+        } else if (ownsLocal && localStorage.getItem(STORAGE_KEY)) {
+          // No cloud copy yet but this device has the user's data: upload it
+          void flush(loadLocalState());
+        } else {
+          setStateInner(getDefaultState());
+        }
+      } catch (err) {
+        console.error('startup state rejected', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     })();
-    return () => { mounted = false; };
+    return () => { mounted = false; clearTimeout(safety); };
   }, [user]);
 
   const setState = useCallback((updater: (prev: AppState) => AppState) => {

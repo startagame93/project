@@ -22,6 +22,26 @@
 </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Boot watchdog: if the app never renders (stale cached files, broken storage), clear caches and reload once
+      setTimeout(function () {
+        var root = document.getElementById('root');
+        if (!root || root.childElementCount > 0) return;
+        var flag = 'nutriplan-boot-recovery';
+        try { if (sessionStorage.getItem(flag)) return; sessionStorage.setItem(flag, '1'); } catch (e) { return; }
+        try { localStorage.removeItem('nutriplan-state-v1'); localStorage.removeItem('nutriplan-pending-sync'); } catch (e) {}
+        var jobs = [];
+        if ('serviceWorker' in navigator) {
+          jobs.push(navigator.serviceWorker.getRegistrations().then(function (rs) {
+            return Promise.all(rs.map(function (r) { return r.unregister(); }));
+          }));
+        }
+        if (window.caches) {
+          jobs.push(caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); })); }));
+        }
+        Promise.all(jobs).catch(function () {}).then(function () { location.reload(); });
+      }, 6000);
+    </script>
     <script type="module" src="/src/main.tsx"></script>
     <script>
       if ('serviceWorker' in navigator) {

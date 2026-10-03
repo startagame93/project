@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase, getUserProfile, isFounderEmail, touchPresence, type UserProfileDB } from '@/lib/supabase';
+import { STORAGE_KEY, STARTUP_TIMEOUT_MS, withTimeout } from '@/lib/localReset';
 
 interface AuthContextValue {
   user: User | null;
@@ -27,18 +28,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
+    // Never leave the login check spinning: unlock after STARTUP_TIMEOUT_MS even if auth hangs
+    const safety = window.setTimeout(() => { if (mounted) setLoading(false); }, STARTUP_TIMEOUT_MS);
 
-    supabase.auth.onAuthStateChange((event, session) => {
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       (async () => {
         if (session?.user && mounted) {
           setUser(session.user);
-          await refreshProfile();
+          const p = await withTimeout(getUserProfile(), null);
+          if (mounted && p) setProfile(p);
         } else if (mounted) {
           setUser(null);
           setProfile(null);
-          // Ensure any stale local data is cleared on logout
           try {
-            localStorage.removeItem('nutriplan-state-v1');
+            localStorage.removeItem(STORAGE_KEY);
           } catch {
             // ignore
           }
@@ -47,8 +50,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })();
     });
 
-    return () => { mounted = false; };
-  }, [refreshProfile]);
+    return () => { mounted = false; clearTimeout(safety); data.subscription.unsubscribe(); };
+  }, []);
 
   const userId = user?.id;
   useEffect(() => {
