@@ -1077,43 +1077,53 @@ for (const entry of FOOD_DATABASE) {
   FOOD_MAP[entry.id] = entry;
 }
 
-export function findFoodByName(name: string): FoodEntry | null {
-  const normalized = name.toLowerCase().trim();
+const STOPWORDS = new Set(['di', 'del', 'della', 'dei', 'delle', 'al', 'alla', 'allo', 'ai', 'con', 'e', 'in', 'il', 'lo', 'la', 'le', 'i', 'gli', 'un', 'una', 'da', 'per', 'tipo', 'g', 'gr', 'ml', 'pz']);
 
-  // Try exact match first
-  for (const entry of FOOD_DATABASE) {
-    if (entry.name.toLowerCase() === normalized) return entry;
+function tokens(text: string): string[] {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z\s]/g, ' ')
+    .split(/\s+/)
+    .filter((w) => w.length >= 2 && !STOPWORDS.has(w))
+    .map((w) => (w.length > 4 ? w.replace(/[aeiou]$/, '') : w));
+}
+
+const SYNONYM_TOKENS = Object.entries(SYNONYMS).map(([syn, id]) => ({ tokens: tokens(syn), id }));
+const INDEX = FOOD_DATABASE.map((entry) => ({ entry, tokens: tokens(entry.name) }));
+const MIN_SCORE = 0.6;
+
+function score(query: string[], target: string[]): number {
+  if (query.length === 0 || target.length === 0) return 0;
+  const matched = query.filter((q) => target.includes(q)).length;
+  if (matched === 0) return 0;
+  const dice = (2 * matched) / (query.length + target.length);
+  return dice + (query[0] === target[0] ? 0.15 : 0);
+}
+
+/** Best match for a free-text food name; `extra` (the user's own foods) wins ties. */
+export function matchFood(name: string, extra: FoodEntry[] = []): FoodEntry | null {
+  const query = tokens(name);
+  if (query.length === 0) return null;
+  const key = query.join(' ');
+  const candidates: { entry: FoodEntry; s: number }[] = [];
+
+  for (const entry of extra) {
+    const t = tokens(entry.name);
+    candidates.push({ entry, s: t.join(' ') === key ? 2.1 : score(query, t) + 0.05 });
+  }
+  for (const { entry, tokens: t } of INDEX) {
+    candidates.push({ entry, s: t.join(' ') === key ? 2 : score(query, t) });
+  }
+  for (const syn of SYNONYM_TOKENS) {
+    const entry = FOOD_MAP[syn.id];
+    if (entry && syn.tokens.includes(query[0]) && syn.tokens.every((t) => query.includes(t))) candidates.push({ entry, s: 0.6 + 0.1 * syn.tokens.length });
   }
 
-  // Try synonyms
-  const synId = SYNONYMS[normalized];
-  if (synId && FOOD_MAP[synId]) return FOOD_MAP[synId];
-
-  // Try contains match
-  for (const entry of FOOD_DATABASE) {
-    const entryName = entry.name.toLowerCase();
-    if (entryName.includes(normalized) || normalized.includes(entryName)) return entry;
-  }
-
-  // Try synonym contains
-  for (const [syn, id] of Object.entries(SYNONYMS)) {
-    if (normalized.includes(syn) || syn.includes(normalized)) {
-      if (FOOD_MAP[id]) return FOOD_MAP[id];
-    }
-  }
-
-  // Try word-level matching for multi-word queries
-  const words = normalized.split(/\s+/).filter((w) => w.length >= 3);
-  if (words.length > 0) {
-    for (const entry of FOOD_DATABASE) {
-      const entryWords = entry.name.toLowerCase().split(/\s+/);
-      if (words.some((w) => entryWords.some((ew) => ew.includes(w) || w.includes(ew)))) {
-        return entry;
-      }
-    }
-  }
-
-  return null;
+  let best: { entry: FoodEntry; s: number } | null = null;
+  for (const c of candidates) if (c.s >= MIN_SCORE && (!best || c.s > best.s)) best = c;
+  return best?.entry ?? null;
 }
 
 export function calculateNutrients(food: FoodEntry, grams: number): FoodEntry {

@@ -1,7 +1,7 @@
 import type { Meal, MealType, WeekPlan } from '@/types';
 import { MEAL_TYPES } from '@/types';
 import { uid, createEmptyWeek } from '@/lib/data';
-import { findFoodByName, calculateNutrients, type FoodEntry } from '@/lib/foodDatabase';
+import { matchFood, calculateNutrients, type FoodEntry } from '@/lib/foodDatabase';
 
 let pdfjsPromise: Promise<typeof import('pdfjs-dist')> | null = null;
 
@@ -156,7 +156,7 @@ function stripGramsAndNumbers(text: string): string {
 function parseIngredient(line: string): FoodIngredient {
   const grams = extractGrams(line);
   const cleanName = stripGramsAndNumbers(line);
-  const food = cleanName ? findFoodByName(cleanName) : null;
+  const food = cleanName ? matchFood(cleanName) : null;
   const calc = food && grams > 0 ? calculateNutrients(food, grams) : null;
   return { name: cleanName || line.trim(), grams, food, calc };
 }

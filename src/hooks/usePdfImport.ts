@@ -24,7 +24,7 @@ export function usePdfImport() {
       const key = getGeminiKey();
       let aiError: AiImportError | null = null;
       if (key) {
-        const result = await analyzePlanPdf(file, key).catch((err: unknown) => {
+        const result = await analyzePlanPdf(file, key, state.customFoods).catch((err: unknown) => {
           if (err instanceof AiImportError && err.reason === 'key') throw err;
           aiError = err instanceof AiImportError ? err : new AiImportError('Lettura IA non riuscita.');
           return null;
@@ -38,7 +38,7 @@ export function usePdfImport() {
           }));
           return { kind: 'workout' };
         }
-        return addWeeks(result.weeks, `Dieta "${result.title}" importata con IA: ${result.totalMeals} pasti in ${result.weeks.length} settimana/e`);
+        return addWeeks(result.weeks, `Dieta "${result.title}" importata con IA: ${result.totalMeals} pasti in ${result.weeks.length} settimana/e, ${result.matchedFoods} alimenti su ${result.totalFoods} agganciati al database`);
         }
       }
       const aiMessage = (aiError as AiImportError | null)?.message;
