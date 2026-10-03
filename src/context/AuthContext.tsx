@@ -10,6 +10,7 @@ interface AuthContextValue {
   isBanned: boolean;
   isFounder: boolean;
   refreshProfile: () => Promise<void>;
+  displayName: string;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -69,9 +70,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAdmin = profile?.is_admin ?? false;
   const isBanned = profile?.is_banned ?? false;
   const isFounder = user ? isFounderEmail(user.email ?? '') : false;
+  const metaName = String(user?.user_metadata?.name ?? '').trim();
+  const emailPrefix = (user?.email ?? '').split('@')[0];
+  const storedName = (profile?.display_name ?? '').trim();
+  const displayName = storedName && storedName !== emailPrefix ? storedName : metaName;
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, isAdmin, isBanned, isFounder, refreshProfile }}>
+    <AuthContext.Provider value={{ user, profile, loading, isAdmin, isBanned, isFounder, refreshProfile, displayName }}>
       {children}
     </AuthContext.Provider>
   );

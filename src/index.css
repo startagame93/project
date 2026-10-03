@@ -5,6 +5,22 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --c-primary-50: 236 253 245; --c-primary-100: 209 250 229; --c-primary-200: 167 243 208;
+    --c-primary-300: 110 231 183; --c-primary-400: 52 211 153; --c-primary-500: 16 185 129;
+    --c-primary-600: 5 150 105; --c-primary-700: 4 120 87; --c-primary-800: 6 95 70;
+    --c-primary-900: 6 78 59; --c-primary-950: 2 44 34;
+    --c-secondary-50: 240 253 250; --c-secondary-100: 204 251 241; --c-secondary-200: 153 246 228;
+    --c-secondary-300: 94 234 212; --c-secondary-400: 45 212 191; --c-secondary-500: 20 184 166;
+    --c-secondary-600: 13 148 136; --c-secondary-700: 15 118 110; --c-secondary-800: 17 94 89;
+    --c-secondary-900: 19 78 74; --c-secondary-950: 4 47 46;
+  }
+
+  html.amoled body { background-color: #000; }
+  html.amoled .card,
+  html.amoled header,
+  html.amoled nav { background-color: #000 !important; border-color: #1c1c1e !important; }
+
   * {
     -webkit-tap-highlight-color: transparent;
   }

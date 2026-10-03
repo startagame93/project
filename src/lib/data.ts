@@ -6,7 +6,17 @@ export function uid(): string {
 }
 
 export function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
+  return localISO(new Date());
+}
+
+export function localISO(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+export function dateForWeekday(dayIdx: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7) + dayIdx);
+  return localISO(d);
 }
 
 export function calcBMR(profile: UserProfile): number {

@@ -159,6 +159,20 @@ export async function loadTickets(): Promise<SupportTicketRow[]> {
   return (data ?? []) as SupportTicketRow[];
 }
 
+export async function loadLatestTicketAt(): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('support_tickets')
+    .select('created_at')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    console.error('latest ticket load failed', error);
+    return null;
+  }
+  return (data?.created_at as string | undefined) ?? null;
+}
+
 // === ADMIN FUNCTIONS ===
 
 export interface AdminUserRow {

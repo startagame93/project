@@ -2,23 +2,25 @@ import { useState, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { signOut, updateProfileMetrics } from '@/lib/supabase';
+import { PALETTES, rampHex } from '@/lib/palettes';
+import { buildCsv, downloadFile } from '@/lib/exportData';
 import { Modal } from '@/components/Modal';
 import type { Theme, NotificationConfig, AppState } from '@/types';
 import {
   User, Bell, Moon, Sun, Monitor, ShoppingBag, Trash2, Save,
   Droplet, Utensils, Pill, Info, Download, Upload, HardDrive, LogOut,
-  Camera, Flame,
+  Camera, Flame, Check, FileSpreadsheet, Cloud, CloudOff,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 export function SettingsView({ onNavigate }: { onNavigate: (tab: 'shopping') => void }) {
-  const { state, setState, theme, setTheme } = useApp();
-  const { profile, refreshProfile } = useAuth();
+  const { state, setState, theme, setTheme, setPalette } = useApp();
+  const { profile, refreshProfile, displayName: authName } = useAuth();
   const [showProfile, setShowProfile] = useState(false);
   const [showNotif, setShowNotif] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
-  const displayName = profile?.display_name || state.profile.name || 'Atleta';
+  const displayName = authName || state.profile.name || 'Atleta';
   const avatarUrl = profile?.avatar_url;
 
   function handleLogout() {
@@ -99,6 +101,32 @@ export function SettingsView({ onNavigate }: { onNavigate: (tab: 'shopping') => 
           <ThemeBtn active={state.theme === 'dark'} onClick={() => setTheme('dark')} icon={Moon} label="Scuro" />
           <ThemeBtn active={state.theme === 'system'} onClick={() => setTheme('system')} icon={Monitor} label="Sistema" />
         </div>
+        <p className="text-xs font-medium text-gray-500 mt-4 mb-2">Palette colori</p>
+        <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 snap-x" role="radiogroup" aria-label="Palette colori">
+          {PALETTES.map((p) => {
+            const active = (state.palette ?? 'smeraldo') === p.id;
+            return (
+              <button
+                key={p.id}
+                role="radio"
+                aria-checked={active}
+                onClick={() => setPalette(p.id)}
+                className="snap-start shrink-0 flex flex-col items-center gap-1.5 group"
+              >
+                <span
+                  className={`relative w-12 h-12 rounded-2xl shadow-sm transition-all group-hover:scale-105 ${active ? 'ring-2 ring-offset-2 ring-gray-900 dark:ring-white dark:ring-offset-gray-900' : ''}`}
+                  style={{ background: `linear-gradient(135deg, ${rampHex(p.primary, 500)} 0%, ${rampHex(p.secondary, 400)} 100%)`, border: p.amoled ? '3px solid #000' : undefined }}
+                >
+                  {active && <Check className="absolute inset-0 m-auto w-5 h-5 text-white drop-shadow" />}
+                </span>
+                <span className={`text-[11px] ${active ? 'font-semibold text-gray-900 dark:text-white' : 'text-gray-500'}`}>{p.name}</span>
+              </button>
+            );
+          })}
+        </div>
+        {PALETTES.find((p) => p.id === state.palette)?.amoled && (
+          <p className="text-xs text-gray-400 mt-1">Questa palette usa sempre lo sfondo nero.</p>
+        )}
       </div>
 
       {/* Notifications */}
@@ -204,10 +232,13 @@ export function SettingsView({ onNavigate }: { onNavigate: (tab: 'shopping') => 
 
 function ProfileModal({ onClose }: { onClose: () => void }) {
   const { state, setState } = useApp();
-  const [name, setName] = useState(state.profile.name);
+  const { refreshProfile, displayName } = useAuth();
+  const [name, setName] = useState(displayName || state.profile.name);
 
-  function save() {
-    setState((prev) => ({ ...prev, profile: { ...prev.profile, name } }));
+  async function save() {
+    const clean = name.trim();
+    setState((prev) => ({ ...prev, profile: { ...prev.profile, name: clean } }));
+    if (clean && await updateProfileMetrics({ display_name: clean })) await refreshProfile();
     onClose();
   }
 
@@ -230,6 +261,18 @@ function BackupRestoreSection({ state, setState }: { state: AppState; setState: 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const { online, pendingSync } = useApp();
+
+  function exportCsv() {
+    try {
+      downloadFile(buildCsv(state), `nutriplan-dati-${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8');
+      setMessage('File CSV esportato: puoi aprirlo con Excel o Fogli Google.');
+      setError(null);
+    } catch {
+      setError('Errore durante l\'esportazione del CSV.');
+    }
+  }
 
   function exportBackup() {
     try {
@@ -279,9 +322,17 @@ function BackupRestoreSection({ state, setState }: { state: AppState; setState: 
       <p className="text-sm text-gray-500 mb-3">
         Esporta tutti i tuoi dati (dieta, acqua, integratori, allenamenti, misurazioni) in un file da salvare. Puoi ripristinarli in qualsiasi momento.
       </p>
+      <div className={`flex items-center gap-2 text-xs rounded-lg px-3 py-2 mb-3 ${!online ? 'bg-warning-50 text-warning-700 dark:bg-warning-900/20 dark:text-warning-300' : pendingSync ? 'bg-accent-50 text-accent-700 dark:bg-accent-900/20 dark:text-accent-300' : 'bg-success-50 text-success-700 dark:bg-success-900/20 dark:text-success-300'}`}>
+        {online ? <Cloud className="w-4 h-4" /> : <CloudOff className="w-4 h-4" />}
+        {!online ? 'Sei offline: i dati sono salvati sul dispositivo e verranno sincronizzati al ritorno della rete.'
+          : pendingSync ? 'Sincronizzazione in corso...' : 'Tutti i dati sono sincronizzati nel cloud.'}
+      </div>
       <div className="flex gap-2">
+        <button onClick={exportCsv} className="btn-secondary flex-1 text-sm" aria-label="Esporta i dati in formato CSV">
+          <FileSpreadsheet className="w-4 h-4" /> CSV
+        </button>
         <button onClick={exportBackup} className="btn-secondary flex-1 text-sm" aria-label="Esporta un file di backup dei tuoi dati">
-          <Download className="w-4 h-4" /> Esporta
+          <Download className="w-4 h-4" /> JSON
         </button>
         <button onClick={() => fileInputRef.current?.click()} className="btn-secondary flex-1 text-sm" aria-label="Ripristina i dati da un file di backup">
           <Upload className="w-4 h-4" /> Ripristina

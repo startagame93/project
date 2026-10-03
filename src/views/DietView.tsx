@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '@/context/AppContext';
-import { createEmptyWeek, createEmptyMeal, uid, todayISO } from '@/lib/data';
+import { createEmptyWeek, createEmptyMeal, uid, todayISO, dateForWeekday } from '@/lib/data';
 import { extractPdfText, parsePdfToWeeks } from '@/lib/pdfParser';
 import { DAYS_OF_WEEK, MEAL_TYPES, MEAL_ICONS, type Meal, type MealType, type WeekPlan } from '@/types';
 import { Modal } from '@/components/Modal';
@@ -45,7 +45,26 @@ export function DietView() {
   }
 
   function toggleMealComplete(dayIdx: number, mealId: string) {
-    updateDay(dayIdx, (meals) => meals.map((m) => m.id === mealId ? { ...m, completed: !m.completed } : m));
+    const meal = week?.days[dayIdx]?.meals.find((m) => m.id === mealId);
+    if (!meal) return;
+    const date = dateForWeekday(dayIdx);
+    setState((prev) => {
+      const history = { ...(prev.mealHistory ?? {}) };
+      const dayLog = (history[date] ?? []).filter((h) => h.id !== mealId);
+      if (!meal.completed) dayLog.push({ id: meal.id, type: meal.type, name: meal.name || meal.type, calories: meal.calories });
+      history[date] = dayLog;
+      return {
+        ...prev,
+        mealHistory: history,
+        weeks: prev.weeks.map((w, wi) => wi !== weekIdx ? w : {
+          ...w,
+          days: w.days.map((d, di) => di !== dayIdx ? d : {
+            ...d,
+            meals: d.meals.map((m) => m.id === mealId ? { ...m, completed: !m.completed } : m),
+          }),
+        }),
+      };
+    });
   }
 
   function deleteMeal(dayIdx: number, mealId: string) {

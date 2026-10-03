@@ -15,13 +15,18 @@ import { AuthScreen } from '@/views/AuthScreen';
 import { AdminDashboard } from '@/views/AdminDashboard';
 import { InfoScreen, ChangelogModal } from '@/views/InfoScreen';
 import { SupportModal } from '@/views/SupportModal';
-import { Moon, Sun, ShoppingCart, MessageCircle, Flame, User as UserIcon } from 'lucide-react';
-import { signOut, markOnboardingCompleted } from '@/lib/supabase';
+import { CalendarView } from '@/views/CalendarView';
+import { Moon, Sun, ShoppingCart, MessageCircle, Flame, CalendarDays, User as UserIcon } from 'lucide-react';
+import { signOut, markOnboardingCompleted, loadLatestTicketAt } from '@/lib/supabase';
+import { APP_VERSION } from '@/lib/manual';
 
-const APP_VERSION = 'alpha-4.0';
+function RedDot() {
+  return <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-error-500 ring-2 ring-white dark:ring-gray-950 animate-pulse" aria-hidden="true" />;
+}
 const TAB_ORDER: (TabKey | 'shopping')[] = ['home', 'diet', 'nutrition', 'food', 'gym', 'body', 'settings', 'shopping'];
 
-const TAB_TITLES: Record<TabKey | 'shopping' | 'admin', string> = {
+const TAB_TITLES: Record<TabKey | 'shopping' | 'admin' | 'calendar', string> = {
+  calendar: 'Calendario',
   home: 'NutriPlan',
   diet: 'Piano Alimentare',
   nutrition: 'Nutrizione',
@@ -55,15 +60,37 @@ function SplashScreen({ name, avatarUrl }: { name: string; avatarUrl?: string | 
 }
 
 function AppContent() {
-  const [tab, setTab] = useState<TabKey | 'shopping' | 'admin'>('home');
+  const [tab, setTab] = useState<TabKey | 'shopping' | 'admin' | 'calendar'>('home');
   const { theme, toggleTheme, state, setState, loading: dataLoading } = useApp();
-  const { isAdmin, isBanned, isFounder, profile, refreshProfile } = useAuth();
+  const { isAdmin, isBanned, isFounder, profile, refreshProfile, displayName: authName } = useAuth();
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
   const [showInfo, setShowInfo] = useState(false);
   const [showSupport, setShowSupport] = useState(false);
   const [showChangelog, setShowChangelog] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
+  const [latestTicketAt, setLatestTicketAt] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    const check = () => loadLatestTicketAt().then((at) => { if (active) setLatestTicketAt(at); });
+    check();
+    const id = window.setInterval(check, 120000);
+    return () => { active = false; clearInterval(id); };
+  }, []);
+
+  const unreadBoard = !!latestTicketAt && (!state.seenTicketsAt || latestTicketAt > state.seenTicketsAt);
+  const unreadManual = state.seenManualVersion !== APP_VERSION;
+
+  function openManual() {
+    setShowInfo(true);
+    if (unreadManual) setState((prev) => ({ ...prev, seenManualVersion: APP_VERSION }));
+  }
+
+  function openBoard() {
+    setShowSupport(true);
+    setState((prev) => ({ ...prev, seenTicketsAt: new Date().toISOString() }));
+  }
 
   const switchTab = useCallback((direction: number) => {
     setTab((current) => {
@@ -135,7 +162,7 @@ function AppContent() {
     return () => intervals.forEach(clearInterval);
   }, [state.notifications.enabled, state.notifications.hydration, state.notifications.hydrationInterval]);
 
-  const displayName = profile?.display_name || state.profile.name || 'Atleta';
+  const displayName = authName || state.profile.name || 'Atleta';
 
   if (showSplash || dataLoading) {
     return <SplashScreen name={displayName} avatarUrl={profile?.avatar_url} />;
@@ -175,20 +202,31 @@ function AppContent() {
                 )}
               </button>
             )}
+            {tab !== 'calendar' && (
+              <button
+                onClick={() => setTab('calendar')}
+                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                aria-label="Calendario mensile"
+              >
+                <CalendarDays className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              </button>
+            )}
             <button
-              onClick={() => setShowInfo(true)}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              aria-label="Informazioni e manuale d'uso"
+              onClick={openManual}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative"
+              aria-label={unreadManual ? "Manuale d'uso, nuove funzioni" : "Informazioni e manuale d'uso"}
             >
+              {unreadManual && <RedDot />}
               <div className="w-5 h-5 rounded-full border-2 border-gray-600 dark:border-gray-400 flex items-center justify-center">
                 <span className="text-[10px] font-bold text-gray-600 dark:text-gray-400">i</span>
               </div>
             </button>
             <button
-              onClick={() => setShowSupport(true)}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              aria-label="Supporto e segnalazioni"
+              onClick={openBoard}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative"
+              aria-label={unreadBoard ? 'Bacheca, nuove segnalazioni' : 'Supporto e segnalazioni'}
             >
+              {unreadBoard && <RedDot />}
               <MessageCircle className="w-5 h-5 text-gray-600 dark:text-gray-400" />
             </button>
             <button
@@ -219,11 +257,12 @@ function AppContent() {
         {tab === 'gym' && <GymView />}
         {tab === 'body' && <BodyView />}
         {tab === 'shopping' && <ShoppingView />}
+        {tab === 'calendar' && <CalendarView />}
         {tab === 'settings' && <SettingsView onNavigate={(t) => setTab(t)} />}
         {tab === 'admin' && (isFounder || isAdmin) && <AdminDashboard />}
       </main>
 
-      {tab === 'shopping' ? (
+      {tab === 'shopping' || tab === 'calendar' ? (
         <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 safe-bottom">
           <div className="max-w-md mx-auto px-4 py-3">
             <button onClick={() => setTab('home')} className="btn-secondary w-full" aria-label="Torna alla Home">

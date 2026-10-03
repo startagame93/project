@@ -8,8 +8,8 @@ import { MICRONUTRIENT_TARGETS, MEAL_TYPES } from '@/types';
 
 export function Dashboard({ onNavigate }: { onNavigate: (tab: 'diet' | 'nutrition' | 'body' | 'gym' | 'settings') => void }) {
   const { state } = useApp();
-  const { profile } = useAuth();
-  const displayName = profile?.display_name || state.profile.name || 'Atleta';
+  const { profile, displayName: authName } = useAuth();
+  const displayName = authName || state.profile.name || 'Atleta';
   const today = todayISO();
   const activeWeek = state.weeks.find((w) => w.id === state.activeWeekId) ?? state.weeks[0];
   const dayIdx = (new Date().getDay() + 6) % 7;

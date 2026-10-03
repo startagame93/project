@@ -1,234 +1,35 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
-import { calcBMR, calcTDEE, calcTargetCalories, todayISO, uid } from '@/lib/data';
-import { ACTIVITY_LEVELS, type ActivityLevel, type WorkoutLog, type WorkoutCategory, type StrengthSet } from '@/types';
+import { todayISO, uid } from '@/lib/data';
+import { getWorkoutCategory, type WorkoutDef } from '@/lib/exerciseLibrary';
+import { ExercisePicker } from '@/components/ExercisePicker';
+import type { WorkoutLog, StrengthSet } from '@/types';
 import { loadLeaderboard, type LeaderboardRow } from '@/lib/supabase';
 import {
-  Activity, Flame, Zap, Plus, Minus, Dumbbell, Trash2, Calendar,
-  TrendingUp, ChevronDown, ChevronUp, Search, Trophy, Medal, Timer,
+  Flame, Zap, Plus, Minus, Dumbbell, Trash2, Calendar,
+  TrendingUp, Trophy, Medal,
 } from 'lucide-react';
-
-const WORKOUT_CATEGORIES: { label: string; emoji: string }[] = [
-  { label: 'Cardio', emoji: '🏃' },
-  { label: 'Forza', emoji: '🏋️' },
-  { label: 'Sport', emoji: '⚽' },
-  { label: 'Acqua', emoji: '🏊' },
-  { label: 'Combattimento', emoji: '🥊' },
-  { label: 'Mind & Body', emoji: '🧘' },
-  { label: 'Outdoor', emoji: '🏔️' },
-  { label: 'Danza', emoji: '💃' },
-  { label: 'Ciclismo', emoji: '🚴' },
-  { label: 'Atletica', emoji: '🤸' },
-];
-
-// category -> workoutCategory mapping
-const CATEGORY_TYPE: Record<string, WorkoutCategory> = {
-  'Forza': 'strength',
-  'Combattimento': 'strength',
-  'Acqua': 'time_style',
-};
-
-const SWIM_STYLES = ['Stile Libero', 'Dorso', 'Rana', 'Delfino', 'Farfalla', 'Misti'];
-const DANCE_STYLES = ['Standard', 'Latino', 'Contemporaneo', 'Hip Hop', 'Classico'];
-
-interface WorkoutDef {
-  name: string;
-  category: string;
-  met: number;
-  emoji: string;
-  styles?: string[];
-}
-
-const WORKOUT_DATABASE: WorkoutDef[] = [
-  // Cardio - time_only
-  { name: 'Camminata veloce', category: 'Cardio', met: 4.3, emoji: '🚶' },
-  { name: 'Corsa (8 km/h)', category: 'Cardio', met: 8.0, emoji: '🏃' },
-  { name: 'Corsa (10 km/h)', category: 'Cardio', met: 9.8, emoji: '🏃' },
-  { name: 'Corsa (12 km/h)', category: 'Cardio', met: 11.5, emoji: '🏃' },
-  { name: 'Corsa in salita', category: 'Cardio', met: 12.0, emoji: '⛰️' },
-  { name: 'Tapis roulant', category: 'Cardio', met: 7.0, emoji: '🏃' },
-  { name: 'Ellittica', category: 'Cardio', met: 6.5, emoji: '🏃' },
-  { name: 'Step machine', category: 'Cardio', met: 7.0, emoji: '🪜' },
-  { name: 'Saltelli alla corda', category: 'Cardio', met: 11.0, emoji: '🪢' },
-  { name: 'Burpees', category: 'Cardio', met: 10.0, emoji: '🔥' },
-  { name: 'HIIT', category: 'Cardio', met: 10.0, emoji: '⚡' },
-  { name: 'CrossFit', category: 'Cardio', met: 10.5, emoji: '🔥' },
-  { name: 'Circuit training', category: 'Cardio', met: 8.0, emoji: '🔄' },
-
-  // Forza - strength (sets/reps)
-  { name: 'Squat', category: 'Forza', met: 5.0, emoji: '🏋️' },
-  { name: 'Stacchi', category: 'Forza', met: 6.0, emoji: '🏋️' },
-  { name: 'Panca Piana', category: 'Forza', met: 5.0, emoji: '🏋️' },
-  { name: 'Military Press', category: 'Forza', met: 5.0, emoji: '🏋️' },
-  { name: 'Rematore', category: 'Forza', met: 5.5, emoji: '🏋️' },
-  { name: 'Trazioni (Sbarra)', category: 'Forza', met: 7.0, emoji: '💪' },
-  { name: 'Flessioni', category: 'Forza', met: 7.0, emoji: '🤸' },
-  { name: 'Addominali', category: 'Forza', met: 4.0, emoji: '🤸' },
-  { name: 'Curl Bicipiti', category: 'Forza', met: 4.0, emoji: '💪' },
-  { name: 'Pushdown Tricipiti', category: 'Forza', met: 4.0, emoji: '💪' },
-  { name: 'Leg Press', category: 'Forza', met: 5.0, emoji: '🏋️' },
-  { name: 'Affondi', category: 'Forza', met: 5.5, emoji: '🤸' },
-  { name: 'Hip Thrust', category: 'Forza', met: 5.0, emoji: '🏋️' },
-  { name: 'Lateral Raises', category: 'Forza', met: 4.0, emoji: '💪' },
-  { name: 'Lat Machine', category: 'Forza', met: 5.0, emoji: '🏋️' },
-  { name: 'Chest Press', category: 'Forza', met: 5.0, emoji: '🏋️' },
-  { name: 'Dip', category: 'Forza', met: 7.0, emoji: '🤸' },
-  { name: 'Hyperextension', category: 'Forza', met: 4.0, emoji: '🤸' },
-  { name: 'Plank', category: 'Forza', met: 3.5, emoji: '🤸' },
-  { name: 'Russian Twist', category: 'Forza', met: 4.5, emoji: '🤸' },
-  { name: 'Calf Raises', category: 'Forza', met: 3.5, emoji: '🤸' },
-  { name: 'Kettlebell Swing', category: 'Forza', met: 9.0, emoji: '🪨' },
-  { name: 'Deadlift Rumeno', category: 'Forza', met: 6.0, emoji: '🏋️' },
-  { name: 'Squat Bulgaro', category: 'Forza', met: 6.0, emoji: '🤸' },
-  { name: 'Pull-up', category: 'Forza', met: 7.0, emoji: '💪' },
-  { name: 'Chin-up', category: 'Forza', met: 7.0, emoji: '💪' },
-  { name: 'Overhead Squat', category: 'Forza', met: 6.0, emoji: '🏋️' },
-  { name: 'Front Squat', category: 'Forza', met: 6.0, emoji: '🏋️' },
-  { name: 'Bench Dip', category: 'Forza', met: 4.5, emoji: '🤸' },
-  { name: 'Crunch', category: 'Forza', met: 4.0, emoji: '🤸' },
-  { name: 'Leg Extension', category: 'Forza', met: 4.0, emoji: '🏋️' },
-  { name: 'Leg Curl', category: 'Forza', met: 4.0, emoji: '🏋️' },
-  { name: 'Preacher Curl', category: 'Forza', met: 4.0, emoji: '💪' },
-  { name: 'Skull Crusher', category: 'Forza', met: 4.0, emoji: '💪' },
-  { name: 'Face Pull', category: 'Forza', met: 4.0, emoji: '💪' },
-  { name: 'Hammer Curl', category: 'Forza', met: 4.0, emoji: '💪' },
-  { name: 'Arnold Press', category: 'Forza', met: 5.0, emoji: '💪' },
-  { name: 'Pec Deck', category: 'Forza', met: 4.0, emoji: '🏋️' },
-  { name: 'Ab Wheel', category: 'Forza', met: 5.0, emoji: '🤸' },
-
-  // Sport - time_only
-  { name: 'Calcio', category: 'Sport', met: 7.0, emoji: '⚽' },
-  { name: 'Calcetto', category: 'Sport', met: 6.0, emoji: '⚽' },
-  { name: 'Basket', category: 'Sport', met: 6.5, emoji: '🏀' },
-  { name: 'Volley', category: 'Sport', met: 6.0, emoji: '🏐' },
-  { name: 'Tennis (singolare)', category: 'Sport', met: 8.0, emoji: '🎾' },
-  { name: 'Tennis (doppio)', category: 'Sport', met: 6.0, emoji: '🎾' },
-  { name: 'Padel', category: 'Sport', met: 6.5, emoji: '🎾' },
-  { name: 'Rugby', category: 'Sport', met: 10.0, emoji: '🏉' },
-  { name: 'Football americano', category: 'Sport', met: 8.0, emoji: '🏈' },
-  { name: 'Hockey su prato', category: 'Sport', met: 7.0, emoji: '🏒' },
-  { name: 'Baseball', category: 'Sport', met: 5.0, emoji: '⚾' },
-  { name: 'Golf', category: 'Sport', met: 4.3, emoji: '⛳' },
-  { name: 'Pallamano', category: 'Sport', met: 8.0, emoji: '🤾' },
-  { name: 'Ping pong', category: 'Sport', met: 4.0, emoji: '🏓' },
-  { name: 'Badminton', category: 'Sport', met: 5.5, emoji: '🏸' },
-  { name: 'Squash', category: 'Sport', met: 9.0, emoji: '🎾' },
-
-  // Acqua - time_style
-  { name: 'Nuoto', category: 'Acqua', met: 8.0, emoji: '🏊', styles: SWIM_STYLES },
-  { name: 'Aquagym', category: 'Acqua', met: 5.0, emoji: '💧' },
-  { name: 'Surf', category: 'Acqua', met: 6.0, emoji: '🏄' },
-  { name: 'Windsurf', category: 'Acqua', met: 6.0, emoji: '🏄' },
-  { name: 'Kitesurf', category: 'Acqua', met: 7.0, emoji: '🪁' },
-  { name: 'SUP (paddleboard)', category: 'Acqua', met: 6.0, emoji: '🚣' },
-  { name: 'Canottaggio', category: 'Acqua', met: 8.5, emoji: '🚣' },
-  { name: 'Kayak', category: 'Acqua', met: 7.0, emoji: '🛶' },
-  { name: 'Rafting', category: 'Acqua', met: 7.0, emoji: '🌊' },
-  { name: 'Subacquea', category: 'Acqua', met: 7.0, emoji: '🤿' },
-  { name: 'Pallanuoto', category: 'Acqua', met: 10.0, emoji: '💧' },
-  { name: 'Tuffi', category: 'Acqua', met: 5.0, emoji: '🤿' },
-  { name: 'Acqua jogging', category: 'Acqua', met: 8.0, emoji: '💧' },
-
-  // Combattimento - strength
-  { name: 'Boxe', category: 'Combattimento', met: 9.0, emoji: '🥊' },
-  { name: 'MMA', category: 'Combattimento', met: 10.0, emoji: '🥋' },
-  { name: 'Judo', category: 'Combattimento', met: 9.0, emoji: '🥋' },
-  { name: 'Karate', category: 'Combattimento', met: 8.0, emoji: '🥋' },
-  { name: 'Taekwondo', category: 'Combattimento', met: 8.0, emoji: '🦶' },
-  { name: 'BJJ / Grappling', category: 'Combattimento', met: 9.0, emoji: '🥋' },
-  { name: 'Lotta', category: 'Combattimento', met: 8.0, emoji: '🤼' },
-  { name: 'Kickboxing', category: 'Combattimento', met: 9.5, emoji: '🦵' },
-  { name: 'Muay Thai', category: 'Combattimento', met: 10.0, emoji: '🥊' },
-  { name: 'Krav Maga', category: 'Combattimento', met: 9.0, emoji: '🥋' },
-
-  // Mind & Body - time_only
-  { name: 'Yoga (Hatha)', category: 'Mind & Body', met: 3.0, emoji: '🧘' },
-  { name: 'Yoga (Vinyasa)', category: 'Mind & Body', met: 4.0, emoji: '🧘' },
-  { name: 'Yoga (Bikram)', category: 'Mind & Body', met: 5.0, emoji: '🧘' },
-  { name: 'Pilates', category: 'Mind & Body', met: 3.5, emoji: '🧘' },
-  { name: 'Tai Chi', category: 'Mind & Body', met: 3.0, emoji: '🧘' },
-  { name: 'Stretching', category: 'Mind & Body', met: 2.5, emoji: '🤸' },
-  { name: 'Ginnastica posturale', category: 'Mind & Body', met: 3.5, emoji: '🧘' },
-
-  // Outdoor - time_only
-  { name: 'Escursionismo (pianura)', category: 'Outdoor', met: 5.0, emoji: '🥾' },
-  { name: 'Trekking (montagna)', category: 'Outdoor', met: 7.0, emoji: '🏔️' },
-  { name: 'Arrampicata', category: 'Outdoor', met: 8.0, emoji: '🧗' },
-  { name: 'Alpinismo', category: 'Outdoor', met: 9.0, emoji: '🏔️' },
-  { name: 'Equitazione', category: 'Outdoor', met: 5.5, emoji: '🐎' },
-  { name: 'Sci (discesa)', category: 'Outdoor', met: 6.0, emoji: '⛷️' },
-  { name: 'Snowboard', category: 'Outdoor', met: 6.0, emoji: '🏂' },
-  { name: 'Sci di fondo', category: 'Outdoor', met: 8.0, emoji: '🎿' },
-  { name: 'Pattinaggio su ghiaccio', category: 'Outdoor', met: 6.0, emoji: '⛸️' },
-
-  // Danza - time_style
-  { name: 'Danza', category: 'Danza', met: 4.5, emoji: '💃', styles: DANCE_STYLES },
-  { name: 'Zumba', category: 'Danza', met: 7.0, emoji: '💃' },
-  { name: 'Balletto', category: 'Danza', met: 6.0, emoji: '🩰' },
-  { name: 'Salsa', category: 'Danza', met: 5.5, emoji: '💃' },
-  { name: 'Tango', category: 'Danza', met: 5.0, emoji: '💃' },
-
-  // Ciclismo - time_only
-  { name: 'Ciclismo (16 km/h)', category: 'Ciclismo', met: 6.0, emoji: '🚴' },
-  { name: 'Ciclismo (20 km/h)', category: 'Ciclismo', met: 8.0, emoji: '🚴' },
-  { name: 'Ciclismo (25 km/h)', category: 'Ciclismo', met: 10.0, emoji: '🚴' },
-  { name: 'Ciclismo in salita', category: 'Ciclismo', met: 12.0, emoji: '⛰️' },
-  { name: 'Cyclette (moderata)', category: 'Ciclismo', met: 5.5, emoji: '🚴' },
-  { name: 'Cyclette (intensa)', category: 'Ciclismo', met: 8.5, emoji: '🚴' },
-  { name: 'Spin bike', category: 'Ciclismo', met: 9.0, emoji: '🚴' },
-  { name: 'Mountain bike', category: 'Ciclismo', met: 8.5, emoji: '🚵' },
-
-  // Atletica - time_only
-  { name: 'Salto in lungo', category: 'Atletica', met: 6.0, emoji: '🤸' },
-  { name: 'Salto in alto', category: 'Atletica', met: 6.0, emoji: '🤸' },
-  { name: 'Lancio del peso', category: 'Atletica', met: 6.0, emoji: '🤾' },
-  { name: 'Maratona (training)', category: 'Atletica', met: 10.0, emoji: '🏃' },
-  { name: 'Pattinaggio a rotelle', category: 'Atletica', met: 7.0, emoji: '🛼' },
-  { name: 'Ginnastica artistica', category: 'Atletica', met: 6.0, emoji: '🤸' },
-  { name: 'Parkour', category: 'Atletica', met: 9.0, emoji: '🤸' },
-];
 
 function calcWorkoutCalories(met: number, weightKg: number, minutes: number): number {
   return Math.round(met * weightKg * (minutes / 60));
 }
 
-function getWorkoutCategory(workout: WorkoutDef): WorkoutCategory {
-  return CATEGORY_TYPE[workout.category] ?? 'time_only';
-}
-
 export function GymView() {
   const { state, setState } = useApp();
   const { profile } = useAuth();
-  const [search, setSearch] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedWorkout, setSelectedWorkout] = useState<WorkoutDef | null>(null);
   const [minutes, setMinutes] = useState(30);
   const [selectedStyle, setSelectedStyle] = useState('');
   const [sets, setSets] = useState<StrengthSet[]>([{ reps: 10, weight: 0 }]);
   const [selectedDate, setSelectedDate] = useState(todayISO());
-  const [showFilters, setShowFilters] = useState(false);
   const [subView, setSubView] = useState<'log' | 'leaderboard'>('log');
   const [leaderboard, setLeaderboard] = useState<LeaderboardRow[]>([]);
   const [lbLoading, setLbLoading] = useState(false);
 
-  const bmr = Math.round(calcBMR(state.profile));
-  const tdee = calcTDEE(state.profile);
-  const targetCal = calcTargetCalories(state.profile);
-
   const todayWorkouts = state.workoutLogs.filter((w) => w.date === todayISO());
   const todayBurned = todayWorkouts.reduce((s, w) => s + w.calories, 0);
   const totalBurned = state.workoutLogs.reduce((s, w) => s + w.calories, 0);
-
-  const filtered = useMemo(() => {
-    let result = WORKOUT_DATABASE;
-    if (selectedCategory !== 'all') result = result.filter((w) => w.category === selectedCategory);
-    if (search.trim()) {
-      const q = search.toLowerCase().trim();
-      result = result.filter((w) => w.name.toLowerCase().includes(q) || w.category.toLowerCase().includes(q));
-    }
-    return result.sort((a, b) => a.name.localeCompare(b.name));
-  }, [search, selectedCategory]);
 
   useEffect(() => {
     if (subView === 'leaderboard' && leaderboard.length === 0 && !lbLoading) {
@@ -333,41 +134,15 @@ export function GymView() {
         <LeaderboardView entries={leaderboard} loading={lbLoading} currentName={profile?.display_name || state.profile.name} />
       ) : (
         <>
-          {/* TDEE Summary */}
-          <div className="card p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <Flame className="w-5 h-5 text-orange-500" />
-              <h2 className="section-title">Dispendio Calorico</h2>
+          <div className="card p-4 flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-accent-100 dark:bg-accent-900/30 flex items-center justify-center shrink-0">
+              <Flame className="w-5 h-5 text-accent-600 dark:text-accent-400" />
             </div>
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <div className="p-2.5 rounded-xl bg-gray-50 dark:bg-gray-800">
-                <p className="text-xs text-gray-500">BMR</p>
-                <p className="text-base font-bold text-gray-900 dark:text-white">{bmr}</p>
-                <p className="text-[10px] text-gray-400">kcal</p>
-              </div>
-              <div className="p-2.5 rounded-xl bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800">
-                <p className="text-xs text-primary-600 dark:text-primary-400">TDEE</p>
-                <p className="text-base font-bold text-primary-600 dark:text-primary-400">{tdee + todayBurned}</p>
-                <p className="text-[10px] text-primary-400">kcal/giorno</p>
-              </div>
-              <div className="p-2.5 rounded-xl bg-accent-50 dark:bg-accent-900/20 border border-accent-200 dark:border-accent-800">
-                <p className="text-xs text-accent-600 dark:text-accent-400">Oggi</p>
-                <p className="text-base font-bold text-accent-600 dark:text-accent-400">+{todayBurned}</p>
-                <p className="text-[10px] text-accent-400">kcal bruciate</p>
-              </div>
+            <div className="flex-1">
+              <p className="text-xs text-gray-500">Bruciate oggi con l'attivita</p>
+              <p className="text-xl font-bold text-gray-900 dark:text-white">+{todayBurned} kcal</p>
             </div>
-            <div className="mt-3">
-              <label className="label">Livello di attivita</label>
-              <select
-                className="input"
-                value={state.profile.activityLevel}
-                onChange={(e) => setState((prev) => ({ ...prev, profile: { ...prev.profile, activityLevel: e.target.value as ActivityLevel } }))}
-              >
-                {ACTIVITY_LEVELS.map((a) => (
-                  <option key={a.value} value={a.value}>{a.label} - {a.description}</option>
-                ))}
-              </select>
-            </div>
+            <p className="text-[11px] text-gray-400 text-right max-w-[110px] leading-snug">Il fabbisogno giornaliero e nella sezione Corpo</p>
           </div>
 
           {/* Today's workouts */}
@@ -399,73 +174,10 @@ export function GymView() {
             </div>
           )}
 
-          {/* Workout search + filters */}
-          <div className="card p-4">
-            <div className="relative mb-3">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                className="input pl-10"
-                placeholder="Cerca attivita o sport..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-
-            <button
-              onClick={() => setShowFilters((s) => !s)}
-              className="w-full flex items-center justify-between text-sm font-medium text-gray-700 dark:text-gray-300 py-2"
-            >
-              <span>Filtra per categoria</span>
-              {showFilters ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </button>
-
-            {showFilters && (
-              <div className="flex flex-wrap gap-2 mt-2 mb-2 animate-fade-in">
-                <button
-                  onClick={() => setSelectedCategory('all')}
-                  className={`chip ${selectedCategory === 'all' ? 'bg-primary-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}
-                >
-                  Tutte
-                </button>
-                {WORKOUT_CATEGORIES.map((cat) => (
-                  <button
-                    key={cat.label}
-                    onClick={() => setSelectedCategory(cat.label)}
-                    className={`chip ${selectedCategory === cat.label ? 'bg-primary-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}
-                  >
-                    {cat.emoji} {cat.label}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            <p className="text-sm text-gray-500 mt-2">{filtered.length} attivita trovate</p>
-
-            <div className="space-y-1.5 mt-2 max-h-80 overflow-y-auto">
-              {filtered.map((w) => {
-                const wCat = getWorkoutCategory(w);
-                const catLabel = wCat === 'strength' ? 'Serie/Rep' : wCat === 'time_style' ? 'Tempo/Stile' : 'Tempo';
-                return (
-                  <button
-                    key={w.name}
-                    onClick={() => { setSelectedWorkout(w); setSelectedStyle(w.styles?.[0] ?? ''); }}
-                    className={`w-full flex items-center gap-3 p-2.5 rounded-xl transition-all text-left ${
-                      selectedWorkout?.name === w.name
-                        ? 'bg-primary-100 dark:bg-primary-900/30 border border-primary-300 dark:border-primary-700'
-                        : 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <span className="text-2xl shrink-0">{w.emoji}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">{w.name}</p>
-                      <p className="text-xs text-gray-500">{w.category} - {catLabel}</p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <ExercisePicker
+            selected={selectedWorkout}
+            onSelect={(w) => { setSelectedWorkout(w); setSelectedStyle(w.styles?.[0] ?? ''); }}
+          />
 
           {/* Workout logger */}
           {selectedWorkout && (

@@ -273,4 +273,16 @@ export interface AppState {
   workoutLogs: WorkoutLog[];
   onboardingComplete: boolean;
   lastChangelogVersion?: string;
+  palette?: string;
+  mealHistory?: Record<string, MealHistoryEntry[]>;
+  dayChecks?: Record<string, boolean>;
+  seenTicketsAt?: string;
+  seenManualVersion?: string;
+}
+
+export interface MealHistoryEntry {
+  id: string;
+  type: MealType;
+  name: string;
+  calories: number;
 }

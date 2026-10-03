@@ -43,14 +43,14 @@ const INFO_SLIDES = [
 
 export function Onboarding({ onComplete }: { onComplete: () => void }) {
   const { state, setState } = useApp();
-  const { user } = useAuth();
+  const { user, displayName: authName } = useAuth();
   const [step, setStep] = useState(0);
   const isInfoPhase = step < INFO_SLIDES.length;
   const isMetricsPhase = step === INFO_SLIDES.length;
   const isLast = step === INFO_SLIDES.length + 1;
 
   // Metrics form state
-  const [name, setName] = useState(state.profile.name || user?.email?.split('@')[0] || '');
+  const [name, setName] = useState(state.profile.name || authName);
   const [sex, setSex] = useState<Sex>(state.profile.sex);
   const [age, setAge] = useState(state.profile.age || 25);
   const [height, setHeight] = useState(state.profile.height || 175);
