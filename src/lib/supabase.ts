@@ -119,11 +119,11 @@ export async function saveRemoteState(state: Record<string, unknown>): Promise<b
   if (!user.user) return false;
   const { error } = await supabase
     .from('app_data')
-    .upsert({
-      user_id: user.user.id,
-      data: state,
-      updated_at: new Date().toISOString(),
-    });
+    .upsert(
+      { user_id: user.user.id, data: state, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id' },
+    );
+  if (error) console.error('cloud save failed', error.message);
   return !error;
 }
 

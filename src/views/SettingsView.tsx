@@ -1,16 +1,17 @@
 import { useState, useRef } from 'react';
-import { useApp, mergeState } from '@/context/AppContext';
+import { useApp, mergeState, type SyncStatus } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { signOut, updateProfileMetrics } from '@/lib/supabase';
 import { PALETTES, paletteSwatch } from '@/lib/palettes';
 import { buildCsv, downloadFile } from '@/lib/exportData';
 import { Modal } from '@/components/Modal';
 import { AiKeySection } from '@/components/AiKeySection';
+import { MissingFoodsSection } from '@/components/MissingFoodsSection';
 import type { Theme, NotificationConfig, AppState } from '@/types';
 import {
   User, Bell, Moon, Sun, Monitor, ShoppingBag, Trash2, Save,
   Droplet, Utensils, Pill, Info, Download, Upload, HardDrive, LogOut,
-  Camera, Flame, Check, FileSpreadsheet, Cloud, CloudOff,
+  Camera, Flame, Check, FileSpreadsheet, Cloud, CloudOff, CheckCircle2, AlertCircle, Loader2, RefreshCw,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -178,6 +179,8 @@ export function SettingsView({ onNavigate }: { onNavigate: (tab: 'shopping') => 
 
       <BackupRestoreSection state={state} setState={setState} />
 
+      <MissingFoodsSection />
+
       {/* About */}
       <div className="card p-5">
         <div className="flex items-center gap-2 mb-2">
@@ -269,7 +272,7 @@ function BackupRestoreSection({ state, setState }: { state: AppState; setState: 
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const { online, pendingSync } = useApp();
+  const { online, syncStatus, retrySync } = useApp();
 
   function exportCsv() {
     try {
@@ -330,11 +333,7 @@ function BackupRestoreSection({ state, setState }: { state: AppState; setState: 
       <p className="text-sm text-gray-500 mb-3">
         Esporta tutti i tuoi dati (dieta, acqua, integratori, allenamenti, misurazioni) in un file da salvare. Puoi ripristinarli in qualsiasi momento.
       </p>
-      <div className={`flex items-center gap-2 text-xs rounded-lg px-3 py-2 mb-3 ${!online ? 'bg-warning-50 text-warning-700 dark:bg-warning-900/20 dark:text-warning-300' : pendingSync ? 'bg-accent-50 text-accent-700 dark:bg-accent-900/20 dark:text-accent-300' : 'bg-success-50 text-success-700 dark:bg-success-900/20 dark:text-success-300'}`}>
-        {online ? <Cloud className="w-4 h-4" /> : <CloudOff className="w-4 h-4" />}
-        {!online ? 'Sei offline: i dati sono salvati sul dispositivo e verranno sincronizzati al ritorno della rete.'
-          : pendingSync ? 'Sincronizzazione in corso...' : 'Tutti i dati sono sincronizzati nel cloud.'}
-      </div>
+      <SyncBadge online={online} status={syncStatus} onRetry={retrySync} />
       <div className="flex gap-2">
         <button onClick={exportCsv} className="btn-secondary flex-1 text-sm" aria-label="Esporta i dati in formato CSV">
           <FileSpreadsheet className="w-4 h-4" /> CSV
@@ -363,6 +362,34 @@ function BackupRestoreSection({ state, setState }: { state: AppState; setState: 
         <div className="mt-3 p-2.5 rounded-xl bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800">
           <span className="text-sm text-error-700 dark:text-error-300">{error}</span>
         </div>
+      )}
+    </div>
+  );
+}
+
+function SyncBadge({ online, status, onRetry }: { online: boolean; status: SyncStatus; onRetry: () => void }) {
+  const view = !online
+    ? { tone: 'bg-warning-50 text-warning-800 border-warning-200 dark:bg-warning-900/20 dark:text-warning-300 dark:border-warning-800', Icon: CloudOff, title: 'Offline', text: 'I dati sono salvati sul telefono e verranno sincronizzati al ritorno della rete.', retry: false }
+    : status === 'syncing'
+      ? { tone: 'bg-accent-50 text-accent-800 border-accent-200 dark:bg-accent-900/20 dark:text-accent-300 dark:border-accent-800', Icon: Loader2, title: 'Sincronizzazione in corso...', text: '', retry: false }
+      : status === 'error'
+        ? { tone: 'bg-error-50 text-error-700 border-error-200 dark:bg-error-900/20 dark:text-error-300 dark:border-error-800', Icon: AlertCircle, title: 'Sincronizzazione non riuscita', text: 'Il cloud non ha risposto. I dati sono al sicuro sul telefono; nuovo tentativo automatico tra poco.', retry: true }
+        : status === 'pending'
+          ? { tone: 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700', Icon: Cloud, title: 'Modifiche da sincronizzare', text: 'Alcune modifiche non sono ancora nel cloud.', retry: true }
+          : { tone: 'bg-success-50 text-success-800 border-success-200 dark:bg-success-900/20 dark:text-success-300 dark:border-success-800', Icon: CheckCircle2, title: 'Sincronizzato', text: 'Tutti i dati sono salvati nel cloud.', retry: false };
+  const { Icon } = view;
+
+  return (
+    <div role="status" className={`flex items-center gap-2.5 rounded-xl border px-3 py-2.5 mb-3 transition-colors duration-300 ${view.tone}`}>
+      <Icon className={`w-5 h-5 shrink-0 ${status === 'syncing' && online ? 'animate-spin' : ''}`} aria-hidden="true" />
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold leading-tight">{view.title}</p>
+        {view.text && <p className="text-xs leading-snug mt-0.5 opacity-90">{view.text}</p>}
+      </div>
+      {view.retry && (
+        <button onClick={onRetry} className="shrink-0 inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold bg-white/70 dark:bg-black/20 hover:bg-white dark:hover:bg-black/30 transition-colors">
+          <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" /> Riprova
+        </button>
       )}
     </div>
   );

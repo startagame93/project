@@ -36,3 +36,17 @@ export function recordMissingFoods(names: string[]) {
     // storage full or unavailable
   }
 }
+
+export function clearMissingFoods() {
+  try {
+    localStorage.removeItem(REGISTRY_KEY);
+  } catch {
+    // storage unavailable
+  }
+}
+
+export function formatMissingFoods(foods: MissingFood[]): string {
+  const sorted = [...foods].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'it'));
+  const lines = sorted.map((f) => `${f.name}\t${f.count}\t${f.lastSeen.slice(0, 10)}`);
+  return [`Alimenti sconosciuti NutriPlan (${sorted.length})`, 'nome\tvolte\tultima volta', ...lines].join('\n');
+}

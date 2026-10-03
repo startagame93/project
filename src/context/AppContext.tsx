@@ -84,6 +84,10 @@ function saveLocalState(state: AppState) {
   }
 }
 
+export type SyncStatus = 'synced' | 'syncing' | 'pending' | 'error';
+
+const SYNC_TIMEOUT_MS = 15000;
+
 interface AppContextValue {
   state: AppState;
   setState: (updater: (prev: AppState) => AppState) => void;
@@ -92,7 +96,8 @@ interface AppContextValue {
   setTheme: (t: Theme) => void;
   setPalette: (id: string) => void;
   online: boolean;
-  pendingSync: boolean;
+  syncStatus: SyncStatus;
+  retrySync: () => void;
   loading: boolean;
 }
 
@@ -112,26 +117,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const skipRemoteSave = useRef(false);
   const [online, setOnline] = useState(() => navigator.onLine);
-  const [pendingSync, setPending] = useState(hasPendingSync);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>(() => (hasPendingSync() ? 'pending' : 'synced'));
   const syncTimer = useRef<number | undefined>(undefined);
+  const syncSeq = useRef(0);
 
   const flush = useCallback(async (snapshot: AppState) => {
-    let ok = false;
-    try {
-      ok = navigator.onLine && await saveRemoteState(snapshot as unknown as Record<string, unknown>);
-    } catch (err) {
-      console.error('sync failed', err);
+    const seq = ++syncSeq.current;
+    if (!navigator.onLine) {
+      setSyncStatus('pending');
+      return;
     }
+    setSyncStatus('syncing');
+    const ok = await withTimeout(saveRemoteState(snapshot as unknown as Record<string, unknown>), false, SYNC_TIMEOUT_MS);
+    // A newer change started its own sync: let that one decide the final status
+    if (seq !== syncSeq.current) return;
     setPendingSync(!ok);
-    setPending(!ok);
+    setSyncStatus(ok ? 'synced' : 'error');
   }, []);
 
   const scheduleSync = useCallback((snapshot: AppState) => {
     setPendingSync(true);
-    setPending(true);
+    syncSeq.current++;
+    setSyncStatus(navigator.onLine ? 'syncing' : 'pending');
     window.clearTimeout(syncTimer.current);
     syncTimer.current = window.setTimeout(() => { void flush(snapshot); }, 1200);
   }, [flush]);
+
+  const retrySync = useCallback(() => {
+    if (user) void flush(loadLocalState());
+  }, [user, flush]);
 
   // Load from Supabase when user logs in; reset state on user change
   useEffect(() => {
@@ -139,7 +153,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       // User logged out or switched: reset to clean default state
       setStateInner(getDefaultState());
       setPendingSync(false);
-      setPending(false);
+      setSyncStatus('synced');
       setLoading(false);
       return;
     }
@@ -151,7 +165,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       // Cached data belongs to another account on this device: never show or upload it
       setStateInner(getDefaultState());
       setPendingSync(false);
-      setPending(false);
+      setSyncStatus('synced');
     }
     setLocalOwner(user.id);
     // Hard cap: the UI unlocks after STARTUP_TIMEOUT_MS no matter what the network does
@@ -197,7 +211,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setOnline(true);
       if (user && hasPendingSync()) void flush(loadLocalState());
     };
-    const goOffline = () => setOnline(false);
+    const goOffline = () => {
+      setOnline(false);
+      setSyncStatus((s) => (s === 'synced' ? s : 'pending'));
+    };
     window.addEventListener('online', goOnline);
     window.addEventListener('offline', goOffline);
     const retry = window.setInterval(() => {
@@ -258,7 +275,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [resolvedTheme, setState]);
 
   return (
-    <AppContext.Provider value={{ state, setState, theme: resolvedTheme, toggleTheme, setTheme, setPalette, online, pendingSync, loading }}>
+    <AppContext.Provider value={{ state, setState, theme: resolvedTheme, toggleTheme, setTheme, setPalette, online, syncStatus, retrySync, loading }}>
       {children}
     </AppContext.Provider>
   );
