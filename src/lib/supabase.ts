@@ -139,12 +139,9 @@ export async function createTicket(subject: string, message: string, userEmail: 
 }
 
 export async function loadUserTickets(): Promise<SupportTicketRow[]> {
-  const { data: user } = await supabase.auth.getUser();
-  if (!user.user) return [];
   const { data, error } = await supabase
     .from('support_tickets')
     .select('*')
-    .eq('user_id', user.user.id)
     .order('created_at', { ascending: false });
   if (error) return [];
   return (data ?? []) as SupportTicketRow[];
@@ -202,6 +199,14 @@ export async function adminReplyTicket(ticketId: string, reply: string, status: 
   const { error } = await supabase
     .from('support_tickets')
     .update({ admin_reply: reply, status })
+    .eq('id', ticketId);
+  return !error;
+}
+
+export async function adminDeleteTicket(ticketId: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('support_tickets')
+    .delete()
     .eq('id', ticketId);
   return !error;
 }

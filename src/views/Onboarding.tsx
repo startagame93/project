@@ -59,6 +59,10 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
   const [goal, setGoal] = useState(state.profile.goal);
 
   function next() {
+    if (isMetricsPhase) {
+      saveAndComplete();
+      return;
+    }
     if (isLast) {
       saveAndComplete();
     } else {
