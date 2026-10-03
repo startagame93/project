@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { todayISO, uid } from '@/lib/data';
 import { getWorkoutCategory, type WorkoutDef } from '@/lib/exerciseLibrary';
 import { ExercisePicker } from '@/components/ExercisePicker';
+import { WorkoutPlanCard } from '@/components/WorkoutPlanCard';
 import type { WorkoutLog, StrengthSet } from '@/types';
 import { loadLeaderboard, type LeaderboardRow } from '@/lib/supabase';
 import {
@@ -144,6 +145,8 @@ export function GymView() {
             </div>
             <p className="text-[11px] text-gray-400 text-right max-w-[110px] leading-snug">Il fabbisogno giornaliero e nella sezione Corpo</p>
           </div>
+
+          <WorkoutPlanCard />
 
           {/* Today's workouts */}
           {todayWorkouts.length > 0 && (

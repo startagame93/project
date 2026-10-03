@@ -101,15 +101,16 @@ export function isFounderEmail(email: string): boolean {
 
 // === APP DATA (per-user JSON blob) ===
 
+/** Returns null when the user has no saved data yet; throws on network or server errors. */
 export async function loadRemoteState(): Promise<Record<string, unknown> | null> {
-  const { data: user } = await supabase.auth.getUser();
-  if (!user.user) return null;
+  const { data: user, error: userError } = await supabase.auth.getUser();
+  if (userError || !user.user) throw new Error('auth unavailable');
   const { data, error } = await supabase
     .from('app_data')
     .select('data')
     .eq('user_id', user.user.id)
     .maybeSingle();
-  if (error) return null;
+  if (error) throw error;
   return (data?.data as Record<string, unknown>) ?? null;
 }
 

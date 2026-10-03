@@ -17,6 +17,8 @@ export function buildCsv(state: AppState): string {
     meals.forEach((m) => rows.push([date, `Pasto (${m.type})`, m.name, m.calories, 'kcal'])));
   state.weeks.forEach((week) => week.days.forEach((day) => day.meals.forEach((m) =>
     rows.push([`${week.label} - ${day.day}`, `Piano (${m.type})`, m.name, m.calories, 'kcal']))));
+  state.workoutPlan?.days.forEach((day) => day.exercises.forEach((ex) =>
+    rows.push([`Scheda - ${day.day}`, `Esercizio (${day.title})`, ex.name, `${ex.sets}x${ex.reps}`, ex.weight ?? ''])));
   const [header, ...body] = rows;
   body.sort((a, b) => String(a[0]).localeCompare(String(b[0])));
   return '\uFEFF' + [header, ...body].map((r) => r.map(cell).join(';')).join('\n');

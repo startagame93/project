@@ -21,50 +21,86 @@ const RAMPS = {
 
 type Ramp = keyof typeof RAMPS;
 
+/** Neutral ramp tint: hue in degrees, saturation in % for the light and dark ends. */
+interface NeutralTint {
+  hue: number;
+  satLight: number;
+  satDark: number;
+  black?: boolean;
+}
+
 export interface Palette {
   id: string;
   name: string;
   primary: Ramp;
   secondary: Ramp;
+  accent: Ramp;
+  neutral: NeutralTint;
   amoled?: boolean;
 }
 
 export const PALETTES: Palette[] = [
-  { id: 'smeraldo', name: 'Smeraldo', primary: 'emerald', secondary: 'teal' },
-  { id: 'oceano', name: 'Oceano', primary: 'blue', secondary: 'sky' },
-  { id: 'foresta', name: 'Foresta', primary: 'green', secondary: 'lime' },
-  { id: 'tramonto', name: 'Tramonto', primary: 'orange', secondary: 'amber' },
-  { id: 'rubino', name: 'Rubino', primary: 'rose', secondary: 'orange' },
-  { id: 'laguna', name: 'Laguna', primary: 'cyan', secondary: 'teal' },
-  { id: 'corallo', name: 'Corallo', primary: 'red', secondary: 'amber' },
-  { id: 'oro', name: 'Oro', primary: 'yellow', secondary: 'stone' },
-  { id: 'menta', name: 'Menta', primary: 'lime', secondary: 'emerald' },
-  { id: 'minimal', name: 'Minimal', primary: 'slate', secondary: 'zinc' },
-  { id: 'amoled', name: 'AMOLED', primary: 'sky', secondary: 'cyan', amoled: true },
-  { id: 'cyberpunk', name: 'Cyberpunk', primary: 'pink', secondary: 'cyan', amoled: true },
+  { id: 'smeraldo', name: 'Smeraldo', primary: 'emerald', secondary: 'teal', accent: 'amber', neutral: { hue: 220, satLight: 14, satDark: 18 } },
+  { id: 'oceano', name: 'Oceano', primary: 'blue', secondary: 'sky', accent: 'orange', neutral: { hue: 215, satLight: 30, satDark: 42 } },
+  { id: 'petrolio', name: 'Petrolio', primary: 'cyan', secondary: 'teal', accent: 'rose', neutral: { hue: 195, satLight: 28, satDark: 45 } },
+  { id: 'foresta', name: 'Foresta', primary: 'green', secondary: 'lime', accent: 'amber', neutral: { hue: 150, satLight: 16, satDark: 28 } },
+  { id: 'tramonto', name: 'Tramonto', primary: 'orange', secondary: 'amber', accent: 'sky', neutral: { hue: 20, satLight: 22, satDark: 22 } },
+  { id: 'rubino', name: 'Rubino', primary: 'rose', secondary: 'pink', accent: 'amber', neutral: { hue: 345, satLight: 18, satDark: 24 } },
+  { id: 'corallo', name: 'Corallo', primary: 'red', secondary: 'orange', accent: 'teal', neutral: { hue: 10, satLight: 16, satDark: 18 } },
+  { id: 'oro', name: 'Oro', primary: 'amber', secondary: 'yellow', accent: 'cyan', neutral: { hue: 35, satLight: 18, satDark: 16 } },
+  { id: 'menta', name: 'Menta', primary: 'teal', secondary: 'emerald', accent: 'pink', neutral: { hue: 170, satLight: 20, satDark: 30 } },
+  { id: 'minimal', name: 'Minimal', primary: 'zinc', secondary: 'slate', accent: 'zinc', neutral: { hue: 0, satLight: 0, satDark: 0 } },
+  { id: 'amoled', name: 'AMOLED', primary: 'sky', secondary: 'cyan', accent: 'lime', neutral: { hue: 210, satLight: 8, satDark: 10, black: true }, amoled: true },
+  { id: 'cyberpunk', name: 'Cyberpunk', primary: 'pink', secondary: 'cyan', accent: 'yellow', neutral: { hue: 265, satLight: 12, satDark: 30, black: true }, amoled: true },
 ];
 
 export const DEFAULT_PALETTE = 'smeraldo';
+
+const NEUTRAL_LIGHTNESS = [98, 96, 91, 84, 65, 46, 34, 26, 17, 11, 6];
 
 export function getPalette(id: string | undefined): Palette {
   return PALETTES.find((p) => p.id === id) ?? PALETTES[0];
 }
 
-export function rampHex(ramp: Ramp, shade: (typeof SHADES)[number]): string {
-  return `#${RAMPS[ramp].split(' ')[SHADES.indexOf(shade)]}`;
-}
-
-function toRgb(hex: string): string {
+function hexToRgb(hex: string): string {
   const n = parseInt(hex, 16);
   return `${(n >> 16) & 255} ${(n >> 8) & 255} ${n & 255}`;
 }
 
+function hslToRgb(h: number, s: number, l: number): string {
+  const sat = s / 100;
+  const lig = l / 100;
+  const k = (n: number) => (n + h / 30) % 12;
+  const a = sat * Math.min(lig, 1 - lig);
+  const f = (n: number) => Math.round(255 * (lig - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)))));
+  return `${f(0)} ${f(8)} ${f(4)}`;
+}
+
+function neutralRamp(t: NeutralTint): string[] {
+  return NEUTRAL_LIGHTNESS.map((l, i) => {
+    const sat = i < 5 ? t.satLight : t.satDark;
+    let light = l;
+    if (t.black && i >= 8) light = [7, 3, 0][i - 8];
+    return hslToRgb(t.hue, sat, light);
+  });
+}
+
+export function paletteSwatch(p: Palette): { bg: string; ui: string; primary: string; accent: string } {
+  const n = neutralRamp(p.neutral);
+  const rgb = (v: string) => `rgb(${v.replace(/ /g, ',')})`;
+  return {
+    bg: rgb(n[10]),
+    ui: rgb(n[8]),
+    primary: `#${RAMPS[p.primary].split(' ')[5]}`,
+    accent: `#${RAMPS[p.accent].split(' ')[4]}`,
+  };
+}
+
 export function applyPalette(palette: Palette) {
   const root = document.documentElement;
-  (['primary', 'secondary'] as const).forEach((role) => {
-    RAMPS[palette[role]].split(' ').forEach((hex, i) => {
-      root.style.setProperty(`--c-${role}-${SHADES[i]}`, toRgb(hex));
-    });
-  });
-  root.classList.toggle('amoled', !!palette.amoled);
+  const set = (role: string, values: string[]) => values.forEach((v, i) => root.style.setProperty(`--c-${role}-${SHADES[i]}`, v));
+  set('primary', RAMPS[palette.primary].split(' ').map(hexToRgb));
+  set('secondary', RAMPS[palette.secondary].split(' ').map(hexToRgb));
+  set('accent', RAMPS[palette.accent].split(' ').map(hexToRgb));
+  set('gray', neutralRamp(palette.neutral));
 }

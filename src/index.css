@@ -14,12 +14,21 @@
     --c-secondary-300: 94 234 212; --c-secondary-400: 45 212 191; --c-secondary-500: 20 184 166;
     --c-secondary-600: 13 148 136; --c-secondary-700: 15 118 110; --c-secondary-800: 17 94 89;
     --c-secondary-900: 19 78 74; --c-secondary-950: 4 47 46;
+    --c-accent-50: 255 251 235; --c-accent-100: 254 243 199; --c-accent-200: 253 230 138;
+    --c-accent-300: 252 211 77; --c-accent-400: 251 191 36; --c-accent-500: 245 158 11;
+    --c-accent-600: 217 119 6; --c-accent-700: 180 83 9; --c-accent-800: 146 64 14;
+    --c-accent-900: 120 53 15; --c-accent-950: 69 26 3;
+    --c-gray-50: 249 250 251; --c-gray-100: 243 244 246; --c-gray-200: 229 231 235;
+    --c-gray-300: 209 213 219; --c-gray-400: 156 163 175; --c-gray-500: 107 114 128;
+    --c-gray-600: 75 85 99; --c-gray-700: 55 65 81; --c-gray-800: 31 41 55;
+    --c-gray-900: 17 24 39; --c-gray-950: 3 7 18;
   }
 
-  html.amoled body { background-color: #000; }
-  html.amoled .card,
-  html.amoled header,
-  html.amoled nav { background-color: #000 !important; border-color: #1c1c1e !important; }
+  body, .card, header, nav {
+    transition-property: background-color, border-color, color;
+    transition-duration: 250ms;
+  }
+
 
   * {
     -webkit-tap-highlight-color: transparent;

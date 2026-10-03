@@ -7,6 +7,15 @@ import { applyPalette, getPalette } from '@/lib/palettes';
 
 const STORAGE_KEY = 'nutriplan-state-v1';
 const PENDING_KEY = 'nutriplan-pending-sync';
+const OWNER_KEY = 'nutriplan-state-owner';
+
+function getLocalOwner(): string | null {
+  try { return localStorage.getItem(OWNER_KEY); } catch { return null; }
+}
+
+function setLocalOwner(id: string) {
+  try { localStorage.setItem(OWNER_KEY, id); } catch { /* ignore */ }
+}
 
 function hasPendingSync(): boolean {
   try { return localStorage.getItem(PENDING_KEY) === '1'; } catch { return false; }
@@ -21,7 +30,7 @@ function setPendingSync(pending: boolean) {
   }
 }
 
-function mergeState(parsed: Partial<AppState>): AppState {
+export function mergeState(parsed: Partial<AppState>): AppState {
   const def = getDefaultState();
   return {
     ...def,
@@ -117,21 +126,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return;
     }
     let mounted = true;
+    const owner = getLocalOwner();
+    // A missing owner means data cached before owner tracking existed (logout always clears the cache)
+    const ownsLocal = owner === null || owner === user.id;
+    if (!ownsLocal) {
+      // Cached data belongs to another account on this device: never show or upload it
+      setStateInner(getDefaultState());
+      setPendingSync(false);
+      setPending(false);
+    }
+    setLocalOwner(user.id);
     (async () => {
-      const timedOut = Symbol('timeout');
+      const unavailable = Symbol('unavailable');
       const remote = await Promise.race([
-        loadRemoteState().catch(() => null),
-        new Promise<typeof timedOut>((resolve) => setTimeout(() => resolve(timedOut), 6000)),
+        loadRemoteState().catch(() => unavailable),
+        new Promise<typeof unavailable>((resolve) => setTimeout(() => resolve(unavailable), 6000)),
       ]);
       if (!mounted) return;
-      if (remote === timedOut) {
-        // Offline or slow network: keep the locally cached state so the app still opens
-      } else if (hasPendingSync()) {
-        // Unsynced offline changes win over the older server copy
+      if (remote === unavailable) {
+        // Offline, slow or failing network: keep the local copy, never overwrite it
+      } else if (ownsLocal && hasPendingSync()) {
         void flush(loadLocalState());
       } else if (remote) {
         skipRemoteSave.current = true;
         setStateInner(mergeState(remote as Partial<AppState>));
+      } else if (ownsLocal && localStorage.getItem(STORAGE_KEY)) {
+        // No cloud copy yet but this device has the user's data: upload it
+        void flush(loadLocalState());
       } else {
         setStateInner(getDefaultState());
       }
@@ -157,7 +178,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const goOffline = () => setOnline(false);
     window.addEventListener('online', goOnline);
     window.addEventListener('offline', goOffline);
+    const retry = window.setInterval(() => {
+      if (user && navigator.onLine && hasPendingSync()) void flush(loadLocalState());
+    }, 30000);
     return () => {
+      window.clearInterval(retry);
       window.removeEventListener('online', goOnline);
       window.removeEventListener('offline', goOffline);
     };

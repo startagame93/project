@@ -52,6 +52,11 @@ export function CalendarView() {
     return (day?.meals ?? []).filter((meal) => meal.foods.length > 0 || meal.calories > 0);
   }
 
+  function plannedWorkoutFor(iso: string) {
+    const [y, m, d] = iso.split('-').map(Number);
+    return state.workoutPlan?.days.find((pd) => pd.day === weekdayIdx(new Date(y, m - 1, d))) ?? null;
+  }
+
   function shiftMonth(delta: number) {
     setCursor((c) => new Date(c.getFullYear(), c.getMonth() + delta, 1));
   }
@@ -76,6 +81,7 @@ export function CalendarView() {
     workouts: workoutsByDate[selected] ?? [],
     water: waterByDate[selected] ?? 0,
     planned: selected >= today ? plannedFor(selected) : [],
+    plannedWorkout: selected >= today ? plannedWorkoutFor(selected) : null,
     done: !!checks[selected],
   };
   const eatenKcal = sel.eaten.reduce((s, m) => s + m.calories, 0);
@@ -199,9 +205,17 @@ export function CalendarView() {
           </Section>
         )}
 
-        {sel.eaten.length === 0 && sel.workouts.length === 0 && sel.planned.length === 0 && (
+        {sel.plannedWorkout && (
+          <Section icon={Dumbbell} title={`Scheda: ${sel.plannedWorkout.title}`}>
+            {sel.plannedWorkout.exercises.map((ex, i) => (
+              <Row key={i} left={ex.name} right={`${ex.sets} x ${ex.reps}`} />
+            ))}
+          </Section>
+        )}
+
+        {sel.eaten.length === 0 && sel.workouts.length === 0 && sel.planned.length === 0 && !sel.plannedWorkout && (
           <p className="text-sm text-gray-500 text-center py-6">
-            {isFuture ? 'Nessun pasto pianificato per questo giorno.' : 'Nessuna attivita registrata in questo giorno.'}
+            {isFuture ? 'Niente in programma per questo giorno.' : 'Nessuna attivita registrata in questo giorno.'}
           </p>
         )}
       </div>

@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { createEmptyWeek, createEmptyMeal, uid, todayISO, dateForWeekday } from '@/lib/data';
-import { extractPdfText, parsePdfToWeeks } from '@/lib/pdfParser';
+import { PdfImportPanel } from '@/components/PdfImportPanel';
 import { DAYS_OF_WEEK, MEAL_TYPES, MEAL_ICONS, type Meal, type MealType, type WeekPlan } from '@/types';
 import { Modal } from '@/components/Modal';
 import { Sheet } from '@/components/Sheet';
 import {
-  ChevronLeft, ChevronRight, Plus, Check, Trash2, Pencil, Upload, FileText,
-  Sunrise, Apple, Utensils, Cookie, Moon, ShoppingCart, X, Loader2,
+  ChevronLeft, ChevronRight, Plus, Check, Trash2, Pencil, Upload,
+  Sunrise, Apple, Utensils, Cookie, Moon, ShoppingCart, X,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -25,8 +25,6 @@ export function DietView() {
   const [editingMeal, setEditingMeal] = useState<{ dayIdx: number; meal: Meal } | null>(null);
   const [showWeekManager, setShowWeekManager] = useState(false);
   const [showPdfModal, setShowPdfModal] = useState(false);
-  const [pdfLoading, setPdfLoading] = useState(false);
-  const [pdfError, setPdfError] = useState<string | null>(null);
 
   const week = state.weeks[weekIdx];
 
@@ -123,41 +121,6 @@ export function DietView() {
     setState((prev) => ({ ...prev, shoppingList: list }));
   }
 
-  async function handlePdfUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setPdfLoading(true);
-    setPdfError(null);
-    try {
-      const text = await extractPdfText(file);
-      if (!text.trim()) {
-        setPdfError('Impossibile estrarre testo dal PDF. Il file potrebbe essere un\'immagine scansita.');
-        setPdfLoading(false);
-        return;
-      }
-      const result = parsePdfToWeeks(text, file.name);
-      if (result.totalMeals === 0) {
-        setState((prev) => ({ ...prev, pdfText: `PDF caricato: ${file.name} (nessun pasto rilevato)` }));
-        setPdfError('Il PDF è stato caricato ma non è stato possibile riconoscere la struttura dei pasti. Puoi aggiungerli manualmente.');
-        setPdfLoading(false);
-        return;
-      }
-      const newWeeks = result.weeks;
-      setState((prev) => ({
-        ...prev,
-        weeks: [...prev.weeks, ...newWeeks],
-        activeWeekId: newWeeks[0].id,
-        pdfText: `Dieta "${result.dietName}" importata: ${result.totalMeals} pasti in ${newWeeks.length} settimana/e`,
-      }));
-      setWeekIdx(state.weeks.length);
-      setShowPdfModal(false);
-    } catch (err) {
-      setPdfError(`Errore durante la lettura del PDF: ${err instanceof Error ? err.message : 'errore sconosciuto'}`);
-    } finally {
-      setPdfLoading(false);
-    }
-  }
-
   const dayPlan = week.days[selectedDay];
   const today = todayISO();
   const isToday = (new Date().getDay() + 6) % 7 === selectedDay;
@@ -189,7 +152,7 @@ export function DietView() {
       {/* Action buttons */}
       <div className="flex gap-2">
         <button onClick={() => setShowPdfModal(true)} className="btn-secondary flex-1 text-xs">
-          <Upload className="w-4 h-4" /> PDF Dieta
+          <Upload className="w-4 h-4" /> Importa PDF
         </button>
         <button onClick={generateShoppingList} className="btn-secondary flex-1 text-xs">
           <ShoppingCart className="w-4 h-4" /> Lista Spesa
@@ -348,41 +311,16 @@ export function DietView() {
       <Modal
         open={showPdfModal}
         onClose={() => setShowPdfModal(false)}
-        title="PDF della Dieta"
+        title="Importa dieta o scheda PDF"
       >
-        <div className="space-y-4">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Importa il file PDF della tua dieta per consultarla facilmente.
-          </p>
-          {pdfLoading ? (
-            <div className="flex items-center justify-center py-4 text-primary-600 dark:text-primary-400">
-              <Loader2 className="w-5 h-5 animate-spin" />
-              <span className="ml-2 text-sm font-medium">Lettura del PDF in corso...</span>
-            </div>
-          ) : (
-            <label className="btn-primary w-full cursor-pointer">
-              <Upload className="w-4 h-4" /> Carica PDF
-              <input type="file" accept=".pdf" className="hidden" onChange={handlePdfUpload} />
-            </label>
-          )}
-          {pdfError && (
-            <div className="p-3 rounded-xl bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800">
-              <span className="text-sm text-error-700 dark:text-error-300">{pdfError}</span>
-            </div>
-          )}
-          {state.pdfText && (
-            <div className="p-3 rounded-xl bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800 flex items-center gap-2">
-              <FileText className="w-5 h-5 text-success-600" />
-              <span className="text-sm text-success-700 dark:text-success-300">{state.pdfText}</span>
-              <button
-                onClick={() => setState((prev) => ({ ...prev, pdfText: null }))}
-                className="ml-auto p-1 text-gray-400 hover:text-error-600"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          )}
-        </div>
+        <PdfImportPanel
+          onImported={(o) => {
+            if (o?.kind === 'diet') {
+              setWeekIdx(o.firstWeekIndex);
+              setShowPdfModal(false);
+            }
+          }}
+        />
       </Modal>
 
       {/* Meal Editor Sheet */}

@@ -2,9 +2,10 @@ import { useState, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { signOut, updateProfileMetrics } from '@/lib/supabase';
-import { PALETTES, rampHex } from '@/lib/palettes';
+import { PALETTES, paletteSwatch } from '@/lib/palettes';
 import { buildCsv, downloadFile } from '@/lib/exportData';
 import { Modal } from '@/components/Modal';
+import { AiKeySection } from '@/components/AiKeySection';
 import type { Theme, NotificationConfig, AppState } from '@/types';
 import {
   User, Bell, Moon, Sun, Monitor, ShoppingBag, Trash2, Save,
@@ -105,6 +106,7 @@ export function SettingsView({ onNavigate }: { onNavigate: (tab: 'shopping') => 
         <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 snap-x" role="radiogroup" aria-label="Palette colori">
           {PALETTES.map((p) => {
             const active = (state.palette ?? 'smeraldo') === p.id;
+            const sw = paletteSwatch(p);
             return (
               <button
                 key={p.id}
@@ -114,10 +116,13 @@ export function SettingsView({ onNavigate }: { onNavigate: (tab: 'shopping') => 
                 className="snap-start shrink-0 flex flex-col items-center gap-1.5 group"
               >
                 <span
-                  className={`relative w-12 h-12 rounded-2xl shadow-sm transition-all group-hover:scale-105 ${active ? 'ring-2 ring-offset-2 ring-gray-900 dark:ring-white dark:ring-offset-gray-900' : ''}`}
-                  style={{ background: `linear-gradient(135deg, ${rampHex(p.primary, 500)} 0%, ${rampHex(p.secondary, 400)} 100%)`, border: p.amoled ? '3px solid #000' : undefined }}
+                  className={`relative w-14 h-14 rounded-2xl shadow-sm overflow-hidden transition-all group-hover:scale-105 ${active ? 'ring-2 ring-offset-2 ring-gray-900 dark:ring-white dark:ring-offset-gray-900' : ''}`}
+                  style={{ background: sw.bg }}
                 >
-                  {active && <Check className="absolute inset-0 m-auto w-5 h-5 text-white drop-shadow" />}
+                  <span className="absolute left-1.5 right-1.5 top-1.5 h-5 rounded-md" style={{ background: sw.ui }} />
+                  <span className="absolute left-1.5 bottom-1.5 w-6 h-3 rounded-full" style={{ background: sw.primary }} />
+                  <span className="absolute right-1.5 bottom-1.5 w-3 h-3 rounded-full" style={{ background: sw.accent }} />
+                  {active && <Check className="absolute left-1/2 top-2 -translate-x-1/2 w-4 h-4 text-white drop-shadow" />}
                 </span>
                 <span className={`text-[11px] ${active ? 'font-semibold text-gray-900 dark:text-white' : 'text-gray-500'}`}>{p.name}</span>
               </button>
@@ -125,7 +130,7 @@ export function SettingsView({ onNavigate }: { onNavigate: (tab: 'shopping') => 
           })}
         </div>
         {PALETTES.find((p) => p.id === state.palette)?.amoled && (
-          <p className="text-xs text-gray-400 mt-1">Questa palette usa sempre lo sfondo nero.</p>
+          <p className="text-xs text-gray-400 mt-1">Questa palette usa sempre lo sfondo nero puro.</p>
         )}
       </div>
 
@@ -169,6 +174,8 @@ export function SettingsView({ onNavigate }: { onNavigate: (tab: 'shopping') => 
       </div>
 
       {/* Backup & Restore */}
+      <AiKeySection />
+
       <BackupRestoreSection state={state} setState={setState} />
 
       {/* About */}

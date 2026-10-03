@@ -278,6 +278,26 @@ export interface AppState {
   dayChecks?: Record<string, boolean>;
   seenTicketsAt?: string;
   seenManualVersion?: string;
+  workoutPlan?: WorkoutPlan | null;
+}
+
+export interface PlanExercise {
+  name: string;
+  sets: number;
+  reps: string;
+  weight?: number;
+  notes?: string;
+}
+
+export interface WorkoutPlanDay {
+  day: number;
+  title: string;
+  exercises: PlanExercise[];
+}
+
+export interface WorkoutPlan {
+  title: string;
+  days: WorkoutPlanDay[];
 }
 
 export interface MealHistoryEntry {
