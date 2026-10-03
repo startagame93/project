@@ -65,9 +65,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const skipRemoteSave = useRef(false);
 
-  // Load from Supabase when user logs in
+  // Load from Supabase when user logs in; reset state on user change
   useEffect(() => {
     if (!user) {
+      // User logged out or switched: reset to clean default state
+      setStateInner(getDefaultState());
       setLoading(false);
       return;
     }
@@ -77,6 +79,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (remote && mounted) {
         skipRemoteSave.current = true;
         setStateInner(mergeState(remote as Partial<AppState>));
+      } else if (mounted) {
+        // New user with no remote data: start fresh
+        setStateInner(getDefaultState());
       }
       setLoading(false);
     })();

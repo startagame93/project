@@ -164,7 +164,7 @@ export function getDefaultState(): AppState {
       supplementTime: '09:00',
     },
     waterLogs: [],
-    theme: 'system',
+    theme: 'dark',
     pdfText: null,
     customFoods: [],
     workoutLogs: [] as WorkoutLog[],

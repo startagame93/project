@@ -22,6 +22,7 @@ export interface UserProfileDB {
   sex: string;
   age: number;
   activity_level: string;
+  avatar_url?: string | null;
 }
 
 // === AUTH ===
@@ -42,6 +43,11 @@ export async function signUp(email: string, password: string, displayName: strin
 
 export async function signOut() {
   await supabase.auth.signOut();
+  try {
+    localStorage.removeItem('nutriplan-state-v1');
+  } catch {
+    // ignore
+  }
 }
 
 export async function getCurrentSession(): Promise<Session | null> {
@@ -74,6 +80,7 @@ export async function updateProfileMetrics(metrics: {
   age?: number;
   activity_level?: string;
   display_name?: string;
+  avatar_url?: string | null;
 }): Promise<boolean> {
   const { data: user } = await supabase.auth.getUser();
   if (!user.user) return false;
@@ -82,6 +89,12 @@ export async function updateProfileMetrics(metrics: {
     .update(metrics)
     .eq('id', user.user.id);
   return !error;
+}
+
+const FOUNDER_EMAIL = 'grberali.cg@gmail.com';
+
+export function isFounderEmail(email: string): boolean {
+  return email.toLowerCase() === FOUNDER_EMAIL;
 }
 
 // === APP DATA (per-user JSON blob) ===

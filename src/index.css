@@ -96,3 +96,25 @@
     padding-top: env(safe-area-inset-top);
   }
 }
+
+/* Hide "Made in Bolt" floating badge globally */
+a[href*="bolt.new"],
+a[href*="bolt.new/"],
+div[class*="bolt"],
+iframe[src*="bolt.new"],
+[id*="bolt-badge"],
+[id*="boltBadge"],
+[class*="bolt-badge"],
+[class*="boltBadge"] {
+  display: none !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  z-index: -1 !important;
+}
+
+@keyframes loading {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(0%); }
+  100% { transform: translateX(100%); }
+}

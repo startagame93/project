@@ -33,7 +33,7 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
       setMessage('');
       const t = await loadUserTickets();
       setTickets(t);
-      setTimeout(() => { setSuccess(false); setShowForm(false); }, 1500);
+      setTimeout(() => { setSuccess(false); }, 2500);
     }
     setSending(false);
   }

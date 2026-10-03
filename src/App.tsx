@@ -15,7 +15,7 @@ import { AuthScreen } from '@/views/AuthScreen';
 import { AdminDashboard } from '@/views/AdminDashboard';
 import { InfoScreen, ChangelogModal } from '@/views/InfoScreen';
 import { SupportModal } from '@/views/SupportModal';
-import { Moon, Sun, ShoppingCart, Info, MessageCircle, LogOut } from 'lucide-react';
+import { Moon, Sun, ShoppingCart, MessageCircle, Flame, User as UserIcon } from 'lucide-react';
 import { signOut } from '@/lib/supabase';
 
 const APP_VERSION = 'alpha-4.0';
@@ -30,18 +30,40 @@ const TAB_TITLES: Record<TabKey | 'shopping' | 'admin', string> = {
   gym: 'Palestra & Attivita',
   settings: 'Impostazioni',
   shopping: 'Lista della Spesa',
-  admin: 'Dashboard Admin',
+  admin: 'Dashboard Sviluppatore',
 };
+
+function SplashScreen({ name, avatarUrl }: { name: string; avatarUrl?: string | null }) {
+  return (
+    <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center" role="status" aria-live="polite">
+      <div className="w-28 h-28 rounded-3xl border-2 border-primary-500 overflow-hidden flex items-center justify-center mb-6 shadow-lg">
+        {avatarUrl ? (
+          <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
+            <Flame className="w-14 h-14 text-white" strokeWidth={1.5} />
+          </div>
+        )}
+      </div>
+      <h1 className="text-2xl font-bold text-white mb-1">NutriPlan</h1>
+      <p className="text-sm text-primary-400 animate-pulse">Benvenuto {name}</p>
+      <div className="mt-6 w-32 h-1 bg-gray-800 rounded-full overflow-hidden">
+        <div className="h-full bg-primary-500 animate-[loading_1.2s_ease-in-out] rounded-full" style={{ width: '100%' }} />
+      </div>
+    </div>
+  );
+}
 
 function AppContent() {
   const [tab, setTab] = useState<TabKey | 'shopping' | 'admin'>('home');
   const { theme, toggleTheme, state, setState } = useApp();
-  const { user, isAdmin, isBanned, profile } = useAuth();
+  const { user, isAdmin, isBanned, isFounder, profile } = useAuth();
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
   const [showInfo, setShowInfo] = useState(false);
   const [showSupport, setShowSupport] = useState(false);
   const [showChangelog, setShowChangelog] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
 
   const switchTab = useCallback((direction: number) => {
     setTab((current) => {
@@ -69,7 +91,6 @@ function AppContent() {
     }
   }
 
-  // Show changelog on version update
   useEffect(() => {
     if (state.lastChangelogVersion !== APP_VERSION) {
       setShowChangelog(true);
@@ -78,15 +99,17 @@ function AppContent() {
   }, []);
 
   useEffect(() => {
+    const timer = setTimeout(() => setShowSplash(false), 1800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
     if (!state.notifications.enabled) return;
     if (!('Notification' in window)) return;
-
     if (Notification.permission === 'default') {
       Notification.requestPermission();
     }
-
     const intervals: number[] = [];
-
     if (state.notifications.hydration) {
       const interval = window.setInterval(() => {
         if (Notification.permission === 'granted') {
@@ -98,14 +121,18 @@ function AppContent() {
       }, state.notifications.hydrationInterval * 60 * 60 * 1000);
       intervals.push(interval);
     }
-
     return () => intervals.forEach(clearInterval);
   }, [state.notifications.enabled, state.notifications.hydration, state.notifications.hydrationInterval]);
 
-  // Banned user screen
+  const displayName = profile?.display_name || state.profile.name || 'Atleta';
+
+  if (showSplash) {
+    return <SplashScreen name={displayName} avatarUrl={profile?.avatar_url} />;
+  }
+
   if (isBanned) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center justify-center px-6 max-w-md mx-auto text-center">
+      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center px-6 max-w-md mx-auto text-center">
         <h1 className="text-xl font-bold text-error-600 mb-2">Account sospeso</h1>
         <p className="text-sm text-gray-500 mb-6">Il tuo account e stato bloccato dall'amministratore. Contatta il supporto per maggiori informazioni.</p>
         <button onClick={() => signOut()} className="btn-secondary">Esci</button>
@@ -115,13 +142,12 @@ function AppContent() {
 
   if (!state.onboardingComplete) {
     return (
-      <Onboarding onComplete={() => setState((prev) => ({ ...prev, onboardingComplete: true }))} />
+      <Onboarding onComplete={() => { setState((prev) => ({ ...prev, onboardingComplete: true })); setTab('home'); }} />
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-20" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-      {/* Header */}
       <header className="sticky top-0 z-30 bg-white/90 dark:bg-gray-950/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 safe-top" role="banner">
         <div className="max-w-md mx-auto flex items-center justify-between px-4 py-3">
           <h1 className="text-lg font-bold text-gray-900 dark:text-white">{TAB_TITLES[tab]}</h1>
@@ -163,22 +189,19 @@ function AppContent() {
             >
               {theme === 'dark' ? <Sun className="w-5 h-5 text-gray-600 dark:text-gray-400" /> : <Moon className="w-5 h-5 text-gray-600 dark:text-gray-400" />}
             </button>
+            {isFounder && (
+              <button
+                onClick={() => setTab('admin')}
+                className="ml-1 px-2.5 py-1.5 rounded-lg bg-primary-600 text-white text-[10px] font-bold hover:bg-primary-700 transition-colors"
+                aria-label="Pannello Sviluppatore"
+              >
+                Sviluppatore
+              </button>
+            )}
           </div>
         </div>
-        {/* Admin badge */}
-        {isAdmin && (
-          <div className="max-w-md mx-auto px-4 pb-2">
-            <button
-              onClick={() => setTab('admin')}
-              className="text-[10px] font-bold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 px-2 py-1 rounded-full"
-            >
-              ADMIN DASHBOARD
-            </button>
-          </div>
-        )}
       </header>
 
-      {/* Content */}
       <main className="max-w-md mx-auto px-4 py-4 animate-fade-in" key={tab} role="main">
         {tab === 'home' && <Dashboard onNavigate={(t) => setTab(t)} />}
         {tab === 'diet' && <DietView />}
@@ -188,10 +211,9 @@ function AppContent() {
         {tab === 'body' && <BodyView />}
         {tab === 'shopping' && <ShoppingView />}
         {tab === 'settings' && <SettingsView onNavigate={(t) => setTab(t)} />}
-        {tab === 'admin' && isAdmin && <AdminDashboard />}
+        {tab === 'admin' && (isFounder || isAdmin) && <AdminDashboard />}
       </main>
 
-      {/* Bottom nav (hide on shopping sub-page to show back) */}
       {tab === 'shopping' ? (
         <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 safe-bottom">
           <div className="max-w-md mx-auto px-4 py-3">
@@ -212,7 +234,6 @@ function AppContent() {
         <BottomNav active={tab as TabKey} onChange={(t) => setTab(t)} />
       )}
 
-      {/* Modals */}
       {showInfo && <InfoScreen onClose={() => setShowInfo(false)} />}
       {showSupport && <SupportModal onClose={() => setShowSupport(false)} />}
       {showChangelog && <ChangelogModal onClose={() => setShowChangelog(false)} />}
@@ -225,9 +246,9 @@ function AppInner() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center animate-pulse">
-          <span className="text-white font-bold text-xl">N</span>
+          <Flame className="w-6 h-6 text-white" />
         </div>
       </div>
     );

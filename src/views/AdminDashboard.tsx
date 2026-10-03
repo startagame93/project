@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import {
   adminLoadUsers, adminToggleBan, adminLoadTickets, adminReplyTicket,
+  signOut,
   type AdminUserRow, type SupportTicketRow,
 } from '@/lib/supabase';
-import { signOut } from '@/lib/supabase';
+import { useAuth } from '@/context/AuthContext';
 import {
   Shield, Users, MessageSquare, Ban, CheckCircle, Send, Loader2,
-  LogOut, Mail, ChevronDown, ChevronUp,
+  LogOut, Mail, ChevronDown, ChevronUp, Crown, Power,
 } from 'lucide-react';
 
 type AdminTab = 'users' | 'tickets';
@@ -38,8 +39,8 @@ export function AdminDashboard() {
       <header className="sticky top-0 z-30 bg-white/90 dark:bg-gray-950/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-2xl mx-auto flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-primary-600" />
-            <h1 className="text-lg font-bold text-gray-900 dark:text-white">Dashboard Admin</h1>
+            <Crown className="w-5 h-5 text-primary-600" />
+            <h1 className="text-lg font-bold text-gray-900 dark:text-white">Pannello Sviluppatore</h1>
           </div>
           <button
             onClick={() => signOut()}
@@ -52,7 +53,6 @@ export function AdminDashboard() {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-4 space-y-4">
-        {/* Tabs */}
         <div className="flex gap-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
           <button
             onClick={() => setTab('users')}
@@ -79,31 +79,41 @@ export function AdminDashboard() {
         ) : tab === 'users' ? (
           <div className="space-y-2">
             {users.map((u) => (
-              <div key={u.id} className="card p-4 flex items-center justify-between">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{u.display_name || 'Senza nome'}</p>
-                    {u.is_admin && <span className="text-[10px] bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400 px-1.5 py-0.5 rounded-full font-bold">ADMIN</span>}
-                    {u.is_banned && <span className="text-[10px] bg-error-100 text-error-700 dark:bg-error-900/30 dark:text-error-400 px-1.5 py-0.5 rounded-full font-bold">BANNATO</span>}
+              <div key={u.id} className="card p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-bold text-sm shrink-0">
+                    {(u.display_name || u.email || '?').charAt(0).toUpperCase()}
                   </div>
-                  <p className="text-xs text-gray-500 flex items-center gap-1 truncate">
-                    <Mail className="w-3 h-3 shrink-0" /> {u.email}
-                  </p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">
-                    Registrato: {new Date(u.created_at).toLocaleDateString('it-IT')}
-                  </p>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{u.display_name || 'Senza nome'}</p>
+                      {u.is_admin && <span className="text-[10px] bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400 px-1.5 py-0.5 rounded-full font-bold">ADMIN</span>}
+                      {u.is_banned && <span className="text-[10px] bg-error-100 text-error-700 dark:bg-error-900/30 dark:text-error-400 px-1.5 py-0.5 rounded-full font-bold">BAN</span>}
+                    </div>
+                    <p className="text-xs text-gray-500 flex items-center gap-1 truncate">
+                      <Mail className="w-3 h-3 shrink-0" /> {u.email}
+                    </p>
+                    <p className="text-[10px] text-gray-400 mt-0.5">
+                      Registrato: {new Date(u.created_at).toLocaleDateString('it-IT')}
+                    </p>
+                  </div>
                 </div>
                 {!u.is_admin && (
-                  <button
-                    onClick={() => toggleBan(u.id, u.is_banned)}
-                    className={`shrink-0 ml-3 px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-all ${
-                      u.is_banned
-                        ? 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400 hover:bg-success-200'
-                        : 'bg-error-100 text-error-700 dark:bg-error-900/30 dark:text-error-400 hover:bg-error-200'
-                    }`}
-                  >
-                    {u.is_banned ? <><CheckCircle className="w-3.5 h-3.5" /> Sblocca</> : <><Ban className="w-3.5 h-3.5" /> Banna</>}
-                  </button>
+                  <div className="flex gap-2 mt-3 ml-14">
+                    <button
+                      onClick={() => toggleBan(u.id, u.is_banned)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${
+                        u.is_banned
+                          ? 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400 hover:bg-success-200'
+                          : 'bg-error-100 text-error-700 dark:bg-error-900/30 dark:text-error-400 hover:bg-error-200'
+                      }`}
+                    >
+                      {u.is_banned ? <><CheckCircle className="w-3.5 h-3.5" /> Sblocca</> : <><Ban className="w-3.5 h-3.5" /> Banna</>}
+                    </button>
+                    <span className="px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 text-gray-500">
+                      <Power className="w-3.5 h-3.5" /> Logout forzato non disponibile
+                    </span>
+                  </div>
                 )}
               </div>
             ))}

@@ -70,6 +70,12 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
     saveAndComplete();
   }
 
+  function skipMetrics() {
+    // Skip without saving metrics - still mark onboarding complete
+    setState((prev) => ({ ...prev, onboardingComplete: true }));
+    onComplete();
+  }
+
   async function saveAndComplete() {
     setState((prev) => ({
       ...prev,
@@ -136,6 +142,13 @@ export function Onboarding({ onComplete }: { onComplete: () => void }) {
   if (isMetricsPhase) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col" role="dialog">
+        <button
+          onClick={skipMetrics}
+          className="absolute top-4 right-4 z-10 text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 px-3 py-1.5"
+          aria-label="Salta la configurazione delle metriche"
+        >
+          Salta
+        </button>
         <div className="flex-1 px-6 max-w-md mx-auto w-full py-8 space-y-4">
           <div className="text-center mb-6">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center mx-auto mb-4 shadow-lg">

@@ -1,4 +1,5 @@
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
 import { calcTargetCalories, calcMacroTargets, todayISO } from '@/lib/data';
 import { ProgressRing } from '@/components/ProgressRing';
 import { ProgressBar } from '@/components/ProgressBar';
@@ -7,6 +8,8 @@ import { MICRONUTRIENT_TARGETS, MEAL_TYPES } from '@/types';
 
 export function Dashboard({ onNavigate }: { onNavigate: (tab: 'diet' | 'nutrition' | 'body' | 'gym' | 'settings') => void }) {
   const { state } = useApp();
+  const { profile } = useAuth();
+  const displayName = profile?.display_name || state.profile.name || 'Atleta';
   const today = todayISO();
   const activeWeek = state.weeks.find((w) => w.id === state.activeWeekId) ?? state.weeks[0];
   const dayIdx = (new Date().getDay() + 6) % 7;
@@ -54,7 +57,7 @@ export function Dashboard({ onNavigate }: { onNavigate: (tab: 'diet' | 'nutritio
         <div className="flex items-center justify-between">
           <div>
             <p className="text-primary-100 text-sm">{greeting}</p>
-            <h1 className="text-2xl font-bold">{state.profile.name || 'Atleta'}</h1>
+            <h1 className="text-2xl font-bold">{displayName}</h1>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
             <Flame className="w-6 h-6" />

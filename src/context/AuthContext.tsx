@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
-import { supabase, getUserProfile, type UserProfileDB } from '@/lib/supabase';
+import { supabase, getUserProfile, isFounderEmail, type UserProfileDB } from '@/lib/supabase';
 
 interface AuthContextValue {
   user: User | null;
@@ -8,6 +8,7 @@ interface AuthContextValue {
   loading: boolean;
   isAdmin: boolean;
   isBanned: boolean;
+  isFounder: boolean;
   refreshProfile: () => Promise<void>;
 }
 
@@ -34,6 +35,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else if (mounted) {
           setUser(null);
           setProfile(null);
+          // Ensure any stale local data is cleared on logout
+          try {
+            localStorage.removeItem('nutriplan-state-v1');
+          } catch {
+            // ignore
+          }
         }
         if (mounted) setLoading(false);
       })();
@@ -44,9 +51,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isAdmin = profile?.is_admin ?? false;
   const isBanned = profile?.is_banned ?? false;
+  const isFounder = user ? isFounderEmail(user.email ?? '') : false;
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, isAdmin, isBanned, refreshProfile }}>
+    <AuthContext.Provider value={{ user, profile, loading, isAdmin, isBanned, isFounder, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

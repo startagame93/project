@@ -1,17 +1,51 @@
 import { useState, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
+import { useAuth } from '@/context/AuthContext';
+import { signOut, updateProfileMetrics } from '@/lib/supabase';
 import { Modal } from '@/components/Modal';
 import type { Theme, NotificationConfig, AppState } from '@/types';
 import {
   User, Bell, Moon, Sun, Monitor, ShoppingBag, Trash2, Save,
-  Droplet, Utensils, Pill, Info, Download, Upload, HardDrive,
+  Droplet, Utensils, Pill, Info, Download, Upload, HardDrive, LogOut,
+  Camera, Flame,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 export function SettingsView({ onNavigate }: { onNavigate: (tab: 'shopping') => void }) {
   const { state, setState, theme, setTheme } = useApp();
+  const { profile, refreshProfile } = useAuth();
   const [showProfile, setShowProfile] = useState(false);
   const [showNotif, setShowNotif] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  const displayName = profile?.display_name || state.profile.name || 'Atleta';
+  const avatarUrl = profile?.avatar_url;
+
+  function handleLogout() {
+    if (!confirm('Sei sicuro di voler uscire? I tuoi dati rimangono salvati sul tuo account.')) return;
+    signOut();
+  }
+
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingAvatar(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const dataUrl = reader.result as string;
+        // Truncate to reasonable size for DB storage (base64)
+        const truncated = dataUrl.length > 500000 ? dataUrl.substring(0, 500000) : dataUrl;
+        await updateProfileMetrics({ avatar_url: truncated });
+        await refreshProfile();
+        setUploadingAvatar(false);
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      setUploadingAvatar(false);
+    }
+    e.target.value = '';
+  }
 
   function clearAllData() {
     if (!confirm('Sei sicuro di voler cancellare tutti i dati? Questa azione non è reversibile.')) return;
@@ -28,11 +62,25 @@ export function SettingsView({ onNavigate }: { onNavigate: (tab: 'shopping') => 
       {/* Profile */}
       <div className="card p-5">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white">
-            <User className="w-8 h-8" />
+          <div className="relative">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white overflow-hidden">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <User className="w-8 h-8" />
+              )}
+            </div>
+            <label className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary-600 text-white flex items-center justify-center cursor-pointer shadow-md hover:bg-primary-700 transition-colors">
+              {uploadingAvatar ? (
+                <span className="text-[10px] animate-pulse">...</span>
+              ) : (
+                <Camera className="w-3.5 h-3.5" />
+              )}
+              <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} aria-label="Carica foto profilo" />
+            </label>
           </div>
           <div className="flex-1">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">{state.profile.name || 'Atleta'}</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">{displayName}</h2>
             <p className="text-sm text-gray-500">
               {state.profile.sex === 'M' ? 'Uomo' : 'Donna'} · {state.profile.age} anni · {state.profile.weight} kg
             </p>
@@ -107,9 +155,14 @@ export function SettingsView({ onNavigate }: { onNavigate: (tab: 'shopping') => 
         </p>
       </div>
 
+      {/* Logout */}
+      <button onClick={handleLogout} className="btn-secondary w-full flex items-center justify-center gap-2 text-error-600 dark:text-error-400 border-error-200 dark:border-error-800">
+        <LogOut className="w-4 h-4" /> Esci dall'account
+      </button>
+
       {/* Danger zone */}
       <button onClick={clearAllData} className="btn-danger w-full">
-        <Trash2 className="w-4 h-4" /> Cancella tutti i dati
+        <Trash2 className="w-4 h-4" /> Cancella dati locali
       </button>
 
       {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />}
