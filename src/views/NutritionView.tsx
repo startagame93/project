@@ -178,6 +178,8 @@ function MacroTab({ today }: { today: string }) {
             <button
               key={i}
               onClick={() => setWater(i < todayWater ? i : i + 1)}
+              aria-label={`${i + 1} bicchieri d'acqua`}
+              aria-pressed={i < todayWater}
               className={`aspect-square rounded-lg flex items-center justify-center transition-all ${
                 i < todayWater
                   ? 'bg-blue-500 text-white scale-100'
@@ -305,12 +307,12 @@ function SupplementsTab({ today }: { today: string }) {
                 <p className={`font-semibold text-gray-900 dark:text-white ${log.taken ? 'line-through' : ''}`}>{def.label}</p>
                 <p className="text-sm text-gray-500">{log.dose}{def.unit} · {log.timing}</p>
               </div>
-              <button onClick={() => toggleTaken(log.id)} className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all ${
+              <button onClick={() => toggleTaken(log.id)} aria-label={log.taken ? 'Segna come non assunto' : 'Segna come assunto'} className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all ${
                 log.taken ? 'bg-success-500 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-400'
               }`}>
                 <Check className="w-4 h-4" strokeWidth={3} />
               </button>
-              <button onClick={() => deleteSupplement(log.id)} className="w-9 h-9 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-400 hover:text-error-600">
+              <button onClick={() => deleteSupplement(log.id)} aria-label="Elimina integratore" className="w-9 h-9 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-400 hover:text-error-600">
                 <X className="w-4 h-4" />
               </button>
             </div>

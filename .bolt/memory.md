@@ -3,52 +3,53 @@
 ## Product intent & audience
 
 - Nutriplan è una PWA italiana per gestire diete multi-settimana, pasti, nutrizione avanzata, integratori, micronutrienti, metriche di salute e liste della spesa dinamiche.
-- Il database alimentare è una componente centrale della ricerca e della composizione dei pasti: contiene circa 750 alimenti preesistenti e supporta valori nutrizionali per 100 g e raggruppamento per famiglia.
-- Il catalogo deve coprire sia alimenti della dieta mediterranea sia piatti e preparazioni della cucina moderna e internazionale, inclusi sushi, burger, hot dog, kebab, tacos, patatine e nuggets.
-- Gli utenti gestiscono dati personali e sanitari; l’isolamento tra account e la protezione dei dati restano fondamentali.
-- Gli amministratori necessitano di strumenti sicuri per audit, gestione operativa e supervisione dei dati globali.
+- Il catalogo alimentare è centrale: deve servire soprattutto utenti italiani e coprire cucina mediterranea, alimenti di uso quotidiano, piatti internazionali e prodotti moderni o da catene fast food.
+- Obiettivo di crescita: circa 4.000 alimenti nel breve periodo, con direzione futura verso almeno 10.000.
+- L’accessibilità per persone non vedenti è un requisito importante, in particolare per controlli icon-only e compatibilità con lettori di schermo.
+- Gli alimenti non trovati devono poter essere raccolti da tutti gli account e forniti in forma aggregata per successive integrazioni del catalogo.
+- Gli utenti gestiscono dati personali e sanitari; amministrazione, isolamento tra account e protezione dei dati restano prioritari.
 
 ## Brand personality & voice
 
-- Usare un italiano chiaro, diretto e comprensibile per privacy, dati sanitari, sicurezza, cancellazione account, stato offline ed errori.
-- Le comunicazioni di sicurezza devono spiegare con trasparenza cosa viene protetto, cosa viene eliminato e quali azioni sono irreversibili.
-- Le etichette degli alimenti, delle categorie e dei valori nutrizionali devono essere coerenti, leggibili e facilmente ricercabili.
-- Quando i dati nutrizionali sono stimati o provengono da fonti differenti, la UI e la documentazione devono distinguerli chiaramente dai dati verificati.
+- Usare italiano chiaro, diretto e comprensibile nelle interfacce, inclusi messaggi di accessibilità, errori, privacy e stato delle segnalazioni.
+- I nomi degli alimenti devono essere naturali, coerenti e facilmente ricercabili; evitare traduzioni automatiche innaturali o ambigue.
+- Rendere esplicita la provenienza e l’affidabilità dei valori nutrizionali, distinguendo dati verificati, medi e stimati quando necessario.
+- Le descrizioni accessibili devono identificare con precisione l’azione e l’oggetto del controllo, non limitarsi a indicare genericamente “pulsante”.
+- I messaggi admin sulle segnalazioni devono chiarire che i dati sono aggregati e indicare conteggi o frequenza quando disponibili.
 
 ## Visual design & UX direction
 
 - Mantenere un’esperienza curata e adatta alla produzione, evitando dashboard generiche.
-- La ricerca alimenti deve rendere facilmente distinguibili nome, famiglia/categoria e valori nutrizionali per 100 g.
-- Le categorie devono avere icone coerenti nella vista database; la categoria Fast Food è stata aggiunta alla mappa delle icone.
-- Il catalogo deve gestire bene molti risultati: ricerca rapida, filtri o raggruppamenti comprensibili e assenza di duplicati visibili.
-- Il tema Retro/Arcade/Pixel Art è esclusivamente estetico e non deve alterare logica, dati o sicurezza.
-- Le schermate privacy e cancellazione account devono essere facilmente raggiungibili e leggibili su mobile e desktop.
-- La vista Corpo ospita una sezione unica “Progressi nel tempo”, con selettori per gruppo, metrica e periodo.
-- Il grafico storico riutilizzabile deve gestire dati assenti, pochi punti e intervalli temporali diversi, soprattutto su mobile.
+- La ricerca alimenti deve distinguere chiaramente nome, famiglia/categoria e valori nutrizionali per 100 g, funzionando bene anche con migliaia di risultati.
+- Preferire ricerca rapida, filtri o raggruppamenti comprensibili, prevenzione dei duplicati visibili e feedback chiaro quando un alimento non viene trovato.
+- I controlli con sola icona devono avere nome accessibile tramite `aria-label` o testo equivalente; verificare anche chiusura, eliminazione, navigazione temporale, selezioni, gestione serie, acqua e aggiunta/rimozione alimenti.
+- La sezione admin per gli alimenti non trovati deve consentire di copiare facilmente un elenco aggregato, con uno stato di feedback dopo la copia.
+- Le schermate privacy, cancellazione account e gestione segnalazioni devono restare leggibili e utilizzabili su mobile e desktop.
+- Il tema Retro/Arcade/Pixel Art è esclusivamente estetico e non deve compromettere leggibilità, accessibilità, logica o sicurezza.
 
 ## Decisions, constraints & rationale
 
-- Gli alimenti sono dati statici nel codice frontend; l’aggiunta del catalogo non richiede modifiche al database applicativo.
-- Il formato esistente è una riga per alimento, con valori nutrizionali per 100 g e appartenenza a una famiglia/categoria.
-- È stato introdotto un nuovo blocco di 94 alimenti, collegato al database esistente; include piatti mediterranei, sushi e cucina internazionale, fast food, fritti e dolci.
-- Gli alimenti già presenti, tra cui Falafel, Hamburger Classico, Hot Dog, Burrata e Cannolo Siciliano, sono stati esclusi dal nuovo blocco per evitare doppioni.
-- La categoria Fast Food è stata aggiunta alla mappa delle icone della vista database.
-- Typecheck e build risultano completati senza errori dopo la correzione dell’esportazione della funzione `group`.
-- La richiesta di circa 3000 nuovi alimenti non è ancora soddisfatta: aggiungere migliaia di valori nutrizionali a memoria aumenterebbe il rischio di dati inesatti.
-- Per un catalogo esteso servono fonti nutrizionali affidabili, come tabelle CREA/INRAN o USDA, oppure valori stimati esplicitamente marcati come tali.
-- La sicurezza Supabase resta prioritaria: verificare RLS sulle tabelle con dati personali, protezione del ruolo admin, accesso ai ticket, rate limiting e audit logging.
-- La chiave Gemini non deve essere esposta nel frontend; l’eventuale integrazione dovrà usare un’architettura server-side protetta.
-- La cancellazione account deve essere definitiva, con eliminazione a cascata dei record associati e informativa chiara sui dati sanitari.
+- Gli alimenti sono dati statici nel frontend; il formato attuale è una riga per alimento con valori nutrizionali per 100 g e famiglia/categoria.
+- Il catalogo è passato da circa 1.102 a circa 1.196 alimenti; il target intermedio di 4.000 non è ancora raggiunto.
+- È stato valutato USDA SR Legacy: dataset ampio, con circa 7.800 voci e valori per 100 g, ma prevalentemente in inglese. La traduzione automatica ha prodotto solo un insieme limitato di voci utilizzabili e risultati linguistically scadenti; non usarla senza revisione.
+- CREA/INRAN è una possibile fonte italiana importante, ma non è stata individuata una modalità affidabile di importazione massiva. L’espansione deve basarsi su fonti autorevoli, licenze compatibili e revisione dei nomi.
+- Non aggiungere migliaia di alimenti a memoria: la qualità e l’origine dei valori nutrizionali sono più importanti del raggiungimento artificiale del conteggio.
+- Le segnalazioni di alimenti non trovati sono state spostate dal solo browser a una tabella Supabase condivisa, con accesso dell’utente alle proprie segnalazioni e lettura aggregata riservata all’admin.
+- Il pannello admin include una funzione per copiare l’elenco aggregato degli alimenti non trovati, inclusa la frequenza di segnalazione quando prevista.
+- Sono stati aggiunti nomi accessibili ai principali pulsanti icon-only individuati; typecheck e build risultavano validi dopo le modifiche. L’audit completo con lettore di schermo non è ancora stato eseguito.
+- Dopo modifiche al codice o al catalogo è necessario riavviare/recaricare l’app per rendere visibili le nuove funzioni e i nuovi dati.
+- La chiave Gemini non deve essere esposta nel frontend; eventuali arricchimenti o traduzioni automatiche richiedono un servizio server-side protetto.
+- La sicurezza Supabase resta prioritaria: verificare RLS, ruolo admin, accesso alle segnalazioni, rate limiting e audit logging.
 
 ## Open questions & assumptions
 
-- Decidere se completare l’espansione verso 3000 alimenti per lotti oppure importare un dataset affidabile e compatibile con il formato attuale.
-- Confermare la fonte autorizzata per i valori nutrizionali e le eventuali licenze o attribuzioni richieste.
-- Stabilire come distinguere tecnicamente e visivamente valori verificati, medi e stimati.
-- Verificare la presenza di duplicati semantici oltre ai nomi identici, ad esempio varianti regionali o preparazioni con nomi diversi.
-- Definire ulteriori categorie necessarie per il catalogo moderno e mediterraneo e le relative icone.
-- Verificare visivamente ricerca, raggruppamento e prestazioni con un catalogo molto più ampio.
-- Verificare grafici Corpo con periodi senza dati, valori mancanti e dataset con un solo punto.
-- Confermare unità di misura, fascia consigliata dei micronutrienti e definizione della variazione mostrata.
-- Verificare in ambiente Supabase reale RLS, protezione del ruolo admin, rate limiting, audit logging e tentativi di escalation.
-- Definire retention dei log di sicurezza, testo dell’informativa sanitaria e comportamento preciso della cancellazione a cascata.
+- Scegliere una fonte primaria o una combinazione di fonti per arrivare prima a 4.000 e poi a circa 10.000 alimenti, verificando licenze, attribuzioni e struttura dei dati.
+- Definire una pipeline di importazione con normalizzazione, traduzione/revisione italiana, deduplicazione semantica e controllo qualità nutrizionale.
+- Stabilire se e come conservare fonte, versione, affidabilità e stato di revisione per ogni alimento.
+- Verificare in ambiente reale RLS e autorizzazioni della tabella degli alimenti non trovati, inclusi tentativi di accesso tra utenti e ruoli admin.
+- Definire retention, anonimizzazione e gestione della cancellazione delle segnalazioni associate a un account.
+- Decidere se l’admin debba poter esportare anche CSV/JSON oltre alla copia testuale e se servano filtri per frequenza, data o lingua.
+- Completare l’audit accessibilità su tutte le schermate con tastiera, lettore di schermo, focus visibile, ordine del focus, stati dinamici e messaggi live.
+- Verificare ricerca, prestazioni, raggruppamento e assenza di duplicati con un catalogo molto più ampio.
+- Stabilire categorie e priorità per i nuovi lotti, dando precedenza agli alimenti italiani e ai prodotti internazionali più comuni invece di una copertura uniforme di cucine poco frequenti.
+- Verificare grafici Corpo, unità dei micronutrienti, periodi senza dati e valori mancanti come già previsto.

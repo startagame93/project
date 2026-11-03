@@ -167,6 +167,7 @@ export function DietView() {
       <div className="flex items-center justify-between gap-2">
         <button
           onClick={() => setWeekIdx((i) => (i - 1 + state.weeks.length) % state.weeks.length)}
+          aria-label="Settimana precedente"
           className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
         >
           <ChevronLeft className="w-5 h-5" />
@@ -180,6 +181,7 @@ export function DietView() {
         </button>
         <button
           onClick={() => setWeekIdx((i) => (i + 1) % state.weeks.length)}
+          aria-label="Settimana successiva"
           className="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
         >
           <ChevronRight className="w-5 h-5" />
@@ -285,6 +287,7 @@ export function DietView() {
                 <div className="flex flex-col gap-1.5 shrink-0">
                   <button
                     onClick={() => toggleMealComplete(selectedDay, meal.id)}
+                    aria-label={meal.completed ? 'Segna pasto come da fare' : 'Segna pasto come completato'}
                     className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
                       meal.completed
                         ? 'bg-success-500 text-white'
@@ -295,12 +298,14 @@ export function DietView() {
                   </button>
                   <button
                     onClick={() => setEditingMeal({ dayIdx: selectedDay, meal })}
+                    aria-label="Modifica pasto"
                     className="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-400 hover:text-primary-600 transition-colors"
                   >
                     <Pencil className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => deleteMeal(selectedDay, meal.id)}
+                    aria-label="Elimina pasto"
                     className="w-8 h-8 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-400 hover:text-error-600 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -518,7 +523,7 @@ function MealEditor({ meal, onSave, onClose }: { meal: Meal; onSave: (m: Meal) =
               onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addFood())}
               onChange={(e) => setFoodInput(e.target.value)}
             />
-            <button onClick={addFood} className="btn-primary shrink-0">
+            <button onClick={addFood} aria-label="Aggiungi alimento" className="btn-primary shrink-0">
               <Plus className="w-4 h-4" />
             </button>
           </div>

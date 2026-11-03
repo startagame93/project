@@ -6,7 +6,6 @@ import { PALETTES, paletteSwatch } from '@/lib/palettes';
 import { buildCsv, downloadFile } from '@/lib/exportData';
 import { Modal } from '@/components/Modal';
 import { DeleteAccountSection } from '@/components/DeleteAccountSection';
-import { MissingFoodsSection } from '@/components/MissingFoodsSection';
 import type { Theme, NotificationConfig, AppState } from '@/types';
 import {
   User, Bell, Moon, Sun, Monitor, ShoppingBag, Trash2, Save,
@@ -176,8 +175,6 @@ export function SettingsView({ onNavigate }: { onNavigate: (tab: 'shopping') => 
 
       {/* Backup & Restore */}
       <BackupRestoreSection state={state} setState={setState} />
-
-      <MissingFoodsSection />
 
       {/* About */}
       <div className="card p-5">

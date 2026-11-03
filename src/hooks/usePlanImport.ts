@@ -3,7 +3,7 @@ import { useApp } from '@/context/AppContext';
 import { parseDietText } from '@/lib/dietText';
 import { buildDietWeeks, type DietBuildResult } from '@/lib/dietBuilder';
 import { analyzePlanText } from '@/lib/gemini';
-import { recordMissingFoods } from '@/lib/missingFoods';
+import { reportMissingFoods } from '@/lib/supabase';
 
 export type PlanImportOutcome = { kind: 'diet'; firstWeekIndex: number } | { kind: 'workout' } | null;
 
@@ -24,7 +24,7 @@ export function usePlanImport() {
   function addDiet(diet: DietBuildResult, viaAi: boolean): PlanImportOutcome {
     const isEmpty = state.weeks.every((w) => w.days.every((d) => d.meals.every((m) => m.foods.length === 0 && !m.completed)));
     const firstWeekIndex = isEmpty ? 0 : state.weeks.length;
-    recordMissingFoods(diet.unknownFoods);
+    void reportMissingFoods(diet.unknownFoods);
     setState((prev) => ({
       ...prev,
       weeks: isEmpty ? diet.weeks : [...prev.weeks, ...diet.weeks],

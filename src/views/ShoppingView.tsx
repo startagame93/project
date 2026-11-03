@@ -129,6 +129,7 @@ export function ShoppingView() {
                 <div key={item.id} className={`flex items-center gap-3 p-2 rounded-lg ${item.checked ? 'bg-gray-50 dark:bg-gray-800/50' : ''}`}>
                   <button
                     onClick={() => toggleChecked(item.id)}
+                    aria-label={item.checked ? 'Segna come da acquistare' : 'Segna come acquistato'}
                     className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all ${
                       item.checked ? 'bg-success-500 text-white' : 'border-2 border-gray-300 dark:border-gray-600 text-transparent'
                     }`}
@@ -139,7 +140,7 @@ export function ShoppingView() {
                     <p className={`font-medium ${item.checked ? 'line-through text-gray-400' : 'text-gray-900 dark:text-white'}`}>{item.name}</p>
                     <p className="text-xs text-gray-500">{item.quantity}</p>
                   </div>
-                  <button onClick={() => deleteItem(item.id)} className="p-1.5 text-gray-400 hover:text-error-600">
+                  <button onClick={() => deleteItem(item.id)} aria-label="Elimina articolo" className="p-1.5 text-gray-400 hover:text-error-600">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
@@ -157,7 +158,7 @@ export function ShoppingView() {
           <Download className="w-4 h-4" /> Esporta
         </button>
         {checkedCount > 0 && (
-          <button onClick={clearChecked} className="btn-ghost">
+          <button onClick={clearChecked} aria-label="Svuota articoli acquistati" className="btn-ghost">
             <Trash2 className="w-4 h-4" />
           </button>
         )}
@@ -169,7 +170,7 @@ export function ShoppingView() {
           <div className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-t-3xl p-4 animate-slide-up space-y-3">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-lg font-semibold">Nuovo Articolo</h2>
-              <button onClick={() => setAdding(false)} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+              <button onClick={() => setAdding(false)} aria-label="Chiudi" className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
                 <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>

@@ -30,7 +30,7 @@ export function Modal({ open, onClose, title, children, footer, icon: Icon }: Mo
             {Icon && <Icon className="w-5 h-5 text-primary-600 dark:text-primary-400" />}
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h2>
           </div>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+          <button onClick={onClose} aria-label="Chiudi" className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
             <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>

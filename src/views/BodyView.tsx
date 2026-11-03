@@ -142,7 +142,7 @@ export function BodyView() {
                     {m.hip && ` · Fianchi: ${m.hip}cm`}
                   </p>
                 </div>
-                <button onClick={() => deleteMetric(m.id)} className="p-2 text-gray-400 hover:text-error-600 shrink-0">
+                <button onClick={() => deleteMetric(m.id)} aria-label="Elimina misurazione" className="p-2 text-gray-400 hover:text-error-600 shrink-0">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>

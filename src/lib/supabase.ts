@@ -254,6 +254,32 @@ export async function adminDeleteTicket(ticketId: string): Promise<boolean> {
   return !error;
 }
 
+export async function reportMissingFoods(names: string[]): Promise<boolean> {
+  if (names.length === 0) return true;
+  const { error } = await supabase.rpc('report_missing_foods', { p_names: names.slice(0, 200) });
+  if (error) console.error('missing foods report failed', error);
+  return !error;
+}
+
+export interface MissingFoodCount {
+  displayName: string;
+  totalReports: number;
+  accounts: number;
+}
+
+export async function adminLoadMissingFoods(): Promise<MissingFoodCount[] | null> {
+  const { data, error } = await supabase.rpc('admin_missing_food_counts');
+  if (error) {
+    console.error('missing foods load failed', error);
+    return null;
+  }
+  return ((data ?? []) as { display_name: string; total_reports: number; accounts: number }[]).map((row) => ({
+    displayName: row.display_name,
+    totalReports: Number(row.total_reports),
+    accounts: Number(row.accounts),
+  }));
+}
+
 // === PRESENCE ===
 
 export const ONLINE_WINDOW_MS = 5 * 60 * 1000;

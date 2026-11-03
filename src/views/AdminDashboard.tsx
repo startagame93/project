@@ -5,6 +5,7 @@ import {
   type AdminUserRow, type SupportTicketRow, type TicketStatus,
 } from '@/lib/supabase';
 import { BugReportCopySection } from '@/components/BugReportCopySection';
+import { MissingFoodsCopySection } from '@/components/MissingFoodsCopySection';
 import { TicketStatusBadge, TICKET_STATUSES, TICKET_STATUS_LABEL } from '@/components/TicketStatusBadge';
 import {
   Users, MessageSquare, Ban, CheckCircle, Send, Loader2, Mail, ChevronDown, ChevronUp,
@@ -97,6 +98,7 @@ export function AdminDashboard() {
       </div>
 
       <BugReportCopySection />
+      <MissingFoodsCopySection />
 
       <div className="flex gap-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
         {([

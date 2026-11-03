@@ -167,6 +167,7 @@ export function GymView() {
                     </div>
                     <button
                       onClick={() => deleteWorkout(w.id)}
+                      aria-label="Elimina allenamento"
                       className="p-2 rounded-lg text-gray-400 hover:text-error-600 transition-colors shrink-0"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -223,7 +224,7 @@ export function GymView() {
                             min={0}
                           />
                           {sets.length > 1 && (
-                            <button onClick={() => removeSet(i)} className="p-1.5 text-gray-400 hover:text-error-600">
+                            <button onClick={() => removeSet(i)} aria-label="Rimuovi serie" className="p-1.5 text-gray-400 hover:text-error-600">
                               <Minus className="w-4 h-4" />
                             </button>
                           )}
@@ -259,6 +260,7 @@ export function GymView() {
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => setMinutes((m) => Math.max(5, m - 5))}
+                        aria-label="Diminuisci durata di 5 minuti"
                         className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center"
                       >
                         <Minus className="w-4 h-4" />
@@ -266,6 +268,7 @@ export function GymView() {
                       <span className="text-2xl font-bold text-gray-900 dark:text-white flex-1 text-center">{minutes}</span>
                       <button
                         onClick={() => setMinutes((m) => Math.min(300, m + 5))}
+                        aria-label="Aumenta durata di 5 minuti"
                         className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center"
                       >
                         <Plus className="w-4 h-4" />
