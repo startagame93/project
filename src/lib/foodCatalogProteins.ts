@@ -66,7 +66,7 @@ export const PROTEIN_FOODS: FoodEntry[] = [
     ['Petto d\'anatra cotto', 200, 24.0, 0.0, 11.0, 3.5, 0.0, 0, 70, 280, 12, 2.5],
     ['Oca arrosto', 305, 26.0, 0.0, 22.0, 6.0, 0.0, 0, 70, 270, 16, 3.0],
   ]),
-  ...group('Carni Rosse', 'Manzo e vitello', [
+  ...group('Carni Rosse', 'Manzo - tagli', [
     ['Bistecca di manzo alla griglia', 215, 26.0, 0.0, 12.0, 4.7, 0.0, 0, 60, 320, 12, 2.5],
     ['Filetto di manzo cotto', 230, 27.0, 0.0, 13.0, 5.0, 0.0, 0, 65, 330, 12, 2.6],
     ['Tagliata di manzo', 200, 26.0, 0.0, 10.0, 4.0, 0.0, 0, 300, 320, 12, 2.5],
@@ -75,75 +75,123 @@ export const PROTEIN_FOODS: FoodEntry[] = [
     ['Scamone di manzo', 135, 22.0, 0.0, 4.8, 1.8, 0.0, 0, 60, 360, 10, 2.5],
     ['Costata di manzo', 280, 24.0, 0.0, 20.0, 8.0, 0.0, 0, 70, 300, 10, 2.2],
     ['Reale di manzo', 170, 26.0, 0.0, 7.0, 2.7, 0.0, 0, 65, 330, 10, 2.5],
+  ]),
+  ...group('Carni Rosse', 'Manzo - macinati', [
     ['Macinato di manzo 5% grassi', 137, 21.0, 0.0, 5.0, 2.0, 0.0, 0, 70, 330, 12, 2.5],
     ['Macinato di manzo 15% grassi', 215, 19.0, 0.0, 15.0, 6.0, 0.0, 0, 70, 310, 15, 2.2],
     ['Polpette di manzo al sugo', 230, 16.0, 8.0, 15.0, 5.5, 2.0, 0, 500, 330, 30, 2.5],
     ['Hamburger di manzo cotto', 250, 25.0, 0.0, 16.0, 6.5, 0.0, 0, 380, 330, 20, 2.6],
+  ]),
+  ...group('Carni Rosse', 'Manzo - stufati e bolliti', [
     ['Brasato di manzo', 210, 25.0, 3.0, 10.0, 4.0, 2.0, 0, 300, 330, 20, 2.5],
     ['Bollito di manzo', 200, 27.0, 0.0, 10.0, 4.0, 0.0, 0, 120, 340, 12, 2.5],
     ['Stracotto di manzo', 220, 26.0, 4.0, 11.0, 4.5, 2.0, 0, 350, 340, 20, 2.6],
     ['Spezzatino di manzo', 180, 24.0, 3.0, 8.0, 3.2, 1.0, 0, 350, 340, 15, 2.5],
+  ]),
+  ...group('Carni Rosse', 'Manzo - tagli', [
     ['Cubetti di manzo per spiedini', 150, 25.0, 0.0, 5.0, 2.0, 0.0, 0, 65, 330, 10, 2.5],
+  ]),
+  ...group('Carni Rosse', 'Manzo - frattaglie', [
     ['Lingua di manzo bollita', 260, 17.0, 0.0, 21.0, 8.0, 0.0, 0, 100, 210, 10, 2.0],
     ['Trippa cotta', 90, 12.0, 0.0, 4.0, 1.5, 0.0, 0, 40, 100, 80, 0.5],
+  ]),
+  ...group('Carni Rosse', 'Vitello - frattaglie', [
     ['Fegato di vitello', 135, 20.4, 3.9, 3.6, 1.2, 0.0, 0, 80, 310, 8, 6.5],
+  ]),
+  ...group('Carni Rosse', 'Manzo - frattaglie', [
     ['Fegato di manzo', 135, 20.4, 3.9, 3.6, 1.2, 0.0, 0, 80, 310, 8, 6.5],
+  ]),
+  ...group('Carni Rosse', 'Vitello - frattaglie', [
     ['Rene di vitello', 100, 15.0, 0.5, 4.0, 1.2, 0.0, 0, 180, 250, 20, 7.0],
+  ]),
+  ...group('Carni Rosse', 'Manzo - frattaglie', [
     ['Cuore di manzo', 113, 17.7, 0.6, 3.8, 1.2, 0.0, 0, 100, 280, 9, 5.0],
+  ]),
+  ...group('Carni Rosse', 'Vitello - tagli', [
     ['Ossobuco di vitello', 170, 24.0, 0.0, 8.0, 3.0, 0.0, 0, 120, 300, 30, 2.5],
     ['Scaloppina di vitello', 115, 22.0, 0.0, 2.5, 0.9, 0.0, 0, 60, 320, 10, 1.1],
+  ]),
+  ...group('Carni Rosse', 'Vitello - ricette', [
     ['Vitello tonnato', 230, 18.0, 2.0, 17.0, 5.0, 1.0, 0, 500, 260, 30, 1.8],
     ['Cotoletta alla milanese di vitello', 290, 24.0, 12.0, 16.0, 4.5, 0.5, 0, 480, 320, 30, 2.5],
     ['Arrosto di vitello', 160, 25.0, 0.0, 6.0, 2.2, 0.0, 0, 70, 330, 12, 1.5],
+  ]),
+  ...group('Carni Rosse', 'Manzo - salumi', [
     ['Carne salada', 230, 36.0, 0.0, 9.0, 3.5, 0.0, 0, 2000, 350, 20, 3.0],
     ['Bresaola della Valtellina', 151, 32.0, 0.0, 2.4, 1.0, 0.0, 0, 2000, 800, 24, 2.7],
+  ]),
+  ...group('Carni Rosse', 'Manzo - ricette', [
     ['Carpaccio di manzo', 130, 22.0, 0.5, 4.0, 1.5, 0.0, 0, 300, 330, 10, 2.5],
+  ]),
+  ...group('Carni Rosse', 'Manzo - tagli', [
     ['Kobe manzo cotto', 290, 25.0, 0.0, 20.0, 9.0, 0.0, 0, 60, 320, 12, 2.5],
     ['Manzo Wagyu cotto', 320, 22.0, 0.0, 25.0, 10.0, 0.0, 0, 60, 300, 10, 2.0],
     ['Chianina bistecca', 180, 26.0, 0.0, 8.0, 3.0, 0.0, 0, 60, 330, 10, 2.5],
   ]),
-  ...group('Carni Rosse', 'Maiale', [
+  ...group('Carni Rosse', 'Maiale - tagli', [
     ['Lonza di maiale cotta', 160, 28.0, 0.0, 4.5, 1.6, 0.0, 0, 60, 390, 6, 0.9],
     ['Filetto di maiale cotto', 145, 26.0, 0.0, 4.0, 1.4, 0.0, 0, 60, 400, 6, 0.9],
     ['Costoletta di maiale', 220, 26.0, 0.0, 12.5, 4.5, 0.0, 0, 70, 350, 10, 0.9],
     ['Spalla di maiale cotta', 230, 26.0, 0.0, 14.0, 5.0, 0.0, 0, 90, 330, 10, 1.0],
+  ]),
+  ...group('Carni Rosse', 'Maiale - salumi', [
     ['Coppa di maiale', 260, 24.0, 0.5, 18.0, 6.5, 0.0, 0, 900, 300, 10, 1.0],
     ['Guanciale', 450, 13.0, 0.0, 45.0, 16.0, 0.0, 0, 1200, 200, 10, 1.0],
     ['Pancetta stesa', 390, 14.0, 0.0, 37.0, 13.0, 0.0, 0, 1500, 220, 10, 1.0],
     ['Pancetta arrotolata', 380, 16.0, 0.5, 34.0, 12.0, 0.0, 0, 1600, 230, 10, 1.1],
+  ]),
+  ...group('Carni Rosse', 'Maiale - salsicce', [
     ['Salsiccia di maiale cruda', 300, 15.0, 1.5, 26.0, 9.0, 0.5, 0, 900, 280, 15, 1.2],
     ['Salsiccia di maiale cotta', 320, 17.0, 1.0, 27.0, 9.5, 0.5, 0, 1000, 290, 15, 1.2],
     ['Salsiccia di Bra', 300, 16.0, 1.0, 26.0, 9.0, 0.5, 0, 900, 280, 15, 1.2],
     ['Salsiccia piccante', 340, 17.0, 1.5, 30.0, 10.0, 0.5, 0, 1000, 280, 15, 1.4],
+  ]),
+  ...group('Carni Rosse', 'Maiale - salumi', [
     ['Cotechino cotto', 330, 16.0, 2.0, 29.0, 10.0, 0.5, 0, 1200, 260, 15, 1.2],
     ['Zampone cotto', 290, 17.0, 1.0, 24.0, 8.5, 0.5, 0, 1200, 250, 15, 1.2],
+  ]),
+  ...group('Carni Rosse', 'Maiale - ricette', [
     ['Costine di maiale BBQ', 290, 24.0, 8.0, 18.0, 6.5, 6.0, 0, 650, 330, 25, 1.5],
     ['Involtini di maiale', 210, 22.0, 4.0, 12.0, 4.0, 1.0, 0, 450, 340, 20, 1.2],
     ['Arrosto di maiale', 210, 26.0, 0.0, 11.0, 4.0, 0.0, 0, 70, 370, 8, 1.0],
     ['Maiale al latte', 210, 25.0, 1.0, 11.0, 4.0, 1.0, 0, 110, 360, 40, 1.0],
     ['Porchetta', 320, 22.0, 0.0, 25.0, 9.0, 0.0, 0, 900, 300, 15, 1.2],
+  ]),
+  ...group('Carni Rosse', 'Maiale - salumi', [
     ['Prosciutto di maiale cotto', 110, 18.0, 1.0, 3.5, 1.3, 0.5, 0, 1100, 330, 6, 0.8],
+  ]),
+  ...group('Carni Rosse', 'Maiale - macinati', [
     ['Hamburger di maiale', 260, 20.0, 1.0, 19.0, 7.0, 0.5, 0, 450, 330, 12, 1.0],
   ]),
-  ...group('Carni Rosse', 'Agnello, capra e selvaggina', [
+  ...group('Carni Rosse', 'Agnello - tagli', [
     ['Costolette di agnello', 280, 25.0, 0.0, 20.0, 9.0, 0.0, 0, 80, 310, 15, 2.0],
     ['Cosciotto di agnello', 210, 26.0, 0.0, 11.0, 4.5, 0.0, 0, 75, 330, 12, 2.0],
+  ]),
+  ...group('Carni Rosse', 'Agnello e capra - ricette', [
     ['Agnello arrosto', 240, 26.0, 0.0, 14.0, 6.0, 0.0, 0, 80, 310, 15, 2.0],
     ['Agnello alla scottadito', 270, 25.0, 0.0, 18.0, 7.5, 0.0, 0, 70, 300, 15, 2.1],
     ['Capretto arrosto', 180, 25.0, 0.0, 8.5, 3.3, 0.0, 0, 80, 300, 15, 2.5],
     ['Carne di capra cotta', 170, 27.0, 0.0, 6.5, 2.5, 0.0, 0, 70, 330, 12, 3.5],
+  ]),
+  ...group('Carni Rosse', 'Selvaggina', [
     ['Cervo cotto', 175, 30.0, 0.0, 5.5, 2.0, 0.0, 0, 70, 370, 6, 4.0],
     ['Cinghiale cotto', 190, 27.0, 0.0, 8.5, 3.0, 0.0, 0, 70, 340, 10, 3.5],
+  ]),
+  ...group('Carni Rosse', 'Altre carni rosse', [
     ['Struzzo cotto', 135, 28.0, 0.0, 2.5, 0.8, 0.0, 0, 70, 330, 10, 3.0],
     ['Bufalo cotto', 130, 27.0, 0.0, 2.5, 0.8, 0.0, 0, 60, 360, 10, 3.0],
     ['Hamburger di bufala', 170, 23.0, 0.0, 9.0, 3.5, 0.0, 0, 350, 330, 15, 2.2],
+  ]),
+  ...group('Carni Rosse', 'Selvaggina', [
     ['Salame di cervo', 320, 28.0, 2.0, 22.0, 8.0, 0.5, 0, 1800, 350, 15, 3.0],
   ]),
-  ...group('Pesce', 'Pesce bianco e di mare', [
+  ...group('Pesce', 'Pesce - merluzzo e baccalà', [
     ['Merluzzo fresco cotto', 82, 17.8, 0.0, 0.7, 0.2, 0.0, 0, 54, 413, 16, 0.4],
     ['Merluzzo surgelato cotto', 90, 19.0, 0.0, 1.0, 0.2, 0.0, 0, 180, 420, 20, 0.5],
     ['Baccalà ammollato', 80, 17.8, 0.0, 0.7, 0.2, 0.0, 0, 120, 360, 20, 0.5],
     ['Stoccafisso ammollato', 90, 19.0, 0.0, 1.0, 0.3, 0.0, 0, 200, 380, 22, 0.6],
+  ]),
+  ...group('Pesce', 'Pesce - pesce bianco al forno', [
     ['Nasello cotto', 90, 18.0, 0.0, 1.5, 0.3, 0.0, 0, 80, 360, 20, 0.6],
     ['Orata al forno', 140, 22.0, 0.0, 5.5, 1.2, 0.0, 0, 80, 420, 50, 0.9],
     ['Spigola al forno', 124, 22.0, 0.0, 3.5, 0.8, 0.0, 0, 70, 400, 30, 0.7],
@@ -157,16 +205,24 @@ export const PROTEIN_FOODS: FoodEntry[] = [
     ['Ombrina cotta', 100, 20.0, 0.0, 2.0, 0.5, 0.0, 0, 80, 380, 25, 0.6],
     ['San Pietro cotto', 90, 18.5, 0.0, 1.5, 0.4, 0.0, 0, 85, 360, 20, 0.6],
     ['Pesce persico cotto', 105, 22.0, 0.0, 2.0, 0.5, 0.0, 0, 50, 380, 25, 0.6],
+  ]),
+  ...group('Pesce', 'Pesce - acqua dolce', [
     ['Trota cotta', 150, 22.0, 0.0, 7.0, 1.5, 0.0, 0, 60, 400, 50, 1.0],
     ['Trota iridea affumicata', 175, 24.0, 0.0, 8.5, 2.0, 0.0, 0, 1200, 380, 30, 1.0],
     ['Coregone cotto', 120, 20.0, 0.0, 4.0, 1.0, 0.0, 0, 80, 380, 30, 0.7],
     ['Luccio cotto', 90, 19.0, 0.0, 1.0, 0.3, 0.0, 0, 50, 400, 40, 0.5],
     ['Carpa cotta', 127, 18.0, 0.0, 6.0, 1.5, 0.0, 0, 60, 390, 40, 0.8],
     ['Anguilla cotta', 260, 19.0, 0.0, 20.0, 4.5, 0.0, 0, 80, 300, 20, 1.0],
+  ]),
+  ...group('Pesce', 'Pesce - pesce bianco al forno', [
     ['Pesce San Pietro al forno', 95, 19.0, 0.0, 2.0, 0.5, 0.0, 0, 85, 360, 20, 0.6],
+  ]),
+  ...group('Pesce', 'Pesce - impanati surgelati', [
     ['Filetti di platessa impanati', 230, 16.0, 16.0, 11.0, 2.0, 0.8, 0, 500, 320, 30, 0.9],
     ['Bastoncini di merluzzo', 250, 14.0, 20.0, 12.0, 2.5, 0.5, 0, 520, 300, 25, 0.8],
     ['Filetti di merluzzo impanati surgelati', 240, 15.0, 18.0, 12.0, 2.5, 0.5, 0, 500, 300, 25, 0.8],
+  ]),
+  ...group('Pesce', 'Pesce - altri pesci', [
     ['Pesce spada cotto', 144, 24.0, 0.0, 5.0, 1.2, 0.0, 0, 100, 430, 6, 0.8],
     ['Ricciola cotta', 120, 22.0, 0.0, 3.0, 0.8, 0.0, 0, 70, 380, 20, 0.6],
     ['Mahi mahi cotto', 85, 19.5, 0.0, 0.7, 0.2, 0.0, 0, 80, 350, 25, 0.5],
@@ -179,12 +235,14 @@ export const PROTEIN_FOODS: FoodEntry[] = [
     ['Palombo cotto', 85, 18.0, 0.0, 1.0, 0.2, 0.0, 0, 70, 360, 20, 0.5],
     ['Ippoglosso cotto', 111, 23.0, 0.0, 2.3, 0.4, 0.0, 0, 70, 480, 16, 0.6],
   ]),
-  ...group('Pesce', 'Pesce azzurro e conserve', [
+  ...group('Pesce', 'Pesce - alici e sardine', [
     ['Alici fresche crude', 131, 20.4, 0.0, 4.8, 1.2, 0.0, 0, 100, 380, 147, 2.9],
     ['Alici fritte', 220, 20.0, 8.0, 12.0, 2.5, 0.0, 0, 300, 330, 150, 2.5],
     ['Alici marinate', 180, 18.0, 1.0, 12.0, 2.5, 0.0, 0, 800, 300, 140, 2.0],
     ['Sardine fresche', 208, 24.6, 0.0, 11.5, 2.5, 0.0, 0, 100, 397, 380, 2.9],
     ['Sardine al forno', 200, 24.0, 0.0, 11.0, 2.5, 0.0, 0, 120, 380, 330, 2.5],
+  ]),
+  ...group('Pesce', 'Pesce - sgombro, tonno e conserve', [
     ['Sgombro fresco', 205, 19.0, 0.0, 14.0, 3.3, 0.0, 0, 70, 350, 12, 1.6],
     ['Sgombro sott\'olio', 250, 23.0, 0.0, 17.0, 3.5, 0.0, 0, 600, 350, 15, 1.7],
     ['Sgombro affumicato', 280, 24.0, 0.0, 20.0, 4.0, 0.0, 0, 900, 330, 20, 2.0],
@@ -193,18 +251,32 @@ export const PROTEIN_FOODS: FoodEntry[] = [
     ['Tonno al naturale in scatola', 116, 25.5, 0.0, 0.8, 0.2, 0.0, 0, 300, 230, 12, 1.3],
     ['Tonno all\'olio d\'oliva sgocciolato', 198, 29.1, 0.0, 8.2, 1.5, 0.0, 0, 380, 260, 15, 1.4],
     ['Tonnetto sott\'olio', 190, 26.0, 0.0, 9.0, 1.8, 0.0, 0, 400, 290, 12, 1.2],
+  ]),
+  ...group('Pesce', 'Pesce - affumicati', [
     ['Aringhe affumicate', 270, 18.0, 0.0, 22.0, 4.5, 0.0, 0, 800, 330, 40, 1.4],
     ['Aringa marinata', 240, 18.0, 1.0, 18.0, 3.5, 0.5, 0, 1000, 330, 50, 1.2],
+  ]),
+  ...group('Pesce', 'Pesce - alici e sardine', [
     ['Acciughe sotto sale', 200, 25.0, 0.0, 10.0, 2.5, 0.0, 0, 6000, 400, 200, 3.0],
+  ]),
+  ...group('Pesce', 'Pesce - altri pesci', [
     ['Lampuga', 110, 22.0, 0.0, 2.5, 0.6, 0.0, 0, 70, 400, 15, 0.8],
+  ]),
+  ...group('Pesce', 'Pesce - sgombro, tonno e conserve', [
     ['Palamita sott\'olio', 180, 25.0, 0.0, 9.0, 2.0, 0.0, 0, 450, 300, 15, 1.2],
+  ]),
+  ...group('Pesce', 'Pesce - affumicati', [
     ['Ricciola affumicata', 150, 25.0, 0.0, 5.0, 1.2, 0.0, 0, 1200, 380, 20, 1.0],
+  ]),
+  ...group('Pesce', 'Pesce - sgombro, tonno e conserve', [
     ['Tonno rosso crudo', 144, 23.3, 0.0, 4.9, 1.2, 0.0, 0, 40, 350, 6, 1.0],
     ['Tonno fresco alla griglia', 180, 28.0, 0.0, 7.0, 1.5, 0.0, 0, 60, 400, 10, 1.2],
     ['Tonno pinna gialla', 110, 24.0, 0.0, 1.0, 0.3, 0.0, 0, 40, 350, 6, 1.0],
+  ]),
+  ...group('Pesce', 'Pesce - affumicati', [
     ['Pesce spada affumicato', 175, 24.0, 0.0, 8.0, 1.8, 0.0, 0, 800, 350, 10, 1.0],
   ]),
-  ...group('Pesce', 'Molluschi e crostacei', [
+  ...group('Pesce', 'Molluschi - calamari e polpi', [
     ['Calamaro fresco crudo', 92, 15.6, 3.1, 1.4, 0.3, 0.0, 0, 44, 246, 32, 1.3],
     ['Calamaro cotto alla griglia', 105, 18.0, 2.5, 2.0, 0.4, 0.0, 0, 110, 260, 30, 1.5],
     ['Calamari fritti', 215, 15.0, 15.0, 11.0, 2.0, 0.5, 0, 400, 250, 30, 1.2],
@@ -213,6 +285,8 @@ export const PROTEIN_FOODS: FoodEntry[] = [
     ['Polpo lesso', 82, 14.9, 2.2, 1.0, 0.2, 0.0, 0, 230, 260, 20, 6.0],
     ['Polpo alla griglia', 120, 16.0, 2.0, 5.0, 1.0, 0.0, 0, 300, 280, 25, 5.5],
     ['Moscardini cotti', 80, 16.0, 1.5, 1.0, 0.2, 0.0, 0, 200, 250, 30, 2.0],
+  ]),
+  ...group('Pesce', 'Crostacei', [
     ['Gamberetti cotti', 99, 24.0, 0.2, 0.3, 0.1, 0.0, 0, 1500, 150, 60, 0.5],
     ['Gamberi cotti', 99, 24.0, 0.2, 0.3, 0.1, 0.0, 0, 1000, 220, 60, 0.5],
     ['Gamberi rossi crudi', 85, 18.0, 0.5, 0.9, 0.2, 0.0, 0, 140, 310, 46, 1.4],
@@ -223,6 +297,8 @@ export const PROTEIN_FOODS: FoodEntry[] = [
     ['Polpa di granchio', 90, 17.0, 1.0, 1.5, 0.3, 0.0, 0, 800, 240, 40, 0.5],
     ['Aragosta cotta', 110, 23.0, 0.0, 1.5, 0.3, 0.0, 0, 480, 300, 60, 0.6],
     ['Astice cotto', 115, 24.0, 0.0, 1.0, 0.3, 0.0, 0, 400, 250, 60, 0.8],
+  ]),
+  ...group('Pesce', 'Molluschi bivalvi', [
     ['Cozze cotte al vapore', 172, 24.0, 7.4, 4.5, 0.9, 0.0, 0, 370, 460, 50, 6.7],
     ['Cozze crude', 86, 11.9, 3.7, 2.2, 0.4, 0.0, 0, 286, 298, 20, 3.8],
     ['Vongole veraci cotte', 149, 24.0, 5.0, 2.0, 0.4, 0.0, 0, 480, 380, 80, 14.0],
@@ -235,15 +311,21 @@ export const PROTEIN_FOODS: FoodEntry[] = [
     ['Lumachine di mare cotte', 120, 15.0, 3.0, 5.0, 1.0, 0.0, 0, 400, 300, 40, 5.0],
     ['Ricci di mare crudi', 120, 17.0, 6.0, 3.0, 0.5, 0.0, 0, 400, 380, 30, 5.0],
     ['Cuore di mare cotto', 90, 14.0, 4.0, 1.0, 0.2, 0.0, 0, 400, 300, 50, 4.0],
+  ]),
+  ...group('Pesce', 'Crostacei', [
     ['Gamberi cocktail in salamoia', 80, 16.0, 1.0, 1.0, 0.2, 0.0, 0, 1200, 200, 40, 1.0],
+  ]),
+  ...group('Pesce', 'Insalate di mare', [
     ['Insalata di mare', 100, 15.0, 4.0, 2.5, 0.4, 1.0, 0, 600, 260, 40, 1.5],
   ]),
-  ...group('Uova', 'Uova e preparazioni', [
+  ...group('Uova', 'Uova - crude e sode', [
     ['Uovo sodo', 155, 12.6, 1.1, 10.6, 3.3, 0.6, 0, 124, 126, 50, 1.2],
     ['Albume d\'uovo crudo', 52, 10.9, 0.7, 0.2, 0.0, 0.7, 0, 166, 163, 7, 0.1],
     ['Albume d\'uovo cotto', 55, 11.0, 0.8, 0.2, 0.0, 0.8, 0, 170, 170, 8, 0.1],
     ['Tuorlo d\'uovo crudo', 322, 15.9, 3.6, 26.5, 6.8, 0.6, 0, 48, 109, 129, 2.7],
     ['Uovo alla coque', 155, 12.6, 1.1, 10.6, 3.3, 0.6, 0, 124, 126, 50, 1.2],
+  ]),
+  ...group('Uova', 'Uova - frittate e preparazioni', [
     ['Uova strapazzate con burro', 200, 13.0, 1.5, 15.5, 6.5, 1.0, 0, 380, 170, 60, 1.5],
     ['Frittata con cipolle', 180, 11.0, 2.5, 13.5, 3.5, 1.0, 0, 350, 180, 40, 1.3],
     ['Frittata di zucchine', 150, 10.0, 3.0, 10.5, 3.0, 1.5, 0, 320, 220, 40, 1.0],
@@ -251,16 +333,26 @@ export const PROTEIN_FOODS: FoodEntry[] = [
     ['Omelette al formaggio', 230, 14.0, 1.0, 18.0, 8.0, 0.8, 0, 500, 150, 150, 1.5],
     ['Uova al tegamino', 190, 13.5, 0.7, 14.5, 4.5, 0.5, 0, 340, 130, 55, 1.4],
     ['Uova in camicia', 150, 12.0, 0.5, 10.0, 3.0, 0.5, 0, 110, 120, 50, 1.2],
+  ]),
+  ...group('Uova', 'Uova di altri animali', [
     ['Uova sode di quaglia', 158, 13.0, 0.4, 11.0, 3.5, 0.4, 0, 110, 130, 60, 3.6],
     ['Uova di quaglia crude', 158, 13.0, 0.4, 11.0, 3.5, 0.4, 0, 110, 130, 60, 3.6],
     ['Uova di anatra', 185, 13.0, 1.5, 13.8, 3.6, 0.6, 0, 140, 150, 60, 3.9],
+  ]),
+  ...group('Uova', 'Uova - farcite e salse', [
     ['Uova in salsa', 210, 10.0, 3.0, 17.0, 4.0, 1.0, 0, 400, 150, 60, 1.3],
+  ]),
+  ...group('Uova', 'Uova - dolci', [
     ['Crema pasticcera all\'uovo', 150, 4.0, 22.0, 5.5, 2.5, 16.0, 0.2, 60, 120, 40, 0.3],
+  ]),
+  ...group('Uova', 'Uova - frittate e preparazioni', [
     ['Frittata di patate', 170, 9.0, 12.0, 9.5, 2.8, 1.0, 0, 330, 380, 35, 1.2],
+  ]),
+  ...group('Uova', 'Uova - farcite e salse', [
     ['Uova alla benedettina', 220, 12.0, 14.0, 13.0, 4.5, 1.0, 0, 600, 180, 60, 1.6],
     ['Uova ripiene', 200, 11.0, 2.0, 16.0, 4.0, 0.5, 0, 400, 130, 50, 1.4],
   ]),
-  ...group('Latticini', 'Latte e yogurt', [
+  ...group('Latticini', 'Latte', [
     ['Latte intero', 64, 3.3, 4.8, 3.6, 2.3, 4.8, 0.0, 43, 150, 120, 0.0],
     ['Latte parzialmente scremato', 46, 3.4, 4.9, 1.6, 1.0, 4.9, 0.0, 44, 155, 125, 0.0],
     ['Latte scremato', 34, 3.4, 5.0, 0.1, 0.1, 5.0, 0.0, 45, 155, 125, 0.0],
@@ -268,12 +360,16 @@ export const PROTEIN_FOODS: FoodEntry[] = [
     ['Latte di pecora', 108, 5.6, 4.9, 6.0, 3.8, 4.9, 0.0, 50, 180, 190, 0.1],
     ['Latte di bufala', 97, 4.5, 5.0, 6.9, 4.5, 5.2, 0.0, 50, 170, 200, 0.1],
     ['Latte senza lattosio', 46, 3.4, 4.6, 1.6, 1.0, 4.6, 0.0, 44, 155, 125, 0.0],
+  ]),
+  ...group('Latticini', 'Bevande vegetali', [
     ['Latte di riso', 47, 0.3, 9.6, 1.0, 0.2, 4.0, 0.2, 40, 15, 130, 0.2],
     ['Latte di avena', 45, 1.0, 6.6, 1.5, 0.2, 4.0, 0.8, 40, 100, 120, 0.4],
     ['Latte di cocco', 230, 2.3, 5.5, 23.8, 21.4, 3.3, 2.2, 15, 263, 16, 1.6],
     ['Latte di mandorla', 24, 1.0, 2.9, 1.1, 0.1, 2.0, 0.4, 170, 100, 120, 0.2],
     ['Latte di nocciola', 42, 0.6, 5.5, 1.8, 0.2, 4.0, 0.5, 40, 80, 120, 0.2],
     ['Latte di soia', 33, 3.3, 1.8, 1.6, 0.2, 0.9, 0.4, 35, 118, 120, 0.4],
+  ]),
+  ...group('Latticini', 'Yogurt e fermentati', [
     ['Yogurt bianco intero', 61, 3.5, 4.7, 3.3, 2.1, 4.7, 0.0, 46, 150, 120, 0.1],
     ['Yogurt bianco magro', 45, 4.5, 6.0, 0.2, 0.1, 6.0, 0.0, 60, 200, 160, 0.1],
     ['Yogurt greco 0%', 59, 10.2, 3.6, 0.4, 0.2, 3.6, 0.0, 36, 141, 110, 0.1],
@@ -284,6 +380,8 @@ export const PROTEIN_FOODS: FoodEntry[] = [
     ['Skyr naturale', 63, 11.0, 4.0, 0.2, 0.1, 4.0, 0.0, 50, 150, 110, 0.1],
     ['Kefir di latte', 65, 3.3, 4.5, 3.5, 2.2, 4.5, 0.0, 50, 150, 120, 0.1],
     ['Latticello', 40, 3.3, 4.8, 0.9, 0.5, 4.5, 0.0, 100, 150, 120, 0.1],
+  ]),
+  ...group('Latticini', 'Panna e burro', [
     ['Panna fresca', 292, 2.2, 3.3, 30.0, 19.0, 3.3, 0.0, 40, 75, 75, 0.1],
     ['Panna da cucina', 196, 2.5, 4.0, 19.0, 12.0, 3.5, 0.0, 40, 90, 70, 0.1],
     ['Panna vegetale', 170, 1.0, 5.0, 16.0, 13.0, 4.0, 0.0, 30, 60, 30, 0.2],
@@ -292,41 +390,59 @@ export const PROTEIN_FOODS: FoodEntry[] = [
     ['Burro chiarificato (ghee)', 876, 0.3, 0.0, 99.5, 62.0, 0.0, 0.0, 2, 4, 5, 0.0],
     ['Burro salato', 717, 0.9, 0.1, 81.1, 51.4, 0.1, 0.0, 643, 24, 24, 0.0],
     ['Burro di malga', 740, 0.8, 0.1, 82.0, 52.0, 0.1, 0.0, 600, 24, 25, 0.0],
+  ]),
+  ...group('Latticini', 'Latte', [
     ['Latte condensato', 320, 7.9, 54.4, 7.9, 4.9, 54.4, 0.0, 120, 360, 270, 0.2],
     ['Latte in polvere intero', 496, 26.3, 38.4, 26.7, 16.6, 38.4, 0.0, 380, 1300, 900, 0.5],
   ]),
-  ...group('Latticini', 'Formaggi freschi e spalmabili', [
+  ...group('Latticini', 'Mozzarelle e stracciatella', [
     ['Mozzarella di bufala', 280, 18.0, 1.0, 22.0, 14.0, 1.0, 0.0, 400, 100, 350, 0.2],
     ['Mozzarella fior di latte', 230, 17.0, 1.0, 17.0, 11.0, 1.0, 0.0, 380, 110, 380, 0.1],
     ['Mozzarella di latte di bufala light', 180, 17.0, 1.0, 12.0, 7.5, 0.5, 0.0, 400, 110, 350, 0.1],
     ['Burrata', 290, 14.0, 1.0, 26.0, 16.0, 1.0, 0.0, 300, 100, 350, 0.2],
     ['Stracciatella di bufala', 260, 13.0, 1.0, 23.0, 14.5, 1.0, 0.0, 350, 110, 300, 0.2],
     ['Mozzarella in carrozza', 320, 13.0, 25.0, 19.0, 9.0, 2.0, 0.6, 500, 150, 250, 0.9],
+  ]),
+  ...group('Latticini', 'Ricotta', [
     ['Ricotta vaccina', 174, 11.3, 3.0, 13.0, 8.2, 0.3, 0.0, 84, 105, 207, 0.1],
     ['Ricotta di pecora', 174, 11.3, 3.0, 13.0, 8.2, 0.3, 0.0, 84, 105, 207, 0.1],
     ['Ricotta di bufala', 230, 9.0, 4.0, 20.0, 12.0, 0.5, 0.0, 80, 100, 200, 0.2],
     ['Ricotta light', 120, 12.0, 4.0, 6.0, 3.8, 0.5, 0.0, 80, 120, 180, 0.1],
     ['Ricotta affumicata', 200, 12.0, 3.0, 16.0, 10.0, 0.5, 0.0, 300, 120, 200, 0.2],
+  ]),
+  ...group('Latticini', 'Formaggi spalmabili', [
     ['Robiola', 320, 9.0, 1.0, 31.0, 20.0, 0.5, 0.0, 350, 100, 150, 0.2],
     ['Robiola di Roccaverano', 300, 10.0, 1.0, 28.0, 18.0, 0.5, 0.0, 350, 100, 160, 0.2],
+  ]),
+  ...group('Latticini', 'Formaggi di capra', [
     ['Caprino fresco', 190, 12.0, 2.0, 15.0, 10.0, 1.0, 0.0, 300, 100, 80, 0.2],
     ['Caprino stagionato', 340, 22.0, 2.0, 28.0, 18.0, 0.5, 0.0, 600, 150, 300, 0.5],
+  ]),
+  ...group('Latticini', 'Formaggi freschi a pasta morbida', [
     ['Crescenza', 290, 13.0, 1.0, 26.0, 16.0, 1.0, 0.0, 430, 100, 260, 0.2],
     ['Stracchino', 290, 15.0, 1.0, 25.0, 16.0, 1.0, 0.0, 500, 110, 280, 0.2],
+  ]),
+  ...group('Latticini', 'Formaggi spalmabili', [
     ['Squacquerone', 170, 8.0, 3.0, 14.0, 9.0, 1.5, 0.0, 400, 100, 180, 0.1],
     ['Mascarpone', 429, 4.8, 3.8, 44.0, 28.0, 3.2, 0.0, 40, 100, 90, 0.1],
     ['Philadelphia light', 170, 7.5, 6.0, 13.0, 8.5, 3.0, 0.0, 400, 90, 60, 0.1],
     ['Formaggio spalmabile naturale', 300, 8.0, 3.0, 28.0, 18.0, 2.0, 0.0, 500, 100, 80, 0.2],
+  ]),
+  ...group('Latticini', 'Formaggi etnici', [
     ['Feta', 264, 14.2, 4.1, 21.3, 14.1, 4.1, 0.0, 1116, 62, 493, 0.3],
     ['Cottage cheese', 98, 11.1, 3.4, 4.3, 2.9, 2.7, 0.0, 364, 104, 83, 0.1],
     ['Paneer', 321, 25.0, 3.0, 25.0, 15.0, 2.0, 0.0, 20, 100, 210, 0.5],
     ['Halloumi', 321, 21.0, 2.2, 25.0, 17.0, 2.2, 0.0, 1200, 90, 700, 0.5],
     ['Quark', 70, 12.0, 4.0, 0.2, 0.1, 4.0, 0.0, 40, 150, 100, 0.1],
+  ]),
+  ...group('Latticini', 'Formaggi di capra', [
     ['Formaggio fresco di capra', 180, 11.0, 2.0, 14.0, 9.0, 1.0, 0.0, 300, 100, 80, 0.2],
+  ]),
+  ...group('Latticini', 'Formaggi stagionati', [
     ['Formaggella', 330, 20.0, 1.0, 27.0, 17.0, 0.5, 0.0, 500, 100, 350, 0.3],
     ['Primosale', 280, 19.0, 1.0, 22.0, 14.0, 0.5, 0.0, 600, 100, 400, 0.2],
   ]),
-  ...group('Salumi', 'Salumi e affettati', [
+  ...group('Salumi', 'Salumi - prosciutti e speck', [
     ['Prosciutto crudo di Parma', 260, 26.0, 0.0, 17.0, 6.0, 0.0, 0, 1900, 350, 9, 1.2],
     ['Prosciutto crudo di San Daniele', 260, 26.0, 0.0, 17.0, 6.0, 0.0, 0, 1900, 350, 9, 1.2],
     ['Prosciutto crudo magro', 170, 25.0, 0.0, 7.0, 2.5, 0.0, 0, 1800, 350, 9, 1.2],
@@ -334,10 +450,16 @@ export const PROTEIN_FOODS: FoodEntry[] = [
     ['Prosciutto cotto con pistacchio', 130, 17.0, 1.0, 6.0, 2.2, 0.5, 0, 1000, 320, 8, 0.8],
     ['Speck', 240, 27.0, 0.5, 14.0, 5.0, 0.5, 0, 2000, 380, 10, 2.0],
     ['Speck dell\'Alto Adige', 240, 27.0, 0.5, 14.0, 5.0, 0.5, 0, 2000, 380, 10, 2.0],
+  ]),
+  ...group('Salumi', 'Salumi - coppe e lardo', [
     ['Coppa di Parma', 300, 26.0, 0.5, 21.0, 7.5, 0.5, 0, 1800, 350, 10, 1.5],
     ['Lardo di Colonnata', 800, 2.0, 0.0, 88.0, 32.0, 0.0, 0, 1500, 30, 2, 0.2],
+  ]),
+  ...group('Salumi', 'Salumi - prosciutti e speck', [
     ['Culatello', 220, 26.0, 0.0, 12.0, 4.5, 0.0, 0, 2000, 380, 10, 2.0],
     ['Fiocco di prosciutto', 170, 25.0, 0.5, 7.5, 2.7, 0.5, 0, 2000, 350, 10, 1.5],
+  ]),
+  ...group('Salumi', 'Salumi - salami', [
     ['Salame Milano', 430, 23.0, 2.0, 37.0, 13.0, 0.5, 0, 2000, 350, 15, 1.8],
     ['Salame Napoli piccante', 440, 22.0, 2.0, 38.0, 13.5, 0.5, 0, 2000, 350, 15, 1.9],
     ['Salame ungherese', 390, 25.0, 1.0, 32.0, 11.0, 0.5, 0, 1900, 370, 15, 2.2],
@@ -347,24 +469,40 @@ export const PROTEIN_FOODS: FoodEntry[] = [
     ['Soppressata calabrese', 430, 22.0, 2.0, 37.0, 13.0, 0.5, 0, 1800, 340, 15, 2.0],
     ['Nduja', 370, 17.0, 2.0, 32.0, 11.0, 1.0, 0, 2000, 300, 15, 1.5],
     ['Ventricina', 420, 22.0, 2.0, 36.0, 12.5, 0.5, 0, 1800, 330, 15, 2.0],
+  ]),
+  ...group('Salumi', 'Salumi - coppe e lardo', [
     ['Capocollo', 290, 25.0, 0.5, 20.0, 7.0, 0.5, 0, 1900, 370, 10, 2.0],
     ['Coppa stagionata', 290, 25.0, 0.5, 20.0, 7.0, 0.5, 0, 1900, 370, 10, 2.0],
     ['Lonzino di maiale', 230, 26.0, 0.5, 13.0, 4.5, 0.5, 0, 2000, 380, 10, 2.0],
+  ]),
+  ...group('Salumi', 'Salumi - prosciutti e speck', [
     ['Bresaola di cavallo', 120, 30.0, 0.5, 1.5, 0.5, 0.0, 0, 2000, 400, 10, 3.0],
+  ]),
+  ...group('Salumi', 'Salumi - mortadelle e cotti', [
     ['Mortadella Bologna', 310, 14.0, 2.5, 28.0, 10.0, 1.5, 0, 1000, 240, 15, 1.2],
     ['Mortadella con pistacchi', 320, 14.0, 2.0, 29.0, 10.5, 1.0, 0, 1000, 240, 15, 1.2],
     ['Mortadella light', 180, 15.0, 3.0, 12.0, 4.5, 1.0, 0, 1000, 240, 15, 1.2],
     ['Cotto di tacchino', 115, 18.0, 1.0, 4.0, 1.4, 0.5, 0, 1000, 300, 10, 1.0],
     ['Prosciutto di tacchino', 105, 19.0, 1.0, 2.5, 0.8, 0.5, 0, 1100, 300, 10, 1.0],
+  ]),
+  ...group('Salumi', 'Salumi - wurstel e vienne', [
     ['Wurstel di maiale', 290, 12.0, 2.0, 26.0, 9.0, 1.0, 0, 1000, 220, 15, 1.2],
     ['Wurstel di manzo', 280, 12.0, 2.0, 25.0, 9.0, 1.0, 0, 1000, 220, 15, 1.2],
     ['Würstel di vitello', 250, 12.0, 2.0, 22.0, 8.0, 1.0, 0, 1000, 220, 15, 1.2],
     ['Vienna di pollo', 220, 13.0, 3.0, 17.0, 5.0, 1.0, 0, 900, 230, 15, 1.0],
+  ]),
+  ...group('Salumi', 'Salumi - salami', [
     ['Cacciatorino', 430, 24.0, 1.0, 36.0, 12.0, 0.5, 0, 1800, 360, 15, 2.0],
+  ]),
+  ...group('Salumi', 'Salumi - coppe e lardo', [
     ['Bacon affumicato', 540, 37.0, 1.4, 42.0, 14.0, 0.0, 0, 1700, 500, 10, 1.0],
     ['Pancetta cotta', 260, 17.0, 1.0, 21.0, 7.5, 0.5, 0, 1200, 280, 10, 1.0],
+  ]),
+  ...group('Salumi', 'Salumi - affettati di carne', [
     ['Petto di pollo affettato', 105, 22.0, 1.0, 1.5, 0.4, 0.5, 0, 900, 270, 10, 1.0],
     ['Roastbeef affettato', 170, 26.0, 0.0, 7.0, 2.7, 0.0, 0, 800, 330, 10, 2.5],
+  ]),
+  ...group('Salumi', 'Salumi - in scatola e paté', [
     ['Carne in scatola', 250, 18.0, 0.0, 20.0, 8.0, 0.0, 0, 800, 220, 10, 2.0],
     ['Paté di fegato', 320, 12.0, 3.0, 29.0, 10.0, 1.0, 0, 800, 200, 15, 6.0],
     ['Paté di tonno', 210, 12.0, 4.0, 16.0, 3.5, 0.5, 0, 700, 230, 15, 1.5],

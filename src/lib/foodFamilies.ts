@@ -26,6 +26,7 @@ const RULES: Record<string, { rules: Rule[]; fallback: string }> = {
     fallback: 'Altri volatili',
     rules: [
       ['Pollo - lavorati', ['macinat']],
+      ['Salumi - pollo e tacchino', ['affettat', 'wurstel']],
       ['Coniglio - tagli', ['coniglio']],
       ['Tacchino - tagli', ['tacchino']],
       ['Pollo - tagli', ['pollo']],

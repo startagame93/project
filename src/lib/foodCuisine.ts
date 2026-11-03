@@ -33,29 +33,41 @@ export const CUISINE_FOODS: FoodEntry[] = [
     ['Poke Bowl Pollo Teriyaki', 145, 12, 18, 3.5, 0.8, 5, 2, 500, 300, 20, 1.0],
     ['Burrito Bowl di Pollo', 140, 11, 15, 4, 1.2, 1, 2.5, 380, 350, 40, 1.2],
   ]),
-  ...group('Fast Food', 'Hamburger e panini', [
+  ...group('Fast Food', 'Hamburger', [
     ['Cheeseburger', 280, 14, 24, 14, 6, 5, 1.2, 600, 230, 150, 2.0],
     ['Hamburger di Manzo Cotto', 250, 26, 0, 15, 6, 0, 0, 75, 300, 15, 2.5],
     ['Hamburger di Pollo', 230, 18, 22, 8, 2, 4, 1.5, 550, 280, 40, 1.5],
     ['Hamburger Vegetale', 200, 9, 26, 7, 1, 4, 4, 450, 350, 50, 2.0],
+  ]),
+  ...group('Fast Food', 'Wurstel e hot dog', [
     ['Wurstel di Pollo', 230, 12, 2, 16, 4, 1.5, 0, 900, 150, 20, 1.0],
     ['Club Sandwich', 220, 12, 22, 9, 2.5, 3, 2, 550, 280, 60, 1.5],
     ['Panino con Porchetta', 260, 16, 26, 10, 3.5, 2, 2, 700, 300, 40, 1.8],
+  ]),
+  ...group('Fast Food', 'Patatine e fritti', [
     ['Patatine Fritte da Fast Food', 270, 3.5, 36, 13, 2, 0.5, 3.5, 200, 600, 20, 0.7],
     ['Nuggets di Pollo', 290, 16, 18, 17, 4, 0.5, 1, 600, 250, 20, 1.0],
     ['Ali di Pollo Fritte', 240, 20, 0, 17, 4.5, 0, 0, 400, 240, 15, 1.1],
     ['Onion Rings', 300, 4, 35, 16, 3, 4, 2.5, 500, 150, 30, 0.7],
+  ]),
+  ...group('Fast Food', 'Kebab, burrito e tacos', [
     ['Kebab di Pollo', 200, 16, 14, 8, 2.5, 2, 1.5, 500, 300, 40, 1.5],
     ['Kebab di Manzo', 230, 15, 15, 12, 5, 2, 1.5, 550, 280, 40, 2.0],
     ['Burrito di Manzo', 190, 9, 22, 7, 2.5, 1.5, 2, 450, 200, 60, 1.5],
     ['Tacos di Manzo', 230, 11, 20, 12, 4, 1.5, 2, 400, 200, 60, 1.6],
     ['Tacos di Pollo', 200, 12, 20, 8, 2.5, 1.5, 2, 420, 220, 50, 1.4],
+  ]),
+  ...group('Fast Food', 'Nachos e chili', [
     ['Nachos con Formaggio', 480, 8, 58, 24, 7, 2, 4, 750, 300, 150, 2.5],
     ['Pulled Pork', 230, 22, 5, 14, 5, 3, 0.5, 500, 350, 30, 1.5],
     ['Chili con Carne', 120, 9, 8, 6, 2.5, 2, 3, 450, 400, 40, 2.5],
     ['Mac and Cheese', 160, 6, 17, 7, 4, 2, 1, 500, 150, 120, 0.6],
+  ]),
+  ...group('Fast Food', 'Colazione americana', [
     ['Pancake con Sciroppo', 230, 5, 40, 6, 2, 16, 1, 330, 150, 80, 1.0],
     ['Ciambella Glassata', 420, 5, 49, 23, 10, 25, 1.5, 300, 90, 30, 1.2],
+  ]),
+  ...group('Fast Food', 'Bagel e snack', [
     ['Bagel', 250, 9, 49, 1.5, 0.3, 5, 2.5, 470, 130, 30, 2.0],
     ['Frozen Yogurt', 130, 3, 22, 3, 2, 20, 0, 70, 200, 110, 0.1],
     ['Barretta Proteica', 390, 25, 40, 14, 6, 18, 6, 250, 300, 100, 4.0],
@@ -89,13 +101,19 @@ export const CUISINE_FOODS: FoodEntry[] = [
     ['Triglia alla Griglia', 96, 17, 0, 2.8, 0.7, 0, 0, 60, 360, 30, 0.6],
     ['Rombo al Forno', 85, 17, 0, 1.5, 0.3, 0, 0, 80, 380, 20, 0.5],
     ['Ricciola alla Griglia', 110, 21, 0, 2.5, 0.5, 0, 0, 50, 380, 20, 0.4],
+  ]),
+  ...group('Sushi / Piatti Misti', 'Frittate e piatti di verdure', [
     ['Frittata di Zucchine', 150, 9, 3, 11, 3, 1.5, 1, 350, 220, 40, 1.5],
     ['Parmigiana di Melanzane', 150, 6, 9, 10, 3.5, 4, 3, 400, 350, 150, 1.5],
     ['Melanzane Ripiene', 120, 4, 9, 8, 2, 4, 3, 350, 350, 80, 1.0],
+  ]),
+  ...group('Sushi / Piatti Misti', 'Fritti e street food', [
     ['Arancino al Ragù', 190, 6, 25, 7, 2.5, 1, 1.5, 450, 140, 40, 1.2],
     ['Supplì al Telefono', 220, 7, 30, 8, 3, 1, 1, 400, 120, 60, 1.0],
     ['Arrosticini di Pecora', 290, 27, 0, 20, 8, 0, 0, 90, 300, 20, 2.0],
     ['Porchetta', 310, 25, 0, 23, 8, 0, 0, 850, 300, 20, 1.5],
+  ]),
+  ...group('Sushi / Piatti Misti', 'Dolci e colazione', [
     ['Sfogliatella Riccia', 370, 7, 42, 20, 8, 15, 2, 280, 120, 50, 1.0],
     ['Cantucci alle Mandorle', 420, 9, 68, 13, 2, 30, 3, 180, 250, 50, 1.5],
     ['Avocado Toast', 230, 6, 22, 14, 2.5, 2, 6, 400, 450, 30, 1.3],

@@ -4,7 +4,7 @@ import { group } from '@/lib/foodExtra';
 // kcal, protein, carbs, fat, saturatedFat, sugar, fiber, sodium, potassium, calcium, iron (per 100 g, valori indicativi)
 
 export const PRODUCE_FOODS: FoodEntry[] = [
-  ...group('Verdure', 'Verdure a foglia', [
+  ...group('Verdure', 'Verdure - foglie e bietole', [
     ['Cicoria', 23, 1.5, 4.0, 0.3, 0.0, 0.8, 4.0, 45, 415, 100, 0.9],
     ['Radicchio rosso', 23, 1.4, 4.5, 0.2, 0.0, 0.6, 1.6, 22, 302, 27, 0.4],
     ['Radicchio trevigiano', 20, 1.3, 3.8, 0.2, 0.0, 0.6, 1.5, 20, 280, 30, 0.5],
@@ -12,6 +12,8 @@ export const PRODUCE_FOODS: FoodEntry[] = [
     ['Puntarelle', 20, 1.8, 3.4, 0.3, 0.0, 1.0, 2.0, 60, 250, 50, 1.0],
     ['Bieta', 19, 1.8, 3.7, 0.2, 0.0, 1.1, 1.6, 213, 379, 113, 2.0],
     ['Spinaci cotti', 23, 3.0, 3.6, 0.3, 0.0, 0.4, 2.4, 80, 470, 136, 3.6],
+  ]),
+  ...group('Verdure', 'Verdure - cavoli e crucifere', [
     ['Cavolo nero', 49, 4.3, 9.0, 0.9, 0.1, 2.3, 3.6, 38, 491, 150, 1.5],
     ['Cavolo verza', 25, 1.3, 5.8, 0.1, 0.0, 3.2, 2.5, 18, 170, 40, 0.5],
     ['Cavolo rapa', 27, 1.7, 6.2, 0.1, 0.0, 2.6, 3.6, 20, 350, 30, 0.4],
@@ -20,6 +22,8 @@ export const PRODUCE_FOODS: FoodEntry[] = [
     ['Broccoli romanesco', 34, 2.8, 6.6, 0.4, 0.0, 1.7, 2.5, 30, 330, 20, 0.8],
     ['Cavolini di Bruxelles', 43, 3.4, 9.0, 0.3, 0.0, 2.2, 3.8, 25, 389, 42, 1.4],
     ['Broccoletti di rapa', 22, 3.1, 2.1, 0.4, 0.0, 0.5, 2.7, 30, 300, 100, 1.1],
+  ]),
+  ...group('Verdure', 'Verdure - insalate', [
     ['Lattuga romana', 17, 1.2, 3.3, 0.3, 0.0, 1.2, 2.1, 8, 247, 36, 1.0],
     ['Lattuga cappuccia', 13, 0.9, 2.9, 0.1, 0.0, 1.0, 1.0, 9, 150, 30, 0.6],
     ['Indivia riccia', 17, 1.3, 3.4, 0.2, 0.0, 0.4, 3.1, 22, 247, 52, 0.9],
@@ -27,30 +31,44 @@ export const PRODUCE_FOODS: FoodEntry[] = [
     ['Songino (valerianella)', 21, 2.2, 3.6, 0.4, 0.0, 0.2, 1.9, 18, 400, 60, 1.4],
     ['Rucola', 25, 2.6, 3.7, 0.7, 0.1, 2.1, 1.6, 27, 369, 160, 1.5],
     ['Crescione', 11, 2.3, 1.3, 0.1, 0.0, 0.2, 0.5, 41, 250, 120, 0.2],
+  ]),
+  ...group('Verdure', 'Verdure - foglie e bietole', [
     ['Erba spinacina', 23, 2.9, 3.6, 0.4, 0.0, 0.4, 2.2, 79, 558, 99, 2.7],
     ['Bietole da costa', 19, 1.8, 3.7, 0.2, 0.0, 1.1, 1.6, 213, 379, 51, 2.3],
+  ]),
+  ...group('Verdure', 'Verdure - erbe selvatiche', [
     ['Dente di leone (tarassaco)', 45, 2.7, 9.2, 0.7, 0.0, 3.1, 3.5, 76, 397, 187, 3.1],
     ['Ortica cotta', 37, 3.0, 6.7, 0.7, 0.0, 0.5, 4.2, 60, 480, 300, 2.0],
     ['Erbette di campo', 20, 2.0, 3.5, 0.4, 0.0, 0.6, 2.0, 60, 320, 80, 1.2],
     ['Bietola rossa cotta', 43, 1.6, 9.6, 0.2, 0.0, 6.8, 2.8, 77, 325, 16, 0.8],
+  ]),
+  ...group('Verdure', 'Verdure - gambi, coste e carciofi', [
     ['Sedano rapa', 42, 1.5, 9.2, 0.3, 0.0, 1.6, 1.8, 100, 320, 43, 0.4],
     ['Sedano', 16, 0.7, 3.0, 0.2, 0.0, 1.3, 1.6, 80, 260, 40, 0.2],
     ['Finocchio', 31, 1.2, 7.3, 0.2, 0.0, 3.9, 3.1, 52, 414, 49, 0.7],
     ['Carciofo', 47, 3.3, 10.5, 0.2, 0.0, 1.1, 5.4, 94, 370, 44, 1.3],
     ['Asparagi bianchi', 20, 2.2, 3.9, 0.1, 0.0, 1.9, 2.1, 5, 200, 24, 1.0],
     ['Asparagi verdi', 20, 2.2, 3.9, 0.1, 0.0, 1.9, 2.1, 2, 202, 24, 2.1],
+  ]),
+  ...group('Verdure', 'Verdure - cetrioli e ravanelli', [
     ['Cetriolo', 15, 0.7, 3.6, 0.1, 0.0, 1.7, 0.5, 2, 147, 16, 0.3],
     ['Ravanelli', 16, 0.7, 3.4, 0.1, 0.0, 1.9, 1.6, 39, 233, 25, 0.3],
     ['Daikon', 18, 0.6, 4.1, 0.1, 0.0, 1.8, 1.6, 21, 230, 32, 0.4],
+  ]),
+  ...group('Verdure', 'Verdure - cavoli e crucifere', [
     ['Cavolo cinese (pak choi)', 13, 1.5, 2.2, 0.2, 0.0, 1.2, 1.0, 65, 369, 105, 0.8],
     ['Bok choy', 13, 1.5, 2.2, 0.2, 0.0, 1.2, 1.0, 65, 369, 105, 0.8],
     ['Cime di rapa cotte', 22, 3.1, 2.2, 0.4, 0.0, 0.6, 2.5, 30, 300, 80, 1.5],
+  ]),
+  ...group('Verdure', 'Verdure - zucche e zucchine', [
     ['Zucca', 26, 1.0, 6.5, 0.1, 0.0, 2.8, 0.5, 4, 340, 21, 0.8],
     ['Zucca butternut', 45, 1.0, 11.7, 0.1, 0.0, 2.2, 2.0, 4, 350, 46, 0.7],
     ['Zucca delica', 45, 1.2, 10.9, 0.1, 0.0, 3.0, 2.2, 4, 350, 40, 0.7],
     ['Zucca hokkaido', 40, 1.0, 9.5, 0.2, 0.0, 3.0, 1.9, 6, 340, 40, 0.8],
     ['Zucchine trombetta', 17, 1.0, 3.5, 0.2, 0.0, 1.5, 1.0, 3, 240, 20, 0.5],
     ['Zucchine gialle', 17, 1.2, 3.1, 0.3, 0.0, 2.5, 1.0, 8, 261, 16, 0.4],
+  ]),
+  ...group('Verdure', 'Verdure - pomodori e peperoni', [
     ['Pomodorino ciliegino', 30, 1.2, 5.8, 0.3, 0.0, 4.0, 1.6, 8, 260, 11, 0.4],
     ['Pomodoro cuore di bue', 18, 0.9, 3.9, 0.2, 0.0, 2.6, 1.2, 5, 237, 10, 0.3],
     ['Pomodoro datterino', 30, 1.2, 5.8, 0.3, 0.0, 4.0, 1.6, 8, 260, 11, 0.4],
@@ -58,6 +76,8 @@ export const PRODUCE_FOODS: FoodEntry[] = [
     ['Peperone verde', 20, 0.9, 4.6, 0.2, 0.0, 2.4, 1.7, 3, 175, 10, 0.4],
     ['Peperone rosso arrostito', 35, 1.0, 7.0, 0.3, 0.0, 5.0, 2.0, 5, 210, 12, 0.5],
     ['Peperoncino rosso', 40, 1.9, 8.8, 0.4, 0.0, 5.3, 1.5, 9, 322, 14, 1.0],
+  ]),
+  ...group('Verdure', 'Verdure - aglio, cipolle e porri', [
     ['Aglio fresco', 149, 6.4, 33.0, 0.5, 0.1, 1.0, 2.1, 17, 401, 181, 1.7],
     ['Scalogno', 72, 2.5, 16.8, 0.1, 0.0, 7.9, 3.2, 12, 334, 37, 1.2],
     ['Cipolla rossa', 40, 1.1, 9.3, 0.1, 0.0, 4.2, 1.7, 4, 146, 23, 0.2],
@@ -65,20 +85,32 @@ export const PRODUCE_FOODS: FoodEntry[] = [
     ['Cipolla di Tropea', 40, 1.1, 9.3, 0.1, 0.0, 4.2, 1.7, 4, 146, 23, 0.2],
     ['Cipollotto', 32, 1.8, 7.3, 0.2, 0.0, 2.3, 2.6, 16, 276, 72, 1.0],
     ['Porro', 61, 1.5, 14.2, 0.3, 0.0, 3.9, 1.8, 20, 180, 59, 2.1],
+  ]),
+  ...group('Verdure', 'Radici e tuberi', [
     ['Topinambur', 73, 2.0, 17.4, 0.0, 0.0, 9.6, 1.6, 4, 429, 14, 3.4],
     ['Barbabietola cotta', 43, 1.6, 9.6, 0.2, 0.0, 6.8, 2.8, 77, 325, 16, 0.8],
     ['Carote cotte', 35, 0.8, 8.2, 0.2, 0.0, 4.2, 3.0, 50, 195, 30, 0.4],
     ['Pastinaca', 75, 1.2, 18.0, 0.3, 0.0, 4.8, 4.9, 10, 375, 36, 0.6],
+  ]),
+  ...group('Verdure', 'Germogli', [
     ['Germogli di soia', 30, 3.0, 5.9, 0.2, 0.0, 2.0, 1.8, 5, 150, 20, 1.0],
     ['Germogli di erba medica', 23, 4.0, 2.1, 0.7, 0.0, 0.5, 1.9, 6, 120, 30, 1.0],
+  ]),
+  ...group('Verdure', 'Legumi freschi', [
     ['Edamame', 121, 11.9, 8.9, 5.2, 0.6, 2.2, 5.2, 6, 436, 63, 2.3],
     ['Fave fresche', 88, 7.6, 14.0, 0.5, 0.0, 5.0, 4.0, 5, 350, 40, 2.0],
     ['Piselli freschi', 81, 5.4, 14.5, 0.4, 0.1, 5.7, 5.1, 5, 244, 25, 1.5],
     ['Taccole', 42, 3.0, 7.5, 0.2, 0.0, 4.0, 2.6, 6, 200, 43, 2.1],
     ['Fagiolini verdi', 31, 1.8, 7.0, 0.2, 0.0, 3.3, 2.7, 6, 211, 37, 1.0],
     ['Fagiolini gialli', 31, 1.8, 7.0, 0.2, 0.0, 3.3, 2.7, 6, 211, 37, 1.0],
+  ]),
+  ...group('Verdure', 'Verdure - melanzane', [
     ['Melanzana bianca', 25, 1.0, 5.9, 0.2, 0.0, 3.5, 3.0, 2, 230, 9, 0.2],
+  ]),
+  ...group('Verdure', 'Cereali in chicco', [
     ['Mais dolce lessato', 96, 3.4, 21.0, 1.5, 0.2, 3.2, 2.4, 15, 270, 2, 0.5],
+  ]),
+  ...group('Verdure', 'Funghi', [
     ['Funghi champignon', 22, 3.1, 3.3, 0.3, 0.1, 1.9, 1.0, 5, 318, 3, 0.5],
     ['Funghi shiitake', 34, 2.2, 6.8, 0.5, 0.1, 2.4, 2.5, 9, 304, 2, 0.4],
     ['Funghi cardoncelli', 35, 3.0, 4.8, 0.6, 0.1, 1.0, 2.0, 8, 380, 6, 1.0],
@@ -96,7 +128,7 @@ export const PRODUCE_FOODS: FoodEntry[] = [
     ['Taro cotto', 112, 1.5, 26.5, 0.2, 0.0, 0.5, 4.1, 11, 591, 43, 0.6],
     ['Igname cotto', 118, 1.5, 27.9, 0.2, 0.0, 0.5, 4.1, 9, 816, 17, 0.5],
   ]),
-  ...group('Frutta', 'Frutta estiva', [
+  ...group('Frutta', 'Frutta a nocciolo', [
     ['Albicocca', 48, 1.4, 11.1, 0.4, 0.0, 9.2, 2.0, 1, 259, 13, 0.4],
     ['Ciliegia', 63, 1.1, 16.0, 0.2, 0.0, 12.8, 2.1, 0, 222, 13, 0.4],
     ['Prugna', 46, 0.7, 11.4, 0.3, 0.0, 9.9, 1.4, 0, 157, 6, 0.2],
@@ -105,27 +137,37 @@ export const PRODUCE_FOODS: FoodEntry[] = [
     ['Pesca gialla', 39, 0.9, 9.5, 0.3, 0.0, 8.4, 1.5, 0, 190, 6, 0.3],
     ['Pesca tabacchiera', 39, 0.9, 9.5, 0.3, 0.0, 8.4, 1.5, 0, 190, 6, 0.3],
     ['Pesca bianca', 39, 0.9, 9.5, 0.3, 0.0, 8.4, 1.5, 0, 190, 6, 0.3],
+  ]),
+  ...group('Frutta', 'Fichi', [
     ['Fico fresco', 74, 0.8, 19.2, 0.3, 0.0, 16.3, 2.9, 1, 232, 35, 0.4],
     ['Fico d\'india', 41, 0.7, 9.6, 0.5, 0.1, 8.1, 3.6, 5, 220, 56, 0.1],
+  ]),
+  ...group('Frutta', 'Meloni e angurie', [
     ['Melone cantalupo', 34, 0.8, 8.2, 0.2, 0.0, 7.9, 0.9, 16, 267, 9, 0.2],
     ['Melone giallo', 36, 0.5, 8.9, 0.2, 0.0, 8.1, 0.8, 16, 267, 6, 0.2],
     ['Anguria', 30, 0.6, 7.6, 0.2, 0.0, 6.2, 0.4, 1, 112, 7, 0.2],
     ['Anguria senza semi', 30, 0.6, 7.6, 0.2, 0.0, 6.2, 0.4, 1, 112, 7, 0.2],
+  ]),
+  ...group('Frutta', 'Frutti di bosco', [
     ['Mora di rovo', 43, 1.4, 9.6, 0.5, 0.0, 4.9, 5.3, 1, 162, 19, 0.6],
     ['Lampone', 52, 1.2, 11.9, 0.7, 0.0, 4.4, 6.5, 1, 151, 29, 0.7],
     ['Ribes rosso', 56, 1.4, 13.8, 0.2, 0.0, 7.4, 4.3, 1, 322, 33, 1.0],
     ['Ribes nero', 63, 1.4, 15.4, 0.4, 0.0, 7.4, 4.3, 2, 322, 55, 1.5],
     ['Uva spina', 44, 0.9, 10.2, 0.6, 0.0, 6.9, 4.3, 2, 198, 38, 0.3],
     ['Mirtillo rosso', 46, 0.4, 12.2, 0.1, 0.0, 4.3, 3.6, 2, 85, 6, 0.3],
+  ]),
+  ...group('Frutta', 'Uva', [
     ['Uva fragola', 60, 0.5, 14.0, 0.2, 0.0, 13.0, 1.0, 3, 180, 14, 0.2],
     ['Uva moscato', 70, 0.6, 17.2, 0.2, 0.0, 16.3, 0.9, 3, 191, 10, 0.3],
     ['Uva italia', 69, 0.7, 18.1, 0.2, 0.0, 15.5, 0.9, 2, 191, 10, 0.4],
     ['Uva rossa', 69, 0.7, 18.1, 0.2, 0.0, 15.5, 0.9, 2, 191, 10, 0.4],
     ['Uva passa', 299, 3.1, 79.2, 0.5, 0.1, 59.2, 6.4, 11, 749, 50, 1.9],
+  ]),
+  ...group('Frutta', 'Melagrana e cachi', [
     ['Melagrana', 83, 1.7, 18.7, 1.2, 0.1, 13.7, 4.0, 3, 236, 10, 0.3],
     ['Cachi', 70, 0.6, 18.6, 0.2, 0.0, 12.5, 3.6, 1, 161, 8, 0.2],
   ]),
-  ...group('Frutta', 'Frutta autunnale e invernale', [
+  ...group('Frutta', 'Mele', [
     ['Mela Golden', 52, 0.3, 13.8, 0.2, 0.0, 10.4, 2.4, 1, 107, 6, 0.1],
     ['Mela Fuji', 56, 0.3, 14.8, 0.2, 0.0, 11.4, 2.4, 1, 107, 6, 0.1],
     ['Mela Gala', 52, 0.3, 13.8, 0.2, 0.0, 10.4, 2.4, 1, 107, 6, 0.1],
@@ -134,14 +176,20 @@ export const PRODUCE_FOODS: FoodEntry[] = [
     ['Mela Renetta', 52, 0.3, 13.8, 0.2, 0.0, 10.4, 2.4, 1, 107, 6, 0.1],
     ['Mela Stark', 52, 0.3, 13.8, 0.2, 0.0, 10.4, 2.4, 1, 107, 6, 0.1],
     ['Mela Red Delicious', 52, 0.3, 13.8, 0.2, 0.0, 10.4, 2.4, 1, 107, 6, 0.1],
+  ]),
+  ...group('Frutta', 'Pere e cotogne', [
     ['Pera Williams', 57, 0.4, 15.2, 0.1, 0.0, 9.8, 3.1, 1, 116, 9, 0.2],
     ['Pera Abate', 57, 0.4, 15.2, 0.1, 0.0, 9.8, 3.1, 1, 116, 9, 0.2],
     ['Pera Kaiser', 57, 0.4, 15.2, 0.1, 0.0, 9.8, 3.1, 1, 116, 9, 0.2],
     ['Pera Conference', 57, 0.4, 15.2, 0.1, 0.0, 9.8, 3.1, 1, 116, 9, 0.2],
     ['Cotogna', 57, 0.4, 15.3, 0.1, 0.0, 8.0, 1.9, 4, 197, 9, 0.7],
+  ]),
+  ...group('Frutta', 'Nespole e sorbe', [
     ['Nespola del Giappone', 47, 0.4, 12.1, 0.2, 0.0, 9.2, 1.7, 1, 266, 16, 0.3],
     ['Nespola comune', 47, 0.4, 12.1, 0.2, 0.0, 9.2, 1.7, 1, 266, 16, 0.3],
     ['Sorbe', 60, 0.5, 15.0, 0.4, 0.0, 10.0, 3.0, 2, 200, 14, 0.5],
+  ]),
+  ...group('Frutta', 'Agrumi', [
     ['Arancia Navel', 47, 0.9, 11.8, 0.1, 0.0, 8.5, 2.4, 0, 181, 40, 0.1],
     ['Arancia Valencia', 47, 0.9, 11.8, 0.1, 0.0, 8.5, 2.4, 0, 181, 40, 0.1],
     ['Arancia Tarocco', 47, 0.9, 11.8, 0.1, 0.0, 8.5, 2.4, 0, 181, 40, 0.1],
@@ -158,31 +206,47 @@ export const PRODUCE_FOODS: FoodEntry[] = [
     ['Lime', 30, 0.7, 10.5, 0.2, 0.0, 1.7, 2.8, 2, 102, 33, 0.6],
     ['Cedro', 28, 0.7, 9.5, 0.2, 0.0, 2.0, 2.0, 2, 150, 20, 0.5],
     ['Kumquat', 71, 1.9, 15.9, 0.9, 0.0, 9.4, 6.5, 10, 186, 62, 0.9],
+  ]),
+  ...group('Frutta', 'Kiwi e feijoa', [
     ['Kiwi Hayward', 61, 1.1, 14.7, 0.5, 0.0, 9.0, 3.0, 3, 312, 34, 0.3],
     ['Kiwi giallo', 61, 1.1, 14.7, 0.5, 0.0, 9.0, 3.0, 3, 250, 15, 0.3],
     ['Feijoa', 55, 0.6, 13.3, 0.6, 0.0, 6.4, 6.4, 3, 172, 9, 0.2],
+  ]),
+  ...group('Frutta', 'Frutti di bosco', [
     ['Fragola da bosco', 33, 0.7, 7.7, 0.3, 0.0, 4.9, 2.0, 1, 153, 16, 0.4],
   ]),
-  ...group('Frutta', 'Frutta tropicale', [
+  ...group('Frutta', 'Frutti esotici', [
     ['Papaya', 43, 0.5, 10.8, 0.3, 0.0, 7.8, 1.7, 8, 182, 24, 0.3],
     ['Carambola', 31, 1.0, 6.7, 0.3, 0.0, 4.0, 2.8, 2, 133, 4, 0.1],
     ['Litchi', 66, 0.8, 16.5, 0.4, 0.1, 15.2, 1.3, 1, 171, 5, 0.3],
     ['Frutto della passione', 97, 2.2, 23.4, 0.7, 0.1, 11.2, 10.4, 28, 348, 12, 1.6],
     ['Guaiava', 68, 2.6, 14.3, 1.0, 0.3, 8.9, 5.4, 2, 417, 18, 0.3],
+  ]),
+  ...group('Frutta', 'Cocco', [
     ['Cocco fresco polpa', 354, 3.3, 15.2, 33.5, 29.7, 6.2, 9.0, 20, 356, 14, 2.4],
     ['Acqua di cocco', 19, 0.7, 3.7, 0.2, 0.0, 2.6, 1.1, 105, 250, 24, 0.3],
+  ]),
+  ...group('Frutta', 'Frutti esotici', [
     ['Dragon fruit (pitaya)', 50, 1.1, 11.0, 0.4, 0.0, 8.0, 3.0, 0, 210, 6, 0.6],
     ['Pitaya gialla', 60, 1.2, 13.0, 0.4, 0.0, 9.0, 3.0, 0, 210, 6, 0.6],
+  ]),
+  ...group('Frutta', 'Mango', [
     ['Mango Keitt', 60, 0.8, 15.0, 0.4, 0.1, 13.7, 1.6, 1, 168, 11, 0.2],
     ['Mango Tommy Atkins', 60, 0.8, 15.0, 0.4, 0.1, 13.7, 1.6, 1, 168, 11, 0.2],
     ['Mango Kent', 60, 0.8, 15.0, 0.4, 0.1, 13.7, 1.6, 1, 168, 11, 0.2],
+  ]),
+  ...group('Frutta', 'Banane', [
     ['Banana Cavendish', 89, 1.1, 22.8, 0.3, 0.1, 12.2, 2.6, 1, 358, 5, 0.3],
     ['Banana Red', 89, 1.1, 22.8, 0.3, 0.1, 12.2, 2.6, 1, 358, 5, 0.3],
     ['Banana Plantain cotta', 122, 1.3, 31.9, 0.4, 0.1, 15.0, 2.3, 4, 499, 3, 0.6],
     ['Platano fritto', 170, 1.0, 35.0, 4.0, 0.5, 10.0, 2.5, 5, 500, 4, 0.5],
+  ]),
+  ...group('Frutta', 'Ananas', [
     ['Ananas Golden', 50, 0.5, 13.1, 0.1, 0.0, 9.9, 1.4, 1, 109, 13, 0.3],
     ['Ananas Extra Sweet', 50, 0.5, 13.1, 0.1, 0.0, 9.9, 1.4, 1, 109, 13, 0.3],
     ['Ananas disidratato', 340, 1.5, 84.0, 0.2, 0.0, 66.0, 3.0, 15, 350, 15, 1.0],
+  ]),
+  ...group('Frutta', 'Frutti esotici', [
     ['Cocco disidratato', 660, 6.9, 24.0, 64.5, 58.0, 7.0, 16.0, 40, 350, 26, 2.0],
     ['Tamarindo', 239, 2.8, 62.5, 0.6, 0.0, 57.4, 5.1, 28, 628, 74, 2.8],
     ['Giuggiola', 79, 1.2, 20.2, 0.2, 0.0, 15.0, 1.9, 2, 250, 21, 0.2],
@@ -191,10 +255,12 @@ export const PRODUCE_FOODS: FoodEntry[] = [
     ['Mangostano', 73, 0.4, 18.0, 0.6, 0.0, 15.0, 1.8, 0, 48, 8, 0.2],
     ['Rambutan', 82, 0.7, 20.9, 0.2, 0.0, 15.9, 0.9, 1, 46, 10, 0.5],
     ['Sapodilla', 83, 0.4, 20.0, 1.1, 0.0, 16.0, 5.3, 12, 193, 21, 0.8],
+  ]),
+  ...group('Frutta', 'Avocado', [
     ['Avocado Hass', 160, 2.0, 8.5, 14.7, 2.1, 0.7, 6.7, 7, 485, 12, 0.6],
     ['Avocado Fuerte', 150, 2.0, 8.5, 13.0, 2.0, 0.7, 6.7, 7, 485, 12, 0.6],
   ]),
-  ...group('Legumi', 'Legumi secchi cotti', [
+  ...group('Legumi', 'Fagioli', [
     ['Fagioli borlotti cotti', 127, 8.7, 22.8, 0.5, 0.1, 0.9, 6.3, 3, 300, 40, 1.8],
     ['Fagioli cannellini cotti', 139, 9.7, 25.1, 0.6, 0.2, 1.0, 6.3, 2, 561, 135, 2.6],
     ['Fagioli neri cotti', 132, 8.9, 23.7, 0.5, 0.1, 0.3, 8.7, 2, 355, 27, 2.1],
@@ -203,34 +269,50 @@ export const PRODUCE_FOODS: FoodEntry[] = [
     ['Fagioli Adzuki cotti', 128, 7.5, 24.0, 0.2, 0.0, 0.1, 7.3, 6, 290, 30, 1.6],
     ['Fagioli mung cotti', 105, 7.0, 19.2, 0.4, 0.1, 0.6, 7.6, 5, 330, 27, 1.4],
     ['Fagioli azuki secchi', 329, 20.0, 62.9, 0.5, 0.1, 0.6, 12.7, 16, 1200, 75, 5.0],
+  ]),
+  ...group('Legumi', 'Lenticchie', [
     ['Lenticchie rosse cotte', 116, 9.0, 20.1, 0.4, 0.0, 1.8, 7.9, 2, 369, 19, 3.3],
     ['Lenticchie verdi cotte', 116, 9.0, 20.1, 0.4, 0.0, 1.8, 7.9, 2, 369, 19, 3.3],
     ['Lenticchie di Castelluccio cotte', 116, 9.0, 20.1, 0.4, 0.0, 1.8, 7.9, 2, 369, 19, 3.3],
     ['Lenticchie beluga cotte', 116, 9.0, 20.1, 0.4, 0.0, 1.8, 7.9, 2, 369, 19, 3.3],
+  ]),
+  ...group('Legumi', 'Ceci', [
     ['Ceci cotti', 164, 8.9, 27.4, 2.6, 0.3, 4.8, 7.6, 7, 291, 49, 2.9],
     ['Ceci neri cotti', 164, 8.9, 27.4, 2.6, 0.3, 4.8, 7.6, 7, 291, 49, 2.9],
+  ]),
+  ...group('Legumi', 'Piselli e fave secche', [
     ['Piselli secchi cotti', 118, 8.3, 21.2, 0.4, 0.1, 2.1, 6.0, 4, 238, 26, 2.0],
     ['Piselli spezzati cotti', 118, 8.3, 21.2, 0.4, 0.1, 2.1, 6.0, 4, 238, 26, 2.0],
     ['Fave secche cotte', 110, 7.6, 19.7, 0.4, 0.1, 1.5, 5.4, 5, 270, 40, 2.5],
+  ]),
+  ...group('Legumi', 'Soia e derivati', [
     ['Soia secca cotta', 173, 16.6, 9.9, 9.0, 1.3, 3.0, 6.0, 2, 515, 102, 5.1],
     ['Tofu al naturale', 76, 8.1, 1.9, 4.8, 0.5, 0.7, 0.3, 7, 121, 350, 5.4],
     ['Tofu affumicato', 130, 14.0, 3.0, 7.0, 1.0, 1.0, 0.8, 300, 170, 380, 2.5],
     ['Tempeh', 192, 20.3, 7.6, 10.8, 2.1, 0.0, 0.0, 9, 412, 111, 2.7],
     ['Seitan', 370, 75.0, 14.0, 1.9, 0.2, 2.0, 0.0, 500, 100, 50, 5.0],
+  ]),
+  ...group('Legumi', 'Creme di legumi', [
     ['Hummus di ceci', 166, 7.9, 14.3, 9.6, 1.4, 0.3, 6.0, 379, 228, 38, 2.4],
     ['Hummus di barbabietola', 180, 6.0, 16.0, 10.0, 1.3, 2.0, 5.0, 350, 250, 30, 2.0],
     ['Purè di fave', 96, 6.5, 14.8, 1.8, 0.3, 1.5, 4.5, 280, 380, 40, 2.0],
+  ]),
+  ...group('Legumi', 'Piatti di legumi', [
     ['Falafel', 333, 13.3, 31.8, 17.8, 2.3, 1.9, 5.3, 294, 650, 58, 3.6],
     ['Panelle', 280, 8.0, 36.0, 12.0, 1.5, 1.0, 4.0, 450, 300, 60, 2.8],
     ['Farinata di ceci', 300, 9.0, 36.0, 13.0, 1.8, 1.5, 4.0, 300, 300, 50, 2.8],
     ['Pasta di legumi', 330, 22.0, 45.0, 8.0, 1.2, 2.0, 12.0, 20, 700, 70, 5.0],
+  ]),
+  ...group('Legumi', 'Lupini', [
     ['Lupini sgusciati', 116, 16.0, 13.0, 3.6, 0.3, 0.5, 8.0, 15, 270, 60, 2.0],
     ['Lupini in salamoia', 110, 15.0, 9.0, 3.5, 0.3, 0.5, 6.0, 600, 200, 60, 2.0],
+  ]),
+  ...group('Legumi', 'Legumi in scatola', [
     ['Cece in scatola sgocciolato', 116, 7.0, 16.5, 2.1, 0.2, 2.2, 4.8, 350, 158, 35, 2.1],
     ['Fagioli in scatola sgocciolati', 102, 6.5, 15.0, 0.5, 0.1, 0.7, 5.5, 330, 300, 60, 1.8],
     ['Lenticchie in scatola sgocciolate', 90, 7.0, 14.0, 0.5, 0.1, 0.9, 5.0, 320, 300, 25, 2.0],
   ]),
-  ...group('Cereali', 'Cereali in chicco', [
+  ...group('Cereali', 'Riso', [
     ['Riso integrale cotto', 111, 2.6, 23.0, 0.9, 0.2, 0.4, 1.8, 5, 84, 10, 0.4],
     ['Riso basmati cotto', 121, 3.5, 25.2, 0.4, 0.1, 0.1, 0.4, 1, 35, 10, 0.2],
     ['Riso Venere cotto', 110, 3.2, 22.0, 1.0, 0.2, 0.4, 1.4, 4, 80, 8, 0.8],
@@ -241,33 +323,51 @@ export const PRODUCE_FOODS: FoodEntry[] = [
     ['Riso Vialone Nano crudo', 350, 6.9, 79.0, 0.6, 0.1, 0.1, 1.3, 5, 90, 8, 0.8],
     ['Riso parboiled cotto', 130, 2.7, 28.2, 0.3, 0.1, 0.0, 0.4, 2, 40, 6, 0.4],
     ['Riso selvatico cotto', 101, 4.0, 21.3, 0.3, 0.1, 0.7, 1.8, 6, 101, 3, 0.6],
+  ]),
+  ...group('Cereali', 'Orzo e farro', [
     ['Orzo perlato cotto', 123, 2.3, 28.2, 0.4, 0.1, 0.4, 3.8, 3, 90, 13, 1.1],
     ['Orzo mondo crudo', 354, 9.9, 73.5, 1.2, 0.3, 0.8, 15.6, 12, 452, 33, 3.6],
     ['Farro cotto', 127, 3.5, 26.6, 0.9, 0.2, 0.4, 3.8, 5, 100, 17, 1.0],
     ['Farro perlato crudo', 340, 14.6, 68.0, 2.5, 0.4, 2.0, 9.0, 4, 300, 20, 3.5],
     ['Farro decorticato crudo', 335, 13.0, 67.0, 2.5, 0.4, 2.0, 8.0, 5, 310, 25, 3.5],
+  ]),
+  ...group('Cereali', 'Grano saraceno e pseudocereali', [
     ['Grano saraceno cotto', 92, 3.4, 19.9, 0.6, 0.1, 0.1, 2.7, 4, 88, 7, 0.8],
     ['Grano saraceno crudo', 343, 13.3, 71.5, 3.4, 0.7, 0.0, 10.0, 1, 460, 18, 2.2],
     ['Quinoa cotta', 120, 4.4, 21.3, 1.9, 0.2, 0.9, 2.8, 7, 172, 17, 1.5],
     ['Quinoa rossa cotta', 120, 4.4, 21.3, 1.9, 0.2, 0.9, 2.8, 7, 172, 17, 1.5],
     ['Amaranto cotto', 102, 3.8, 18.7, 1.6, 0.4, 0.3, 2.1, 4, 116, 75, 1.3],
+  ]),
+  ...group('Cereali', 'Miglio, sorgo, teff e spelta', [
     ['Miglio cotto', 119, 3.5, 23.7, 1.0, 0.2, 0.3, 1.3, 5, 65, 3, 0.6],
     ['Sorgo cotto', 119, 3.4, 23.9, 1.0, 0.2, 0.3, 2.5, 4, 60, 10, 1.2],
     ['Teff cotto', 101, 3.9, 20.0, 0.7, 0.1, 0.4, 2.2, 6, 100, 60, 2.1],
     ['Spelta cotta', 127, 4.5, 26.0, 0.8, 0.1, 0.5, 3.5, 4, 150, 15, 1.2],
+  ]),
+  ...group('Cereali', 'Mais e polenta', [
     ['Mais polenta cotta', 70, 1.8, 15.0, 0.5, 0.1, 0.4, 0.7, 150, 30, 3, 0.3],
     ['Polenta taragna', 160, 4.5, 26.0, 4.5, 2.8, 0.5, 1.5, 300, 130, 90, 1.0],
+  ]),
+  ...group('Cereali', 'Cous cous, bulgur e freekeh', [
     ['Couscous cotto', 112, 3.8, 23.2, 0.2, 0.0, 0.1, 1.4, 5, 36, 8, 0.3],
     ['Couscous integrale cotto', 112, 4.0, 22.0, 0.5, 0.1, 0.4, 2.5, 5, 60, 10, 0.6],
     ['Bulgur cotto', 83, 3.1, 18.6, 0.2, 0.0, 0.1, 4.5, 5, 86, 16, 1.0],
     ['Freekeh cotto', 130, 5.0, 28.0, 0.5, 0.1, 0.5, 4.0, 5, 150, 30, 1.5],
+  ]),
+  ...group('Cereali', 'Avena', [
     ['Avena decorticata cotta', 102, 3.6, 15.6, 2.6, 0.5, 0.2, 2.3, 4, 77, 20, 1.5],
     ['Avena in fiocchi cotta', 71, 2.5, 12.0, 1.5, 0.3, 0.4, 1.7, 4, 61, 10, 0.8],
+  ]),
+  ...group('Cereali', 'Crusche e germe', [
     ['Crusca d\'avena', 246, 17.3, 66.2, 7.0, 1.2, 1.0, 15.4, 2, 500, 50, 4.0],
     ['Crusca di frumento', 216, 15.6, 64.5, 4.3, 1.1, 5.0, 42.8, 15, 1182, 73, 10.6],
     ['Germe di grano', 360, 23.2, 51.8, 9.7, 1.9, 7.5, 13.2, 12, 892, 39, 7.6],
+  ]),
+  ...group('Cereali', 'Cereali soffiati', [
     ['Riso soffiato', 390, 8.0, 84.0, 1.5, 0.3, 0.8, 1.7, 3, 90, 10, 1.0],
     ['Mais soffiato', 380, 7.0, 80.0, 2.0, 0.3, 1.0, 5.0, 5, 150, 10, 1.5],
+  ]),
+  ...group('Cereali', 'Semola e farine', [
     ['Semola di grano duro cruda', 360, 12.8, 72.0, 1.5, 0.3, 0.5, 3.0, 2, 150, 20, 1.5],
     ['Farina di mais per polenta', 360, 8.0, 79.0, 3.6, 0.6, 0.6, 7.3, 35, 287, 7, 2.7],
     ['Farina di riso', 366, 5.9, 80.1, 1.4, 0.3, 0.1, 2.4, 5, 115, 10, 0.4],
@@ -280,9 +380,13 @@ export const PRODUCE_FOODS: FoodEntry[] = [
     ['Farina integrale di grano tenero', 340, 13.0, 66.0, 2.5, 0.4, 0.5, 11.0, 3, 340, 30, 3.5],
     ['Farina 00', 350, 12.0, 74.0, 1.5, 0.2, 0.3, 2.7, 2, 110, 15, 1.2],
     ['Farina di avena', 389, 16.9, 66.3, 6.9, 1.2, 1.0, 10.6, 4, 430, 50, 4.7],
+  ]),
+  ...group('Cereali', 'Cereali da colazione', [
     ['Fiocchi di mais croccanti', 370, 7.0, 84.0, 0.8, 0.1, 6.0, 1.0, 900, 80, 5, 1.0],
     ['Cornflakes integrali', 360, 9.0, 81.0, 1.5, 0.3, 5.0, 4.0, 600, 200, 20, 6.0],
     ['Muesli senza zucchero', 370, 10.0, 62.0, 8.0, 1.5, 12.0, 8.0, 40, 500, 60, 3.5],
+  ]),
+  ...group('Cereali', 'Crusche e germe', [
     ['Crusca di riso', 316, 13.4, 55.0, 15.0, 3.0, 1.5, 21.0, 30, 1500, 70, 13.0],
   ]),
   ...group('Frutta Secca', 'Frutta secca a guscio', [
@@ -294,11 +398,17 @@ export const PRODUCE_FOODS: FoodEntry[] = [
     ['Pistacchi sgusciati', 562, 20.2, 27.5, 45.3, 5.6, 7.7, 10.6, 1, 1025, 105, 3.9],
     ['Anacardi tostati', 574, 15.3, 30.2, 46.4, 9.2, 5.9, 3.3, 12, 660, 37, 6.7],
     ['Pinoli', 673, 13.7, 13.1, 68.4, 4.9, 3.6, 3.7, 2, 597, 16, 5.5],
+  ]),
+  ...group('Frutta Secca', 'Castagne', [
     ['Castagne lesse', 165, 2.4, 35.0, 1.1, 0.3, 0.6, 3.7, 2, 340, 22, 0.6],
     ['Castagne secche', 350, 6.0, 74.0, 2.0, 0.5, 5.0, 7.0, 4, 780, 50, 2.0],
+  ]),
+  ...group('Frutta Secca', 'Frutta secca a guscio', [
     ['Arachidi tostate salate', 585, 24.0, 21.5, 49.7, 6.3, 4.7, 8.5, 500, 705, 92, 1.9],
     ['Pecan', 691, 9.2, 13.9, 72.0, 6.2, 4.0, 9.6, 0, 410, 70, 2.5],
     ['Macadamia', 718, 7.9, 13.8, 75.8, 12.1, 4.6, 8.6, 5, 368, 85, 3.7],
+  ]),
+  ...group('Frutta Secca', 'Semi', [
     ['Semi di zucca', 559, 30.2, 10.7, 49.1, 8.7, 1.3, 6.0, 7, 809, 46, 8.8],
     ['Semi di girasole', 584, 20.8, 20.0, 51.5, 5.2, 2.6, 8.6, 3, 645, 78, 5.3],
     ['Semi di sesamo', 573, 17.7, 23.4, 49.7, 7.0, 0.3, 11.8, 11, 468, 975, 14.6],
@@ -306,12 +416,18 @@ export const PRODUCE_FOODS: FoodEntry[] = [
     ['Semi di chia', 486, 16.5, 42.1, 30.7, 3.3, 0.0, 34.4, 16, 407, 631, 7.7],
     ['Semi di canapa decorticati', 553, 31.6, 8.7, 48.8, 4.9, 1.5, 4.0, 5, 1000, 70, 8.0],
     ['Semi di papavero', 525, 18.0, 28.1, 41.6, 3.8, 3.0, 19.5, 26, 719, 1438, 9.8],
+  ]),
+  ...group('Frutta Secca', 'Creme e burri di frutta secca', [
     ['Burro di mandorle', 614, 21.2, 18.8, 55.5, 4.2, 4.4, 10.3, 9, 705, 230, 3.7],
     ['Burro di arachidi', 588, 25.1, 20.0, 50.4, 10.0, 9.2, 6.0, 450, 649, 49, 1.9],
     ['Burro di nocciole', 620, 15.0, 17.0, 58.0, 4.5, 4.3, 9.0, 40, 650, 110, 4.0],
     ['Crema di nocciole e cacao', 539, 6.3, 57.5, 31.0, 10.6, 56.3, 3.4, 40, 380, 100, 2.0],
+  ]),
+  ...group('Frutta Secca', 'Miscele di frutta secca', [
     ['Mix di frutta secca', 580, 16.0, 30.0, 45.0, 5.0, 15.0, 8.0, 20, 700, 90, 3.0],
     ['Frutta secca disidratata mista', 300, 4.0, 66.0, 2.0, 0.3, 50.0, 6.0, 10, 800, 40, 2.0],
+  ]),
+  ...group('Frutta Secca', 'Frutta essiccata', [
     ['Fichi secchi', 249, 3.3, 63.9, 0.9, 0.2, 47.9, 9.8, 10, 680, 162, 2.0],
     ['Datteri secchi', 282, 2.5, 75.0, 0.4, 0.0, 63.4, 8.0, 1, 696, 64, 1.0],
     ['Albicocche secche', 241, 3.4, 62.6, 0.5, 0.1, 53.4, 7.3, 10, 1162, 55, 2.7],

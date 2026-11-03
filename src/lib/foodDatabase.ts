@@ -102,7 +102,7 @@ const BASE_FOODS: FoodEntry[] = [
   f('Maiale Magro', 'Carni Rosse', 242, 27.0, 0, 14.0, 5.0, 0, 0, 62, 380, 22, 1.1),
   f('Pancetta', 'Carni Rosse', 541, 37.0, 1.4, 42.0, 14.0, 0, 0, 1718, 265, 12, 1.3),
   f('Salsiccia', 'Carni Rosse', 346, 14.0, 2.0, 30.0, 10.0, 1.0, 0, 1300, 300, 15, 1.2),
-  f('Pollo / Tacchino Macinato', 'Carni Rosse', 150, 25.0, 0, 5.0, 1.5, 0, 0, 80, 250, 12, 1.0),
+  f('Pollo / Tacchino Macinato', 'Carni Bianche', 150, 25.0, 0, 5.0, 1.5, 0, 0, 80, 250, 12, 1.0),
   f('Manzo Macinato', 'Carni Rosse', 263, 23.0, 0, 18.0, 7.0, 0, 0, 75, 310, 17, 2.3),
   f('Agnello', 'Carni Rosse', 294, 25.0, 0, 21.0, 9.0, 0, 0, 72, 310, 20, 1.9),
 
