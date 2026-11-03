@@ -49,7 +49,8 @@ export function DietView() {
   }
 
   function toggleMealComplete(dayIdx: number, mealId: string) {
-    const meal = week?.days[dayIdx]?.meals.find((m) => m.id === mealId);
+    if (week.id !== state.activeWeekId) return;
+    const meal = week.days[dayIdx]?.meals.find((m) => m.id === mealId);
     if (!meal) return;
     const date = dateForWeekday(dayIdx);
     setState((prev) => {
@@ -156,12 +157,17 @@ export function DietView() {
       quantity: item.quantity,
       checked: false,
     }));
-    setState((prev) => ({ ...prev, shoppingList: list }));
+    setState((prev) => {
+      const existing = prev.shoppingList ?? [];
+      const known = new Set(existing.map((i) => i.name.toLowerCase()));
+      return { ...prev, shoppingList: [...existing, ...list.filter((i) => !known.has(i.name.toLowerCase()))] };
+    });
   }
 
   const dayPlan = week.days[selectedDay];
   const today = todayISO();
   const isToday = (new Date().getDay() + 6) % 7 === selectedDay;
+  const isActiveWeek = week.id === state.activeWeekId;
 
   return (
     <div className="space-y-4">
@@ -243,6 +249,12 @@ export function DietView() {
         })}
       </div>
 
+      {!isActiveWeek && (
+        <p className="text-xs text-gray-500">
+          Questa settimana non e quella attiva: per segnare i pasti aprila da Gestione Settimane.
+        </p>
+      )}
+
       {isToday && (
         <div className="chip bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 w-fit">
           Oggi
@@ -302,6 +314,7 @@ export function DietView() {
                 <div className="flex flex-col gap-1.5 shrink-0">
                   <button
                     onClick={() => toggleMealComplete(selectedDay, meal.id)}
+                    disabled={!isActiveWeek}
                     aria-label={meal.completed ? 'Segna pasto come da fare' : 'Segna pasto come completato'}
                     className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
                       meal.completed

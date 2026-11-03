@@ -49,14 +49,13 @@ function sumMealNutrient(meals: Meal[], key: MealTrackedKey): number {
 }
 
 export function NutritionView() {
-  const { state, setState } = useApp();
   const [subTab, setSubTab] = useState<SubTab>('macro');
   const today = todayISO();
 
   return (
     <div className="space-y-4">
       {/* Sub-tabs */}
-      <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
+      <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl" role="tablist" aria-label="Sezioni nutrizione">
         <SubTabBtn active={subTab === 'macro'} onClick={() => setSubTab('macro')} label="Macro" icon={Flame} />
         <SubTabBtn active={subTab === 'supp'} onClick={() => setSubTab('supp')} label="Integratori" icon={Pill} />
         <SubTabBtn active={subTab === 'micro'} onClick={() => setSubTab('micro')} label="Micro" icon={FlaskConical} />
@@ -68,36 +67,33 @@ export function NutritionView() {
     </div>
   );
 
-  function SubTabBtn({ active, onClick, label, icon: Icon }: { active: boolean; onClick: () => void; label: string; icon: LucideIcon }) {
-    return (
-      <button
-        onClick={onClick}
-        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all ${
-          active ? 'bg-white dark:bg-gray-900 text-primary-600 dark:text-primary-400 shadow-sm' : 'text-gray-500'
-        }`}
-      >
-        <Icon className="w-4 h-4" /> {label}
-      </button>
-    );
-  }
+}
+
+function SubTabBtn({ active, onClick, label, icon: Icon }: { active: boolean; onClick: () => void; label: string; icon: LucideIcon }) {
+  return (
+    <button
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all ${
+        active ? 'bg-white dark:bg-gray-900 text-primary-600 dark:text-primary-400 shadow-sm' : 'text-gray-500'
+      }`}
+    >
+      <Icon className="w-4 h-4" aria-hidden="true" /> {label}
+    </button>
+  );
 }
 
 function MacroTab({ today }: { today: string }) {
   const { state, setState } = useApp();
   const todayMeals = getTodayMeals(state);
 
+  const completedToday = todayMeals.filter((m) => m.completed);
+  const sum = (key: keyof Meal) => completedToday.reduce((s, m) => s + (m[key] as number), 0);
   const consumed = {
-    cal: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.calories, 0),
-    protein: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.protein, 0),
-    carbs: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.carbs, 0),
-    fat: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.fat, 0),
-    saturatedFat: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.saturatedFat, 0),
-    sugar: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.sugar, 0),
-    fiber: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.fiber, 0),
-    sodium: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.sodium, 0),
-    potassium: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.potassium, 0),
-    calcium: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.calcium, 0),
-    iron: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.iron, 0),
+    cal: sum('calories'), protein: sum('protein'), carbs: sum('carbs'), fat: sum('fat'),
+    saturatedFat: sum('saturatedFat'), sugar: sum('sugar'), fiber: sum('fiber'),
+    sodium: sum('sodium'), potassium: sum('potassium'), calcium: sum('calcium'), iron: sum('iron'),
   };
 
   const targetCal = calcTargetCalories(state.profile);
@@ -206,7 +202,7 @@ function MacroTab({ today }: { today: string }) {
 function MacroRow({ icon: Icon, label, value, max, color, unit }: {
   icon: LucideIcon; label: string; value: number; max: number; color: string; unit: string;
 }) {
-  const pct = Math.round((value / max) * 100);
+  const pct = max > 0 ? Math.round((value / max) * 100) : 0;
   return (
     <div>
       <div className="flex items-center justify-between mb-1.5">
@@ -277,7 +273,7 @@ function SupplementsTab({ today }: { today: string }) {
       <div className="card p-4 border-l-4 border-l-accent-500">
         <div className="flex items-center gap-2 mb-1">
           <FlaskConical className="w-5 h-5 text-accent-600" />
-          <h3 className="font-semibold text-gray-900 dark:text-white">Creatina - Fase di Acccumulo</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-white">Creatina - Fase di Accumulo</h3>
         </div>
         <p className="text-sm text-gray-600 dark:text-gray-400">
           Durante la fase di accumulo (5-7 giorni): 20g/giorno divisi in 4 dosi. Poi mantenimento: 3-5g/giorno.
@@ -420,7 +416,6 @@ function MicronutrientsTab({ today }: { today: string }) {
           const val = valueOf(key);
           const status = getStatus(key);
           const colors = statusColors[status];
-          const pct = Math.min((val / target.max) * 100, 100);
           return (
             <div key={key} className="card p-4">
               <div className="flex items-center justify-between mb-2">
