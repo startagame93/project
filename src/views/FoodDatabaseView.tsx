@@ -22,6 +22,7 @@ const CATEGORY_EMOJI: Record<string, string> = {
   'Latticini': '🧀', 'Uova': '🥚', 'Sushi / Piatti Misti': '🍣',
   'Snack / Dolci': '🍫', 'Bevande': '🥤', 'Frutta Secca': '🥜',
   'Pasta': '🍝', 'Pane e Pizza': '🍕', 'Salumi': '🍖', 'Vini e Alcolici': '🍷',
+  'Fast Food': '🍔',
 };
 
 const KEYWORD_EMOJI: { kw: string; emoji: string }[] = [

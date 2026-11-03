@@ -17,7 +17,7 @@ function entry(name: string, category: string, family: string, v: Values): FoodE
   };
 }
 
-function group(category: string, family: string, rows: Row[]): FoodEntry[] {
+export function group(category: string, family: string, rows: Row[]): FoodEntry[] {
   return rows.map(([name, ...v]) => entry(name, category, family, v as Values));
 }
 

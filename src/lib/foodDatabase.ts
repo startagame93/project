@@ -1,4 +1,5 @@
 import { EXTRA_FOODS } from '@/lib/foodExtra';
+import { CUISINE_FOODS } from '@/lib/foodCuisine';
 
 export interface FoodEntry {
   id: string;
@@ -22,7 +23,7 @@ export const FOOD_CATEGORIES = [
   'Cereali', 'Legumi', 'Carni Bianche', 'Carni Rosse', 'Pesce',
   'Verdure', 'Frutta', 'Condimenti', 'Latticini', 'Uova',
   'Sushi / Piatti Misti', 'Snack / Dolci', 'Bevande', 'Frutta Secca',
-  'Pasta', 'Pane e Pizza', 'Salumi', 'Vini e Alcolici',
+  'Pasta', 'Pane e Pizza', 'Salumi', 'Vini e Alcolici', 'Fast Food',
 ] as const;
 
 export type FoodCategory = typeof FOOD_CATEGORIES[number];
@@ -794,6 +795,7 @@ const baseIds = new Set(BASE_FOODS.map((f) => f.id));
 export const FOOD_DATABASE: FoodEntry[] = [
   ...BASE_FOODS,
   ...EXTRA_FOODS.filter((f) => !baseIds.has(f.id)),
+  ...CUISINE_FOODS.filter((f) => !baseIds.has(f.id)),
 ];
 
 // Synonyms map for fuzzy matching: normalized name -> FoodEntry id
