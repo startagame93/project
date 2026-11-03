@@ -2,51 +2,40 @@
 
 ## Product intent & audience
 
-- Nutriplan is an Italian Progressive Web App for managing multi-week diets, meals, advanced nutrition, supplements, micronutrients, health metrics, barcode input, and dynamic shopping lists.
-- Core users need reliable meal quantities, macro/micro totals, historical diet data, and usable operation on mobile devices, including iOS standalone PWA.
-- Admins need secure tools for reviewing missing foods, approving global food data, monitoring security events, and exporting aggregated missing-food reports across all users.
+- Nutriplan è una PWA italiana per gestire diete multi-settimana, pasti, nutrizione avanzata, integratori, micronutrienti, metriche di salute e liste della spesa dinamiche.
+- Gli utenti gestiscono dati personali e sensibili, inclusi peso, diete e storico alimentare; l’isolamento tra account è un requisito fondamentale.
+- Gli amministratori necessitano di strumenti sicuri per audit, gestione operativa e supervisione dei dati globali.
 
 ## Brand personality & voice
 
-- User-facing copy should be clear, concise, and functional Italian, especially around nutrition, privacy, offline state, scanner errors, and update notices.
-- Admin tools should use direct operational language and clearly communicate scope, permissions, and destructive actions.
-- Error and fallback messages must be honest: never imply nutrition data was found or calculated when it was unavailable.
-- Any changelog or release-notice content should be brief, useful, and understandable without technical knowledge.
+- Usare un italiano chiaro, diretto e comprensibile per privacy, dati sanitari, sicurezza, cancellazione account, stato offline ed errori.
+- Le comunicazioni di sicurezza devono spiegare con trasparenza cosa viene protetto, cosa viene eliminato e quali azioni sono irreversibili.
+- I messaggi admin devono distinguere chiaramente permessi, ambito dell’azione e conseguenze distruttive.
 
 ## Visual design & UX direction
 
-- Preserve a polished, production-ready experience rather than generic dashboard patterns.
-- Food-entry flows should minimize repeated work, preserve useful search context, and make meal assignment explicit.
-- Quantity fields must replace the current value on focus, support valid gram- or piece-based quantities where applicable, and reject ambiguous or invalid input before saving.
-- Nutrition totals—including calories, macros, vitamins, minerals, and electrolytes—must update immediately and consistently after additions, edits, and removals.
-- Scanner UX should validate the barcode before lookup, provide a clear confirmation/fallback state, and work with native capture behavior on iOS standalone PWAs.
-- Offline state, pending synchronization, conflicts, and stale-data risk should be visible without interrupting normal use.
-- A post-update changelog popup should be dismissible and remain accessible through a persistent top-level “novità” control.
-- Custom themes and the optional retro arcade aesthetic should remain visual-only; audio must be optional, muted by default where appropriate, and remember user volume/mute preferences locally.
-- Maintain accessible contrast, touch targets, focus behavior, and responsive layouts across mobile and desktop.
+- Mantenere un’esperienza curata e adatta alla produzione, evitando dashboard generiche.
+- Il tema Retro/Arcade/Pixel Art è esclusivamente estetico: palette retrò, grafiche e icone dedicate; non deve alterare logica, dati o sicurezza dell’app.
+- L’audio arcade è opzionale, con controlli di mute e volume; le preferenze audio devono essere persistite localmente e non devono disturbare l’uso normale.
+- Le schermate privacy e cancellazione account devono essere facilmente raggiungibili, leggibili su mobile e desktop, con conferma esplicita prima dell’eliminazione definitiva.
+- Le funzionalità amministrative e i relativi stati di sicurezza devono essere distinguibili dalle viste utente senza esporre dati o azioni non autorizzate.
 
 ## Decisions, constraints & rationale
 
-- Security is now the first priority: protect admin-role changes, enforce RLS for personal data, secure server-side secrets, rate-limit sensitive operations, and retain audit visibility for anomalous access.
-- A Gemini key architecture is unresolved: the current app asks users for their own key, while the proposed plan assumes a protected server-side key. Do not implement either model without an explicit decision.
-- Admin-only global exports and approvals must be authorized server-side/database-side by the admin role, not merely hidden or filtered in the frontend.
-- Missing foods should retain a stable `missingFoodId`, original name/variants, and a pending state without invented nutrition values. Global approval should support efficient retroactive linking of historical entries.
-- Micronutrient calculations depend on the actual availability and quality of vitamin/mineral data in the food source; do not assume complete profiles for every food.
-- Keep the existing project’s lightweight dependency approach. Additional validation or sanitization libraries require justification; use robust native/application validation where sufficient.
-- Offline synchronization requires durable local storage, idempotent writes, and explicit conflict handling so reconnection cannot duplicate meals or reset totals.
-- The confirmed grams-field replacement fix and horizontal-swipe guard already exist and should be verified, not redundantly reimplemented.
-- The ticket/report system and “Copia Segnalazioni per Bolt” workflow should not be removed until the requested deletion scope is explicitly confirmed; preserve existing permissions and clipboard behavior meanwhile.
-- Historical ticket context includes statuses `open`, `in_progress`, and `closed`, mapped respectively to `Aperta`, `In lavorazione`, and `Risolta`.
+- La sicurezza Supabase è la priorità del prossimo intervento: verificare RLS su ogni tabella con dati personali e testare concretamente che un utente non possa leggere o modificare dati di un altro account.
+- `app_state` risulta attualmente accessibile anche anonimamente ma non viene usata dall’app secondo il controllo effettuato; la chiusura di questo accesso dovrebbe essere valutata senza rompere flussi esistenti.
+- `app_data` è usata dagli utenti autenticati e va protetta mantenendo il normale flusso applicativo.
+- Il ruolo `admin` deve essere modificabile solo tramite meccanismi server/database autorizzati; un utente non deve poterlo assegnare o alterare dal proprio profilo.
+- La chiave Gemini non deve essere esposta nel frontend: l’architettura prevista è una chiave server-side protetta con rate limiting, ma la scelta finale non è ancora confermata.
+- I rate limit devono essere applicati lato backend/Edge Function e gli accessi anomali devono essere registrati in log riservati agli amministratori.
+- La cancellazione account deve essere definitiva e includere l’eliminazione a cascata dei record associati; servono verifica pratica dei vincoli e informativa chiara sui dati sanitari.
+- Non sono state ancora applicate modifiche per questo intervento. Prima di procedere restano da chiarire architettura Gemini, ambito della rimozione delle segnalazioni e tempistica del tema retro/audio.
+- Preservare il sistema ticket e i relativi permessi finché l’ambito di rimozione non viene confermato esplicitamente.
 
 ## Open questions & assumptions
 
-- Does “togliamo del tutto” mean removing only the Bolt-copy action, removing ticket reports entirely, or removing both admin and user ticket views?
-- Should Gemini use a project-owned server-side key with rate limits, or should each user continue supplying their own key?
-- Which food database fields provide reliable micronutrient, vitamin, mineral, and electrolyte values, and what is the fallback when they are absent?
-- What exact data must be included in the global missing-food export, and how should variants be deduplicated while preserving original user wording?
-- Define the approval workflow and migration strategy for linking approved global foods to past diary entries through `missingFoodId`.
-- Specify the release/version source for changelog notices and whether users can permanently dismiss a version’s notice.
-- Define offline conflict precedence, retry behavior, authentication expiry handling, and idempotency keys.
-- Confirm account deletion requirements, retention of audit logs, privacy wording for health data, and cascade-delete boundaries.
-- Confirm whether the retro theme, custom theme editor, and audio are immediate scope or later independent workstreams.
-- Verify all proposed security and data changes in a real Supabase environment, including RLS isolation and attempted role escalation.
+- Confermare se Gemini userà una chiave del progetto gestita server-side con limiti di utilizzo oppure chiavi personali degli utenti.
+- Definire se “togliamo del tutto” riguarda solo “Copia Segnalazioni per Bolt” o anche la bacheca ticket per utenti e amministratori.
+- Confermare se tema retro e audio rientrano nello stesso intervento o in un lavoro estetico separato.
+- Verificare in un ambiente Supabase reale RLS, protezione del ruolo admin, rate limiting, audit logging e tentativi di escalation.
+- Definire retention dei log di sicurezza, testo dell’informativa sanitaria e comportamento preciso della cancellazione a cascata.
