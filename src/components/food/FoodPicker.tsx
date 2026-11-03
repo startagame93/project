@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Layers, Plus } from 'lucide-react';
+import { ChevronDown, Layers, Plus } from 'lucide-react';
 import { FOOD_CATEGORIES, type FoodEntry } from '@/lib/foodDatabase';
 import { FOOD_FAMILIES } from '@/lib/foodFamilies';
+import { NutritionTable } from '@/components/food/NutritionTable';
 
 export function FoodPicker({ onAdd }: { onAdd: (food: FoodEntry) => void }) {
   const [category, setCategory] = useState<string>(FOOD_CATEGORIES[0]);
@@ -50,14 +51,34 @@ export function FoodPicker({ onAdd }: { onAdd: (food: FoodEntry) => void }) {
         </select>
       </div>
 
-      {food && (
-        <div key={food.id} className="rounded-xl bg-gray-50 dark:bg-gray-800/60 p-3 animate-fade-in">
-          <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">{food.name}</p>
-          <button onClick={() => onAdd(food)} className="btn-primary w-full text-sm mt-3">
-            <Plus className="w-4 h-4" /> Scegli i grammi e aggiungi
-          </button>
-        </div>
-      )}
+      {food && <SelectedFood key={food.id} food={food} onAdd={onAdd} />}
+    </div>
+  );
+}
+
+function SelectedFood({ food, onAdd }: { food: FoodEntry; onAdd: (food: FoodEntry) => void }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="rounded-xl bg-gray-50 dark:bg-gray-800/60 p-3 space-y-3 animate-fade-in">
+      <button
+        type="button"
+        onClick={() => setExpanded((e) => !e)}
+        aria-expanded={expanded}
+        className="w-full flex items-center justify-between gap-3 text-left"
+      >
+        <span className="text-sm font-semibold text-gray-900 dark:text-white">{food.name}</span>
+        <ChevronDown
+          className={`w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+          aria-hidden="true"
+        />
+      </button>
+
+      {expanded && <NutritionTable food={food} name={food.name} />}
+
+      <button onClick={() => onAdd(food)} className="btn-primary w-full text-sm">
+        <Plus className="w-4 h-4" /> Scegli i grammi e aggiungi
+      </button>
     </div>
   );
 }

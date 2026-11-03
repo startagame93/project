@@ -5,6 +5,7 @@ import { uid, parseNonNegative } from '@/lib/data';
 import { Sheet } from '@/components/Sheet';
 import { FoodPicker } from '@/components/food/FoodPicker';
 import { FoodCatalogTree } from '@/components/food/FoodCatalogTree';
+import { NutritionTable } from '@/components/food/NutritionTable';
 import { BarcodeScanner } from '@/components/food/BarcodeScanner';
 import { Search, Plus, Pencil, Trash2, BookOpen, Check, ChevronDown, Calendar, Utensils, Repeat, ArrowRight, ScanBarcode } from 'lucide-react';
 import type { CustomFoodEntry, MealType, Meal } from '@/types';
@@ -102,6 +103,10 @@ export function FoodDatabaseView() {
 
       <FoodPicker onAdd={setAddToDietFood} />
 
+      <p className="text-sm text-gray-500 text-center" aria-live="polite">
+        {allFoods.length} alimenti nel catalogo
+      </p>
+
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" aria-hidden="true" />
         <input
@@ -195,18 +200,7 @@ function FoodCard({ food, custom, onEdit, onDelete, onAddToDiet }: {
 
       {expanded && (
         <div className="px-4 pb-4 pt-3 border-t border-gray-100 dark:border-gray-800 space-y-2 animate-fade-in" role="region" aria-label={`Valori nutrizionali di ${food.name} per 100 grammi`}>
-          <p className="text-xs text-gray-500">Valori per 100 g</p>
-          <NutrientRow label="Calorie" value={food.calories} unit="kcal" />
-          <NutrientRow label="Proteine" value={food.protein} unit="g" />
-          <NutrientRow label="Carboidrati" value={food.carbs} unit="g" />
-          <NutrientRow label="Grassi" value={food.fat} unit="g" />
-          <NutrientRow label="Grassi Saturi" value={food.saturatedFat} unit="g" />
-          <NutrientRow label="Zuccheri" value={food.sugar} unit="g" />
-          <NutrientRow label="Fibre" value={food.fiber} unit="g" />
-          <NutrientRow label="Sodio" value={food.sodium} unit="mg" />
-          <NutrientRow label="Potassio" value={food.potassium} unit="mg" />
-          <NutrientRow label="Calcio" value={food.calcium} unit="mg" />
-          <NutrientRow label="Ferro" value={food.iron} unit="mg" />
+          <NutritionTable food={food} name={food.name} />
 
           <button onClick={onAddToDiet} className="btn-primary w-full text-sm mt-2">
             <Plus className="w-4 h-4" /> Aggiungi alla Dieta
@@ -232,17 +226,6 @@ function FoodCard({ food, custom, onEdit, onDelete, onAddToDiet }: {
           )}
         </div>
       )}
-    </div>
-  );
-}
-
-function NutrientRow({ label, value, unit }: { label: string; value: number; unit: string }) {
-  return (
-    <div className="flex items-center justify-between text-sm">
-      <span className="text-gray-600 dark:text-gray-400">{label}</span>
-      <span className="font-medium text-gray-900 dark:text-white" aria-label={`${label}: ${value} ${unit}`}>
-        {value} {unit}
-      </span>
     </div>
   );
 }

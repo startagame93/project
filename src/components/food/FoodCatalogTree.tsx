@@ -19,6 +19,23 @@ function categoryRank(category: string): number {
   return index === -1 ? FOOD_CATEGORIES.length : index;
 }
 
+const FAMILY_EMOJI_RULES: [RegExp, string][] = [
+  [/acqua/i, '💧'], [/succ/i, '🧃'], [/caff|tè|the\b|tisan/i, '☕'], [/birra/i, '🍺'],
+  [/vin/i, '🍷'], [/liquor|amari|alcol/i, '🥃'], [/bibite|gassat|cola/i, '🥤'],
+  [/pesce|tonno|salmone|gamber|frutti di mare/i, '🐟'], [/sushi|maki|nigiri/i, '🍣'],
+  [/pollo|tacchino|coniglio|vitello|maiale/i, '🍗'], [/manzo|agnello|carni rosse|bovin/i, '🥩'],
+  [/salumi|prosciutt|salame|wurstel/i, '🍖'], [/formagg/i, '🧀'], [/latte|yogurt|latticin/i, '🥛'],
+  [/uova|uovo/i, '🥚'], [/pasta|spaghett|maccheron|lasagn|gnocch/i, '🍝'], [/pizza|pane|focacc/i, '🍕'],
+  [/riso|cereal|farro|orzo|avena/i, '🌾'], [/legum|fagiol|lentic|ceci|piselli/i, '🫘'],
+  [/burger|hamburger|panin/i, '🍔'], [/patat/i, '🍟'], [/taco|burrito|nachos|messic/i, '🌮'],
+  [/dolc|dessert|biscott|cioccolat|gelat/i, '🍰'], [/frutta secca|noci|mandorl|nocciol/i, '🥜'],
+  [/verdur|insalat|ortagg/i, '🥬'], [/frutta/i, '🍎'], [/olio|aceto|sal[ei]|spezie|salse?|condiment/i, '🫒'],
+];
+
+function familyEmoji(family: string, fallback: string | undefined): string {
+  return FAMILY_EMOJI_RULES.find(([pattern]) => pattern.test(family))?.[1] ?? fallback ?? '🍽️';
+}
+
 function buildTree<T extends FoodEntry>(foods: T[]): CategoryNode<T>[] {
   const byCategory = new Map<string, Map<string, T[]>>();
   for (const food of foods) {
@@ -103,7 +120,10 @@ export function FoodCatalogTree<T extends FoodEntry>({ foods, categoryEmoji, ren
                         aria-expanded={familyOpen}
                         className="w-full flex items-center justify-between gap-3 px-3 py-3 rounded-xl text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                       >
-                        <span className="font-medium text-sm text-gray-800 dark:text-gray-200">{family.name}</span>
+                        <span className="flex items-center gap-3 min-w-0">
+                          <span className="text-base" aria-hidden="true">{familyEmoji(family.name, categoryEmoji[category.name])}</span>
+                          <span className="font-medium text-sm text-gray-800 dark:text-gray-200 truncate">{family.name}</span>
+                        </span>
                         <span className="flex items-center gap-2 text-xs text-gray-500 shrink-0">
                           {family.foods.length}
                           <ChevronDown
