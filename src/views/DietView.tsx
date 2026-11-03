@@ -9,9 +9,10 @@ import { Modal } from '@/components/Modal';
 import { Sheet } from '@/components/Sheet';
 import {
   ChevronLeft, ChevronRight, Plus, Check, Trash2, Pencil, ClipboardPaste,
-  Sunrise, Apple, Utensils, Cookie, Moon, ShoppingCart, X, AlertTriangle,
+  Sunrise, Apple, Utensils, Cookie, Moon, ShoppingCart, X, AlertTriangle, ChefHat,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { RecipesPanel } from '@/components/recipes/RecipesPanel';
 
 const ICON_MAP: Record<string, LucideIcon> = {
   sunrise: Sunrise, apple: Apple, utensils: Utensils, cookie: Cookie, moon: Moon,
@@ -27,6 +28,7 @@ export function DietView() {
   const [editingMeal, setEditingMeal] = useState<{ dayIdx: number; meal: Meal } | null>(null);
   const [showWeekManager, setShowWeekManager] = useState(false);
   const [showPdfModal, setShowPdfModal] = useState(false);
+  const [showRecipes, setShowRecipes] = useState(false);
   const [renaming, setRenaming] = useState<{ id: string; text: string } | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
 
@@ -204,6 +206,19 @@ export function DietView() {
           <X className="w-4 h-4" /> <span className="hidden sm:inline">Cancella dieta</span>
         </button>
       </div>
+
+      <button
+        onClick={() => setShowRecipes(true)}
+        className="card w-full p-4 flex items-center gap-3 text-left hover:shadow-md hover:-translate-y-0.5 transition-all"
+      >
+        <span className="w-11 h-11 rounded-xl bg-primary-600 text-white flex items-center justify-center shrink-0">
+          <ChefHat className="w-5 h-5" aria-hidden="true" />
+        </span>
+        <span className="flex-1">
+          <span className="block font-semibold text-gray-900 dark:text-white">Crea il tuo piatto</span>
+          <span className="block text-xs text-gray-500">Scegli gli alimenti, le quantita e i passi della preparazione</span>
+        </span>
+      </button>
 
       {/* Day selector */}
       <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
@@ -391,6 +406,10 @@ export function DietView() {
             </div>
           ))}
         </div>
+      </Modal>
+
+      <Modal open={showRecipes} onClose={() => setShowRecipes(false)} title="I tuoi piatti" icon={ChefHat}>
+        <RecipesPanel />
       </Modal>
 
       <Modal open={confirmClear} onClose={() => setConfirmClear(false)} title="Cancellare la dieta?">

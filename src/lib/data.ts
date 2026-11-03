@@ -183,6 +183,7 @@ export function getDefaultState(): AppState {
     theme: 'dark',
     pdfText: null,
     customFoods: [],
+    recipes: [],
     workoutLogs: [] as WorkoutLog[],
     onboardingComplete: false,
     lastChangelogVersion: '',

@@ -1,4 +1,4 @@
-import type { AppState } from '@/types';
+import type { AppState, Recipe } from '@/types';
 import { getDefaultState, migrateWeeks } from '@/lib/data';
 
 const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
@@ -29,6 +29,7 @@ export function mergeState(input: unknown): AppState {
     shoppingList: arr(parsed.shoppingList),
     waterLogs: arr(parsed.waterLogs),
     customFoods: arr(parsed.customFoods),
+    recipes: arr<Recipe>(parsed.recipes).filter((r) => isObj(r) && typeof r.id === 'string' && Array.isArray(r.ingredients) && Array.isArray(r.steps)),
     workoutLogs: arr(parsed.workoutLogs),
     notifications: { ...base.notifications, ...(isObj(parsed.notifications) ? parsed.notifications : {}) },
     onboardingComplete: parsed.onboardingComplete === true,

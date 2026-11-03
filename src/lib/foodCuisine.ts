@@ -60,7 +60,7 @@ export const CUISINE_FOODS: FoodEntry[] = [
     ['Frozen Yogurt', 130, 3, 22, 3, 2, 20, 0, 70, 200, 110, 0.1],
     ['Barretta Proteica', 390, 25, 40, 14, 6, 18, 6, 250, 300, 100, 4.0],
   ]),
-  ...group('Cucina Mediterranea', 'Antipasti e piatti di mare', [
+  ...group('Sushi / Piatti Misti', 'Antipasti e piatti di mare', [
     ['Bruschetta al Pomodoro', 150, 4, 22, 5, 0.8, 3, 2, 400, 250, 50, 1.5],
     ['Panzanella', 130, 3, 18, 5, 0.8, 3, 2, 400, 200, 40, 1.2],
     ['Insalata Caprese', 180, 9, 3, 14, 7, 2, 1, 300, 250, 200, 0.8],

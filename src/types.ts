@@ -241,6 +241,40 @@ export interface CustomFoodEntry {
   iron: number;
 }
 
+export interface NutrientValues {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  saturatedFat: number;
+  sugar: number;
+  fiber: number;
+  sodium: number;
+  potassium: number;
+  calcium: number;
+  iron: number;
+}
+
+export interface RecipeIngredient {
+  id: string;
+  foodId: string;
+  name: string;
+  grams: number;
+  per100: NutrientValues;
+}
+
+export interface Recipe {
+  id: string;
+  name: string;
+  description: string;
+  servings: number;
+  prepMinutes: number | null;
+  ingredients: RecipeIngredient[];
+  steps: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface SupportTicket {
   id: string;
   subject: string;
@@ -270,6 +304,7 @@ export interface AppState {
   theme: Theme;
   pdfText: string | null;
   customFoods: CustomFoodEntry[];
+  recipes: Recipe[];
   workoutLogs: WorkoutLog[];
   onboardingComplete: boolean;
   lastChangelogVersion?: string;
