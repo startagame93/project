@@ -26,6 +26,7 @@
 - Riutilizzare una tabella nutrizionale condivisa tra database alimenti e picker per mantenere contenuti e presentazione coerenti.
 - Preferire feedback esplicito per aggiunta, espansione, copia, errore e alimento non trovato. I controlli icon-only devono avere nome accessibile e stati dinamici annunciabili.
 - Le interfacce di catalogo, privacy, segnalazioni e amministrazione devono restare leggibili e utilizzabili su mobile e desktop.
+- Lo scanner deve mostrare il codice riconosciuto e lasciare all’utente il controllo esplicito dell’avvio della ricerca; prevedere un’azione chiara per ripetere la scansione quando la lettura è dubbia.
 
 ## Decisions, constraints & rationale
 
@@ -34,16 +35,23 @@
 - La vista albero ora espone il conteggio totale calcolato sull’intero catalogo; la vista ricerca mantiene il conteggio dei risultati.
 - Le icone delle categorie esistono già; quelle delle famiglie sono state aggiunte con riconoscimento per parola chiave e fallback, quindi la copertura visiva va ancora verificata.
 - La tabella per 100 g è stata estratta in un componente condiviso e collegata sia alla scheda database sia al picker per categoria, evitando duplicazioni.
-- Typecheck e build risultavano validi dopo queste modifiche. Occorre ricaricare o riavviare l’app per vedere codice e catalogo aggiornati.
+- Lo scanner barcode attuale applica validazione della cifra di controllo per codici EAN/UPC e richiede due letture consecutive coerenti prima di accettare il risultato. La ricerca non parte automaticamente: l’utente deve confermarla.
+- Typecheck e build risultavano validi dopo le modifiche allo scanner. La lettura reale da fotocamera non è stata verificata e richiede test su dispositivo.
+- L’integrazione specifica per PWA iOS standalone tramite input nativo `capture` non è ancora stata completata; la compatibilità Safari/WebKit e l’eventuale decodifica dell’immagine restano da valutare.
+- Il fallback Gemini non è ancora implementato. Dovrà restare server-side, usare la chiave fuori dal frontend e restituire soltanto dati nutrizionali sintetici per 100 g quando il database non contiene informazioni sufficienti.
+- Non esiste ancora una sincronizzazione offline-first completa con IndexedDB. La futura soluzione dovrà prevedere identificatori stabili, coda di sincronizzazione, deduplicazione dei pasti e risoluzione esplicita dei conflitti senza perdita o azzeramento dei conteggi.
 - USDA SR Legacy è stato valutato come fonte ampia, ma prevalentemente inglese; le traduzioni automatiche non sono sufficientemente affidabili senza revisione.
 - CREA/INRAN resta una possibile fonte italiana, da usare solo con modalità d’importazione, licenze e qualità verificabili.
 - Le segnalazioni di alimenti non trovati sono condivise tramite Supabase: ogni utente vede le proprie, mentre l’admin può leggere dati aggregati e copiarne l’elenco.
-- La chiave Gemini non deve essere esposta nel frontend; arricchimenti o traduzioni automatiche richiedono un servizio server-side protetto.
 - Dopo modifiche al catalogo o al codice vanno verificati typecheck, build, comportamento responsive e accessibilità reale.
 
 ## Open questions & assumptions
 
 - Verificare visivamente che ogni famiglia/sottomenu abbia un’icona pertinente e che i fallback non risultino ambigui o ripetitivi.
+- Testare lo scanner con fotocamera reale, immagini mosse/sfocate, codici validi e stringhe anomale; chiarire il comportamento per formati diversi da EAN/UPC.
+- Definire il percorso iOS standalone: input `capture`, modalità di selezione immagine e libreria/strategia di decodifica compatibile con Safari.
+- Definire il contratto JSON minimo del fallback Gemini, i campi obbligatori, soglie di affidabilità, gestione degli errori e tracciamento della fonte.
+- Progettare il modello offline IndexedDB: versionamento, record locali/server, ordinamento delle operazioni, retry, conflitti tra dispositivi e riconciliazione dei conteggi.
 - Decidere se mostrare il totale anche in altri punti dell’app oltre alla vista ad albero e alla ricerca, mantenendo conteggi coerenti.
 - Completare l’audit con tastiera e lettore di schermo: focus, `aria-expanded`, pannelli dinamici, controlli icon-only e messaggi live.
 - Verificare il comportamento della tabella nutrizionale su mobile, inclusi valori mancanti, unità e contenuto esteso.

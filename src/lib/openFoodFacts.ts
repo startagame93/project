@@ -11,7 +11,11 @@ export type ScannedProduct = {
 };
 
 export function isValidBarcode(code: string): boolean {
-  return /^\d{6,14}$/.test(code);
+  if (!/^(\d{8}|\d{12,14})$/.test(code)) return false;
+  const digits = code.split('').map(Number);
+  const check = digits[digits.length - 1];
+  const sum = digits.slice(0, -1).reverse().reduce((acc, d, i) => acc + d * (i % 2 === 0 ? 3 : 1), 0);
+  return (10 - (sum % 10)) % 10 === check;
 }
 
 function num(v: unknown, scale = 1): number {

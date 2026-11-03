@@ -19,6 +19,8 @@ const FIELDS: [keyof ScannedProduct, string, string][] = [
   ['sodium', 'Sodio', 'mg'],
 ];
 
+const STABLE_READS = 2;
+
 const EMPTY: ScannedProduct = {
   name: '', calories: 0, protein: 0, carbs: 0, fat: 0, saturatedFat: 0, sugar: 0, fiber: 0, sodium: 0,
 };
@@ -45,6 +47,8 @@ export function BarcodeScanner({ onClose, onSave }: {
     let stream: MediaStream | null = null;
     let timer: number | undefined;
     let stopped = false;
+    let candidate = '';
+    let hits = 0;
     const detector = new Ctor({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'] });
 
     (async () => {
@@ -59,10 +63,13 @@ export function BarcodeScanner({ onClose, onSave }: {
             const found = await detector.detect(videoRef.current);
             const value = found[0]?.rawValue;
             if (value && isValidBarcode(value)) {
-              setCode(value);
-              setScanning(false);
-              void search(value);
-              return;
+              hits = value === candidate ? hits + 1 : 1;
+              candidate = value;
+              if (hits >= STABLE_READS) {
+                setCode(value);
+                setScanning(false);
+                return;
+              }
             }
           } catch {
             // frame not ready yet
@@ -86,7 +93,7 @@ export function BarcodeScanner({ onClose, onSave }: {
   async function search(value = code) {
     const clean = value.replace(/\s/g, '');
     if (!isValidBarcode(clean)) {
-      setMessage('Il codice deve contenere solo numeri (da 6 a 14 cifre).');
+      setMessage('Codice non valido: controlla le cifre, deve essere un codice EAN o UPC.');
       return;
     }
     setLoading(true);
@@ -155,6 +162,14 @@ export function BarcodeScanner({ onClose, onSave }: {
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
                 </button>
               </div>
+              {!scanning && !cameraError && (
+                <button
+                  onClick={() => { setCode(''); setMessage(''); setScanning(true); }}
+                  className="btn-secondary w-full mt-2 text-sm"
+                >
+                  <ScanBarcode className="w-4 h-4" /> Scansiona di nuovo
+                </button>
+              )}
             </div>
           </>
         )}
