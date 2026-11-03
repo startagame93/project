@@ -341,13 +341,17 @@ const CARNE = [
     ['Fegato di Vitello', 140, 20, 4, 4.5, 1.5, 0, 0, 80, 300, 6, 8.0],
     ['Trippa', 85, 12, 0, 3.7, 1.3, 0, 0, 100, 70, 70, 0.6],
   ]),
-  ...group('Carni Bianche', 'Pollo', [
+  ...group('Carni Bianche', 'Pollo - tagli', [
     ['Sovracosce di Pollo', 180, 18, 0, 12, 3.4, 0, 0, 85, 220, 10, 1.0],
     ['Ali di Pollo', 200, 18.5, 0, 14, 3.9, 0, 0, 80, 200, 12, 0.9],
+    ['Straccetti di Pollo', 115, 23, 0, 2.2, 0.6, 0, 0, 70, 300, 8, 0.6],
+  ]),
+  ...group('Carni Bianche', 'Pollo - ricette', [
     ['Pollo allo Spiedo', 190, 26, 0, 9.5, 2.7, 0, 0, 380, 250, 14, 1.2],
+  ]),
+  ...group('Carni Bianche', 'Pollo - impanati e fritti', [
     ['Nuggets di Pollo', 285, 15, 16, 18, 3.5, 0.5, 1, 550, 250, 15, 1.0],
     ['Cotoletta di Pollo Impanata', 240, 17, 14, 13, 2.5, 1, 1, 400, 250, 20, 1.0],
-    ['Straccetti di Pollo', 115, 23, 0, 2.2, 0.6, 0, 0, 70, 300, 8, 0.6],
   ]),
 ];
 

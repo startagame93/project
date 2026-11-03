@@ -4,23 +4,18 @@ import { group } from '@/lib/foodExtra';
 // kcal, protein, carbs, fat, saturatedFat, sugar, fiber, sodium, potassium, calcium, iron (per 100 g, valori indicativi)
 
 export const PROTEIN_FOODS: FoodEntry[] = [
-  ...group('Carni Bianche', 'Pollo e tacchino', [
+  ...group('Carni Bianche', 'Pollo - tagli', [
     ['Petto di pollo cotto alla griglia', 165, 31.0, 0.0, 3.6, 1.0, 0.0, 0, 74, 256, 15, 0.9],
     ['Petto di pollo cotto al vapore', 150, 30.0, 0.0, 2.5, 0.8, 0.0, 0, 65, 260, 12, 0.8],
     ['Coscia di pollo senza pelle cotta', 185, 26.0, 0.0, 8.5, 2.4, 0.0, 0, 90, 240, 14, 1.1],
     ['Sovracoscia di pollo cruda', 119, 18.5, 0.0, 4.5, 1.2, 0.0, 0, 79, 230, 11, 1.0],
     ['Pollo arrosto intero con pelle', 215, 27.0, 0.0, 11.0, 3.0, 0.0, 0, 80, 240, 15, 1.2],
-    ['Ali di pollo fritte', 290, 27.0, 5.0, 18.0, 4.5, 0.0, 0, 500, 210, 20, 1.2],
-    ['Alette di pollo al forno', 240, 27.0, 1.0, 14.0, 3.8, 0.0, 0, 430, 220, 15, 1.1],
-    ['Fesa di tacchino cotta', 105, 22.0, 1.0, 1.5, 0.4, 0.5, 0, 900, 270, 10, 1.0],
-    ['Petto di tacchino crudo', 105, 23.5, 0.0, 1.0, 0.3, 0.0, 0, 60, 320, 10, 0.9],
-    ['Coscia di tacchino cotta', 170, 28.0, 0.0, 6.0, 1.7, 0.0, 0, 120, 280, 14, 1.4],
-    ['Tacchino arrosto', 150, 27.0, 0.0, 4.0, 1.2, 0.0, 0, 300, 260, 10, 1.2],
-    ['Wurstel di pollo', 240, 12.0, 3.0, 20.0, 5.0, 1.0, 0, 1000, 200, 20, 1.0],
-    ['Hamburger di pollo', 210, 20.0, 5.0, 12.0, 3.0, 0.5, 0, 550, 280, 15, 1.2],
-    ['Cotoletta di pollo impanata', 230, 22.0, 13.0, 10.0, 2.0, 0.5, 0, 520, 260, 25, 1.2],
-    ['Nuggets di pollo surgelati', 260, 16.0, 17.0, 14.0, 3.0, 0.8, 0, 600, 250, 20, 1.2],
     ['Straccetti di pollo', 110, 23.0, 0.5, 2.0, 0.5, 0.0, 0, 60, 250, 12, 0.9],
+    ['Fegato di pollo', 119, 16.9, 0.7, 4.8, 1.6, 0.0, 0, 70, 280, 9, 9.0],
+    ['Cuore di pollo', 185, 26.0, 0.0, 9.0, 2.5, 0.0, 0, 85, 230, 9, 6.0],
+  ]),
+  ...group('Carni Bianche', 'Pollo - ricette', [
+    ['Alette di pollo al forno', 240, 27.0, 1.0, 14.0, 3.8, 0.0, 0, 430, 220, 15, 1.1],
     ['Pollo al curry', 150, 16.0, 6.0, 7.0, 2.0, 2.0, 0, 500, 300, 40, 1.5],
     ['Pollo alla cacciatora', 140, 18.0, 3.0, 6.0, 1.5, 2.0, 0, 420, 320, 30, 1.2],
     ['Pollo arrosto alle erbe', 170, 27.0, 1.0, 6.5, 1.8, 0.2, 0, 280, 260, 15, 1.1],
@@ -31,15 +26,45 @@ export const PROTEIN_FOODS: FoodEntry[] = [
     ['Spiedini di pollo', 180, 24.0, 2.0, 8.0, 2.0, 0.5, 0, 350, 270, 15, 1.0],
     ['Pollo ai ferri', 165, 31.0, 0.0, 3.6, 1.0, 0.0, 0, 74, 256, 15, 0.9],
     ['Pollo in gelatina', 130, 20.0, 1.0, 5.0, 1.4, 0.5, 0, 600, 210, 15, 0.8],
+  ]),
+  ...group('Carni Bianche', 'Pollo - impanati e fritti', [
+    ['Ali di pollo fritte', 290, 27.0, 5.0, 18.0, 4.5, 0.0, 0, 500, 210, 20, 1.2],
+    ['Cotoletta di pollo impanata', 230, 22.0, 13.0, 10.0, 2.0, 0.5, 0, 520, 260, 25, 1.2],
+    ['Nuggets di pollo surgelati', 260, 16.0, 17.0, 14.0, 3.0, 0.8, 0, 600, 250, 20, 1.2],
+  ]),
+  ...group('Carni Bianche', 'Pollo - lavorati', [
+    ['Wurstel di pollo', 240, 12.0, 3.0, 20.0, 5.0, 1.0, 0, 1000, 200, 20, 1.0],
+    ['Hamburger di pollo', 210, 20.0, 5.0, 12.0, 3.0, 0.5, 0, 550, 280, 15, 1.2],
     ['Mortadella di pollo', 240, 15.0, 3.0, 19.0, 6.0, 1.0, 0, 900, 220, 15, 1.0],
-    ['Petto di tacchino affumicato', 110, 22.0, 1.0, 2.0, 0.6, 0.5, 0, 1100, 280, 10, 1.1],
     ['Salsiccia di pollo', 200, 15.0, 2.0, 15.0, 4.5, 0.5, 0, 800, 230, 20, 1.2],
+  ]),
+  ...group('Carni Bianche', 'Tacchino - tagli', [
+    ['Fesa di tacchino cotta', 105, 22.0, 1.0, 1.5, 0.4, 0.5, 0, 900, 270, 10, 1.0],
+    ['Petto di tacchino crudo', 105, 23.5, 0.0, 1.0, 0.3, 0.0, 0, 60, 320, 10, 0.9],
+    ['Coscia di tacchino cotta', 170, 28.0, 0.0, 6.0, 1.7, 0.0, 0, 120, 280, 14, 1.4],
+  ]),
+  ...group('Carni Bianche', 'Tacchino - ricette', [
+    ['Tacchino arrosto', 150, 27.0, 0.0, 4.0, 1.2, 0.0, 0, 300, 260, 10, 1.2],
+  ]),
+  ...group('Carni Bianche', 'Tacchino - lavorati', [
+    ['Petto di tacchino affumicato', 110, 22.0, 1.0, 2.0, 0.6, 0.5, 0, 1100, 280, 10, 1.1],
+  ]),
+  ...group('Carni Bianche', 'Coniglio - tagli', [
+    ['Coscia di coniglio cruda', 136, 20.8, 0.0, 5.7, 1.6, 0.0, 0, 51, 333, 22, 1.5],
+  ]),
+  ...group('Carni Bianche', 'Coniglio - ricette', [
+    ['Coniglio arrosto', 173, 33.0, 0.0, 3.5, 1.1, 0.0, 0, 60, 300, 20, 2.0],
+    ['Coniglio in umido', 150, 24.0, 2.0, 5.0, 1.5, 0.5, 0, 350, 330, 25, 2.0],
+    ['Coniglio alla cacciatora', 160, 22.0, 3.0, 6.5, 1.8, 2.0, 0, 420, 320, 25, 2.0],
+  ]),
+  ...group('Carni Bianche', 'Altri volatili', [
     ['Cappone lesso', 220, 24.0, 0.0, 14.0, 4.0, 0.0, 0, 100, 240, 14, 1.2],
     ['Faraona cotta', 180, 28.0, 0.0, 7.0, 2.0, 0.0, 0, 90, 260, 15, 1.7],
     ['Quaglia arrosto', 200, 25.0, 0.0, 10.0, 3.0, 0.0, 0, 100, 250, 20, 2.5],
     ['Piccione arrosto', 200, 25.0, 0.0, 10.0, 3.0, 0.0, 0, 90, 280, 15, 4.0],
-    ['Fegato di pollo', 119, 16.9, 0.7, 4.8, 1.6, 0.0, 0, 70, 280, 9, 9.0],
-    ['Cuore di pollo', 185, 26.0, 0.0, 9.0, 2.5, 0.0, 0, 85, 230, 9, 6.0],
+    ['Anatra arrosto', 337, 19.0, 0.0, 28.4, 9.2, 0.0, 0, 70, 250, 12, 2.7],
+    ['Petto d\'anatra cotto', 200, 24.0, 0.0, 11.0, 3.5, 0.0, 0, 70, 280, 12, 2.5],
+    ['Oca arrosto', 305, 26.0, 0.0, 22.0, 6.0, 0.0, 0, 70, 270, 16, 3.0],
   ]),
   ...group('Carni Rosse', 'Manzo e vitello', [
     ['Bistecca di manzo alla griglia', 215, 26.0, 0.0, 12.0, 4.7, 0.0, 0, 60, 320, 12, 2.5],
@@ -109,11 +134,6 @@ export const PROTEIN_FOODS: FoodEntry[] = [
     ['Carne di capra cotta', 170, 27.0, 0.0, 6.5, 2.5, 0.0, 0, 70, 330, 12, 3.5],
     ['Cervo cotto', 175, 30.0, 0.0, 5.5, 2.0, 0.0, 0, 70, 370, 6, 4.0],
     ['Cinghiale cotto', 190, 27.0, 0.0, 8.5, 3.0, 0.0, 0, 70, 340, 10, 3.5],
-    ['Coniglio arrosto', 173, 33.0, 0.0, 3.5, 1.1, 0.0, 0, 60, 300, 20, 2.0],
-    ['Coniglio in umido', 150, 24.0, 2.0, 5.0, 1.5, 0.5, 0, 350, 330, 25, 2.0],
-    ['Anatra arrosto', 337, 19.0, 0.0, 28.4, 9.2, 0.0, 0, 70, 250, 12, 2.7],
-    ['Petto d\'anatra cotto', 200, 24.0, 0.0, 11.0, 3.5, 0.0, 0, 70, 280, 12, 2.5],
-    ['Oca arrosto', 305, 26.0, 0.0, 22.0, 6.0, 0.0, 0, 70, 270, 16, 3.0],
     ['Struzzo cotto', 135, 28.0, 0.0, 2.5, 0.8, 0.0, 0, 70, 330, 10, 3.0],
     ['Bufalo cotto', 130, 27.0, 0.0, 2.5, 0.8, 0.0, 0, 60, 360, 10, 3.0],
     ['Hamburger di bufala', 170, 23.0, 0.0, 9.0, 3.5, 0.0, 0, 350, 330, 15, 2.2],

@@ -23,11 +23,12 @@ const RULES: Record<string, { rules: Rule[]; fallback: string }> = {
     ],
   },
   'Carni Bianche': {
-    fallback: 'Altre carni bianche',
+    fallback: 'Altri volatili',
     rules: [
-      ['Pollo', ['pollo']],
-      ['Tacchino', ['tacchino']],
-      ['Coniglio', ['coniglio']],
+      ['Pollo - lavorati', ['macinat']],
+      ['Coniglio - tagli', ['coniglio']],
+      ['Tacchino - tagli', ['tacchino']],
+      ['Pollo - tagli', ['pollo']],
     ],
   },
   'Carni Rosse': {
