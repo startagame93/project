@@ -1,6 +1,6 @@
 import { Component, type ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, RotateCcw } from 'lucide-react';
-import { clearLocalAppData, claimRecoveryAttempt, hardReset } from '@/lib/localReset';
+import { claimRecoveryAttempt, hardReset } from '@/lib/localReset';
 
 interface State {
   failed: boolean;
@@ -15,8 +15,7 @@ export class CrashGuard extends Component<{ children: ReactNode }, State> {
 
   componentDidCatch(error: unknown) {
     console.error('app crashed', error);
-    clearLocalAppData();
-    // First crash in this session: assume corrupted local data and restart once automatically
+    // First crash in this session: restart once automatically
     if (claimRecoveryAttempt()) window.location.reload();
   }
 
@@ -31,7 +30,7 @@ export class CrashGuard extends Component<{ children: ReactNode }, State> {
           <div className="space-y-2">
             <h1 className="text-xl font-semibold">Qualcosa non e andato a buon fine</h1>
             <p className="text-sm text-gray-400 leading-relaxed">
-              I dati salvati su questo dispositivo sono stati ripuliti. I dati sincronizzati sul tuo account restano al sicuro.
+              I dati salvati su questo dispositivo restano disponibili. I dati sincronizzati sul tuo account restano al sicuro.
             </p>
           </div>
           <div className="space-y-3">

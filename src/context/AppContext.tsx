@@ -1,92 +1,23 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from 'react';
 import type { AppState, Theme } from '@/types';
-import { getDefaultState, migrateWeeks } from '@/lib/data';
-import { loadRemoteState, saveRemoteState } from '@/lib/supabase';
+import { getDefaultState } from '@/lib/data';
+import { loadRemoteState, saveRemoteState, type RemoteSaveResult, type RemoteSnapshot } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { applyPalette, getPalette } from '@/lib/palettes';
-import { STORAGE_KEY, PENDING_KEY, OWNER_KEY, STARTUP_TIMEOUT_MS, withTimeout, clearLocalAppData } from '@/lib/localReset';
-
-function getLocalOwner(): string | null {
-  try { return localStorage.getItem(OWNER_KEY); } catch { return null; }
-}
-
-function setLocalOwner(id: string) {
-  try { localStorage.setItem(OWNER_KEY, id); } catch { /* ignore */ }
-}
-
-function hasPendingSync(): boolean {
-  try { return localStorage.getItem(PENDING_KEY) === '1'; } catch { return false; }
-}
-
-function setPendingSync(pending: boolean) {
-  try {
-    if (pending) localStorage.setItem(PENDING_KEY, '1');
-    else localStorage.removeItem(PENDING_KEY);
-  } catch {
-    // ignore
-  }
-}
-
-const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
-const arr = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
-
-function validWeeks(v: unknown): AppState['weeks'] | null {
-  if (!Array.isArray(v) || v.length === 0) return null;
-  const ok = v.every((w) => isObj(w) && typeof w.id === 'string' && Array.isArray(w.days) && w.days.length === 7
-    && w.days.every((d) => isObj(d) && Array.isArray(d.meals) && d.meals.every((m) => isObj(m) && Array.isArray(m.foods))));
-  return ok ? migrateWeeks(v as AppState['weeks']) : null;
-}
-
-/** Fills missing fields and replaces malformed ones; throws only if the input is not an object at all. */
-export function mergeState(input: unknown): AppState {
-  if (!isObj(input)) throw new Error('invalid state');
-  const parsed = input as Partial<AppState>;
-  const base = getDefaultState();
-  const weeks = validWeeks(parsed.weeks) ?? base.weeks;
-  return {
-    ...base,
-    ...parsed,
-    profile: { ...base.profile, ...(isObj(parsed.profile) ? parsed.profile : {}) },
-    weeks,
-    activeWeekId: weeks.some((w) => w.id === parsed.activeWeekId) ? parsed.activeWeekId! : weeks[0].id,
-    bodyMetrics: arr(parsed.bodyMetrics),
-    supplementLogs: arr(parsed.supplementLogs),
-    micronutrientLogs: arr(parsed.micronutrientLogs),
-    shoppingList: arr(parsed.shoppingList),
-    waterLogs: arr(parsed.waterLogs),
-    customFoods: arr(parsed.customFoods),
-    workoutLogs: arr(parsed.workoutLogs),
-    notifications: { ...base.notifications, ...(isObj(parsed.notifications) ? parsed.notifications : {}) },
-    onboardingComplete: parsed.onboardingComplete === true,
-    lastChangelogVersion: typeof parsed.lastChangelogVersion === 'string' ? parsed.lastChangelogVersion : '',
-    mealHistory: isObj(parsed.mealHistory) ? (parsed.mealHistory as AppState['mealHistory']) : {},
-    dayChecks: isObj(parsed.dayChecks) ? (parsed.dayChecks as AppState['dayChecks']) : {},
-  };
-}
-
-function loadLocalState(): AppState {
-  let raw: string | null = null;
-  try {
-    raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return mergeState(JSON.parse(raw));
-  } catch {
-    // Corrupted or unreadable cache: wipe it so the next start is clean
-    if (raw !== null) clearLocalAppData();
-  }
-  return getDefaultState();
-}
-
-function saveLocalState(state: AppState) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {
-    // ignore
-  }
-}
+import { withTimeout } from '@/lib/localReset';
+import { mergeState } from '@/lib/stateNormalize';
+import { deepEqual, mergeThreeWay } from '@/lib/stateMerge';
+import { loadOfflineRecord, saveOfflineRecord, discardSyncedRecord, type OfflineRecord } from '@/lib/offlineStore';
 
 export type SyncStatus = 'synced' | 'syncing' | 'pending' | 'error';
 
 const SYNC_TIMEOUT_MS = 15000;
+const SYNC_DEBOUNCE_MS = 1200;
+const SYNC_INTERVAL_MS = 30000;
+const MAX_ATTEMPTS = 3;
+const UNAVAILABLE = Symbol('unavailable');
+
+type Attempt = 'done' | 'retry' | 'unavailable' | 'error';
 
 interface AppContextValue {
   state: AppState;
@@ -112,130 +43,182 @@ function resolveTheme(theme: Theme): 'light' | 'dark' {
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const [state, setStateInner] = useState<AppState>(loadLocalState);
+  const userId = user?.id ?? null;
+  const [state, setStateInner] = useState<AppState>(() => getDefaultState());
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(() => resolveTheme(state.theme));
   const [loading, setLoading] = useState(true);
-  const skipRemoteSave = useRef(false);
   const [online, setOnline] = useState(() => navigator.onLine);
-  const [syncStatus, setSyncStatus] = useState<SyncStatus>(() => (hasPendingSync() ? 'pending' : 'synced'));
-  const syncTimer = useRef<number | undefined>(undefined);
-  const syncSeq = useRef(0);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>('synced');
 
-  const flush = useCallback(async (snapshot: AppState) => {
-    const seq = ++syncSeq.current;
-    if (!navigator.onLine) {
-      setSyncStatus('pending');
-      return;
-    }
-    setSyncStatus('syncing');
-    const ok = await withTimeout(saveRemoteState(snapshot as unknown as Record<string, unknown>), false, SYNC_TIMEOUT_MS);
-    // A newer change started its own sync: let that one decide the final status
-    if (seq !== syncSeq.current) return;
-    setPendingSync(!ok);
-    setSyncStatus(ok ? 'synced' : 'error');
+  const stateRef = useRef(state);
+  const baseRef = useRef<AppState | null>(null);
+  const dirtyRef = useRef(false);
+  const versionRef = useRef(0);
+  const ownerRef = useRef<string | null>(null);
+  const runningRef = useRef(false);
+  const rerunRef = useRef(false);
+  const timerRef = useRef<number | undefined>(undefined);
+
+  const applyState = useCallback((next: AppState) => {
+    stateRef.current = next;
+    setStateInner(next);
   }, []);
 
-  const scheduleSync = useCallback((snapshot: AppState) => {
-    setPendingSync(true);
-    syncSeq.current++;
+  const persist = useCallback(() => {
+    const owner = ownerRef.current;
+    if (!owner) return;
+    const record: OfflineRecord = { owner, local: stateRef.current, base: baseRef.current, dirty: dirtyRef.current };
+    saveOfflineRecord(record).catch((err) => console.error('offline save failed', err));
+  }, []);
+
+  const attemptSync = useCallback(async (): Promise<Attempt> => {
+    const fetched = await withTimeout<RemoteSnapshot | null | typeof UNAVAILABLE>(loadRemoteState(), UNAVAILABLE, SYNC_TIMEOUT_MS);
+    if (fetched === UNAVAILABLE) return 'unavailable';
+    const remote = fetched ? mergeState(fetched.data) : null;
+
+    if (!dirtyRef.current) {
+      if (remote) {
+        baseRef.current = remote;
+        if (!deepEqual(remote, stateRef.current)) applyState(remote);
+        persist();
+      }
+      return 'done';
+    }
+
+    const local = stateRef.current;
+    const startVersion = versionRef.current;
+    const merged = remote ? mergeState(mergeThreeWay<AppState>(baseRef.current ?? undefined, local, remote)) : local;
+    const saved = await withTimeout<RemoteSaveResult>(
+      saveRemoteState(merged, fetched ? fetched.updatedAt : null),
+      { ok: false, conflict: false },
+      SYNC_TIMEOUT_MS,
+    );
+    if (!saved.ok) return saved.conflict ? 'retry' : 'unavailable';
+
+    baseRef.current = merged;
+    const unchanged = versionRef.current === startVersion;
+    if (unchanged) {
+      dirtyRef.current = false;
+      applyState(merged);
+    }
+    persist();
+    return unchanged ? 'done' : 'retry';
+  }, [applyState, persist]);
+
+  const syncRounds = useCallback(async (): Promise<Attempt> => {
+    for (let round = 0; round < MAX_ATTEMPTS; round++) {
+      const outcome = await attemptSync();
+      if (outcome !== 'retry') return outcome;
+    }
+    return 'retry';
+  }, [attemptSync]);
+
+  const reconcile = useCallback(async () => {
+    if (!ownerRef.current) return;
+    if (runningRef.current) {
+      rerunRef.current = true;
+      return;
+    }
+    if (!navigator.onLine) {
+      setSyncStatus(dirtyRef.current ? 'pending' : 'synced');
+      return;
+    }
+    runningRef.current = true;
+    if (dirtyRef.current) setSyncStatus('syncing');
+    let outcome: Attempt = 'error';
+    try {
+      do {
+        rerunRef.current = false;
+        outcome = await syncRounds();
+      } while (rerunRef.current);
+    } catch (err) {
+      console.error('sync failed', err);
+    }
+    runningRef.current = false;
+    setSyncStatus(outcome === 'error' ? 'error' : dirtyRef.current ? 'pending' : 'synced');
+  }, [syncRounds]);
+
+  const scheduleSync = useCallback(() => {
     setSyncStatus(navigator.onLine ? 'syncing' : 'pending');
-    window.clearTimeout(syncTimer.current);
-    syncTimer.current = window.setTimeout(() => { void flush(snapshot); }, 1200);
-  }, [flush]);
+    window.clearTimeout(timerRef.current);
+    timerRef.current = window.setTimeout(() => { void reconcile(); }, SYNC_DEBOUNCE_MS);
+  }, [reconcile]);
 
-  const retrySync = useCallback(() => {
-    if (user) void flush(loadLocalState());
-  }, [user, flush]);
+  const setState = useCallback((updater: (prev: AppState) => AppState) => {
+    const next = updater(stateRef.current);
+    if (next === stateRef.current) return;
+    versionRef.current++;
+    dirtyRef.current = true;
+    applyState(next);
+    persist();
+    scheduleSync();
+  }, [applyState, persist, scheduleSync]);
 
-  // Load from Supabase when user logs in; reset state on user change
+  const retrySync = useCallback(() => { void reconcile(); }, [reconcile]);
+
   useEffect(() => {
-    if (!user) {
-      // User logged out or switched: reset to clean default state
-      setStateInner(getDefaultState());
-      setPendingSync(false);
+    if (!userId) {
+      ownerRef.current = null;
+      baseRef.current = null;
+      dirtyRef.current = false;
+      applyState(getDefaultState());
       setSyncStatus('synced');
       setLoading(false);
       return;
     }
-    let mounted = true;
-    const owner = getLocalOwner();
-    // A missing owner means data cached before owner tracking existed (logout always clears the cache)
-    const ownsLocal = owner === null || owner === user.id;
-    if (!ownsLocal) {
-      // Cached data belongs to another account on this device: never show or upload it
-      setStateInner(getDefaultState());
-      setPendingSync(false);
-      setSyncStatus('synced');
-    }
-    setLocalOwner(user.id);
-    // Hard cap: the UI unlocks after STARTUP_TIMEOUT_MS no matter what the network does
-    const safety = window.setTimeout(() => { if (mounted) setLoading(false); }, STARTUP_TIMEOUT_MS);
+    let cancelled = false;
+    ownerRef.current = null;
+    setLoading(true);
     (async () => {
-      const unavailable = Symbol('unavailable');
-      const remote = await withTimeout<Record<string, unknown> | null | typeof unavailable>(loadRemoteState(), unavailable);
-      if (!mounted) return;
+      let record: OfflineRecord | null = null;
       try {
-        if (remote === unavailable) {
-          // Offline, slow or failing network: keep the local copy, never overwrite it
-        } else if (ownsLocal && hasPendingSync()) {
-          void flush(loadLocalState());
-        } else if (remote) {
-          skipRemoteSave.current = true;
-          setStateInner(mergeState(remote));
-        } else if (ownsLocal && localStorage.getItem(STORAGE_KEY)) {
-          // No cloud copy yet but this device has the user's data: upload it
-          void flush(loadLocalState());
-        } else {
-          setStateInner(getDefaultState());
-        }
+        record = await loadOfflineRecord(userId);
       } catch (err) {
-        console.error('startup state rejected', err);
-      } finally {
-        setLoading(false);
+        console.error('offline cache unreadable', err);
       }
+      if (cancelled) return;
+      ownerRef.current = userId;
+      baseRef.current = record?.base ?? null;
+      dirtyRef.current = record?.dirty ?? false;
+      applyState(record?.local ?? getDefaultState());
+      setSyncStatus(dirtyRef.current ? 'pending' : 'synced');
+      setLoading(false);
+      void reconcile();
     })();
-    return () => { mounted = false; clearTimeout(safety); };
-  }, [user]);
-
-  const setState = useCallback((updater: (prev: AppState) => AppState) => {
-    setStateInner((prev) => {
-      const next = updater(prev);
-      saveLocalState(next);
-      if (user && !skipRemoteSave.current) scheduleSync(next);
-      return next;
-    });
-  }, [user, scheduleSync]);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timerRef.current);
+      if (ownerRef.current === userId && !dirtyRef.current) {
+        discardSyncedRecord(userId).catch((err) => console.error('offline cleanup failed', err));
+      }
+    };
+  }, [userId, applyState, reconcile]);
 
   useEffect(() => {
     const goOnline = () => {
       setOnline(true);
-      if (user && hasPendingSync()) void flush(loadLocalState());
+      void reconcile();
     };
     const goOffline = () => {
       setOnline(false);
-      setSyncStatus((s) => (s === 'synced' ? s : 'pending'));
+      if (dirtyRef.current) setSyncStatus('pending');
     };
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void reconcile();
+    };
+    const interval = window.setInterval(() => {
+      if (dirtyRef.current) void reconcile();
+    }, SYNC_INTERVAL_MS);
     window.addEventListener('online', goOnline);
     window.addEventListener('offline', goOffline);
-    const retry = window.setInterval(() => {
-      if (user && navigator.onLine && hasPendingSync()) void flush(loadLocalState());
-    }, 30000);
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
-      window.clearInterval(retry);
+      window.clearInterval(interval);
       window.removeEventListener('online', goOnline);
       window.removeEventListener('offline', goOffline);
+      document.removeEventListener('visibilitychange', onVisible);
     };
-  }, [user, flush]);
-
-  useEffect(() => {
-    if (skipRemoteSave.current) {
-      skipRemoteSave.current = false;
-    }
-  }, [state]);
-
-  useEffect(() => {
-    saveLocalState(state);
-  }, [state]);
+  }, [reconcile]);
 
   useEffect(() => {
     applyPalette(getPalette(state.palette));

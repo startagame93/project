@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase, getUserProfile, isFounderEmail, touchPresence, type UserProfileDB } from '@/lib/supabase';
-import { STORAGE_KEY, STARTUP_TIMEOUT_MS, withTimeout } from '@/lib/localReset';
+import { STARTUP_TIMEOUT_MS, withTimeout } from '@/lib/localReset';
 
 interface AuthContextValue {
   user: User | null;
@@ -40,11 +40,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else if (mounted) {
           setUser(null);
           setProfile(null);
-          try {
-            localStorage.removeItem(STORAGE_KEY);
-          } catch {
-            // ignore
-          }
         }
         if (mounted) setLoading(false);
       })();

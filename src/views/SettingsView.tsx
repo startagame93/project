@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
-import { useApp, mergeState, type SyncStatus } from '@/context/AppContext';
+import { useApp, type SyncStatus } from '@/context/AppContext';
+import { mergeState } from '@/lib/stateNormalize';
 import { useAuth } from '@/context/AuthContext';
 import { signOut, updateProfileMetrics } from '@/lib/supabase';
 import { PALETTES, paletteSwatch } from '@/lib/palettes';

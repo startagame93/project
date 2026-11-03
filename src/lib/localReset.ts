@@ -1,6 +1,5 @@
-export const STORAGE_KEY = 'nutriplan-state-v1';
-export const PENDING_KEY = 'nutriplan-pending-sync';
-export const OWNER_KEY = 'nutriplan-state-owner';
+import { deleteOfflineDatabase } from '@/lib/offlineStore';
+
 const RECOVERY_FLAG = 'nutriplan-recovery-attempt';
 
 export const STARTUP_TIMEOUT_MS = 3000;
@@ -12,17 +11,9 @@ export function withTimeout<T>(promise: Promise<T>, fallback: T, ms = STARTUP_TI
   ]);
 }
 
-/** Drops the cached diet/app data but keeps the login session, so the cloud copy reloads cleanly. */
-export function clearLocalAppData() {
-  try {
-    [STORAGE_KEY, PENDING_KEY, OWNER_KEY].forEach((k) => localStorage.removeItem(k));
-  } catch {
-    // storage unavailable
-  }
-}
-
 export async function hardReset() {
   try { localStorage.clear(); } catch { /* storage unavailable */ }
+  await deleteOfflineDatabase();
   try {
     const regs = await navigator.serviceWorker?.getRegistrations?.();
     await Promise.all((regs ?? []).map((r) => r.unregister()));

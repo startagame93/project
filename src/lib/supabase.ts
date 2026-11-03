@@ -107,30 +107,54 @@ export function isFounderEmail(email: string): boolean {
 
 // === APP DATA (per-user JSON blob) ===
 
+export interface RemoteSnapshot {
+  data: Record<string, unknown>;
+  updatedAt: string;
+}
+
+export type RemoteSaveResult = { ok: true } | { ok: false; conflict: boolean };
+
 /** Returns null when the user has no saved data yet; throws on network or server errors. */
-export async function loadRemoteState(): Promise<Record<string, unknown> | null> {
+export async function loadRemoteState(): Promise<RemoteSnapshot | null> {
   const { data: user, error: userError } = await supabase.auth.getUser();
   if (userError || !user.user) throw new Error('auth unavailable');
   const { data, error } = await supabase
     .from('app_data')
-    .select('data')
+    .select('data, updated_at')
     .eq('user_id', user.user.id)
     .maybeSingle();
   if (error) throw error;
-  return (data?.data as Record<string, unknown>) ?? null;
+  if (!data) return null;
+  return { data: data.data as Record<string, unknown>, updatedAt: data.updated_at as string };
 }
 
-export async function saveRemoteState(state: Record<string, unknown>): Promise<boolean> {
+/** Writes only if the row is still at `expectedUpdatedAt`; a mismatch means another device saved first. */
+export async function saveRemoteState(state: object, expectedUpdatedAt: string | null): Promise<RemoteSaveResult> {
   const { data: user } = await supabase.auth.getUser();
-  if (!user.user) return false;
-  const { error } = await supabase
+  if (!user.user) return { ok: false, conflict: false };
+  const row = { data: state, updated_at: new Date().toISOString() };
+
+  if (expectedUpdatedAt === null) {
+    const { error } = await supabase.from('app_data').insert({ user_id: user.user.id, ...row });
+    if (!error) return { ok: true };
+    if (error.code === '23505') return { ok: false, conflict: true };
+    console.error('cloud save failed', error.message);
+    return { ok: false, conflict: false };
+  }
+
+  const { data, error } = await supabase
     .from('app_data')
-    .upsert(
-      { user_id: user.user.id, data: state, updated_at: new Date().toISOString() },
-      { onConflict: 'user_id' },
-    );
-  if (error) console.error('cloud save failed', error.message);
-  return !error;
+    .update(row)
+    .eq('user_id', user.user.id)
+    .eq('updated_at', expectedUpdatedAt)
+    .select('user_id')
+    .maybeSingle();
+  if (error) {
+    console.error('cloud save failed', error.message);
+    return { ok: false, conflict: false };
+  }
+  if (!data) return { ok: false, conflict: true };
+  return { ok: true };
 }
 
 // === SUPPORT TICKETS ===

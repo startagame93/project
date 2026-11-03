@@ -24,8 +24,8 @@
 - La ricerca deve distinguere chiaramente nome, famiglia/categoria e valori nutrizionali per 100 g, funzionando con migliaia di risultati.
 - In “Scegli per categoria”, la selezione di un alimento deve permettere di espandere una tabella nutrizionale per 100 g prima di aggiungerlo alla dieta; il controllo deve comunicare lo stato espanso/chiuso.
 - Riutilizzare una tabella nutrizionale condivisa tra database alimenti e picker per mantenere contenuti e presentazione coerenti.
-- Preferire feedback esplicito per aggiunta, espansione, copia, errore e alimento non trovato. I controlli icon-only devono avere nome accessibile e stati dinamici annunciabili.
-- Le interfacce di catalogo, privacy, segnalazioni e amministrazione devono restare leggibili e utilizzabili su mobile e desktop.
+- Preferire feedback esplicito per aggiunta, espansione, copia, errore, alimento non trovato e stato della sincronizzazione. I controlli icon-only devono avere nome accessibile e stati dinamici annunciabili.
+- Le interfacce di catalogo, privacy, segnalazioni, amministrazione e sincronizzazione devono restare leggibili e utilizzabili su mobile e desktop.
 - Lo scanner deve mostrare il codice riconosciuto e lasciare all’utente il controllo esplicito dell’avvio della ricerca; prevedere un’azione chiara per ripetere la scansione quando la lettura è dubbia.
 - I risultati Gemini devono essere distinguibili dai dati verificati e richiedere conferma o revisione manuale prima del salvataggio.
 
@@ -33,34 +33,31 @@
 
 - Gli alimenti sono dati statici nel frontend; il formato attuale contiene una riga per alimento con valori per 100 g e famiglia/categoria.
 - Il catalogo è passato da circa 1.102 a circa 1.196 alimenti; il target intermedio di 4.000 non è ancora raggiunto.
-- La vista albero ora espone il conteggio totale calcolato sull’intero catalogo; la vista ricerca mantiene il conteggio dei risultati.
-- Le icone delle categorie esistono già; quelle delle famiglie sono state aggiunte con riconoscimento per parola chiave e fallback, quindi la copertura visiva va ancora verificata.
-- La tabella per 100 g è stata estratta in un componente condiviso e collegata sia alla scheda database sia al picker per categoria, evitando duplicazioni.
-- Lo scanner barcode applica validazione della cifra di controllo per codici EAN/UPC e richiede due letture consecutive coerenti prima di accettare il risultato. La ricerca non parte automaticamente: l’utente deve confermarla.
+- La vista albero espone il conteggio totale calcolato sull’intero catalogo; la vista ricerca mantiene il conteggio dei risultati.
+- Le icone delle categorie esistono già; quelle delle famiglie usano riconoscimento per parola chiave e fallback, quindi la copertura visiva va ancora verificata.
+- La tabella per 100 g è condivisa tra scheda database e picker per categoria.
+- Lo scanner barcode applica validazione della cifra di controllo per codici EAN/UPC e richiede due letture consecutive coerenti prima di accettare il risultato. La ricerca richiede conferma dell’utente.
 - Quando il codice non è disponibile nel catalogo locale, il flusso prova Open Food Facts e usa Gemini come ulteriore fallback per ottenere macronutrienti sintetici per 100 g.
-- Gemini viene chiamato tramite servizio server-side: la chiave non deve essere inclusa nel frontend o nel dispositivo. Il risultato viene mostrato con avviso di verifica prima del salvataggio.
-- Il fallback non inventa deliberatamente dati per prodotti non riconosciuti: può restituire “non trovato” e indirizzare all’inserimento manuale. Non è una fonte nutrizionale verificata.
-- La chiave Gemini non risulta ancora configurata nel progetto; il percorso reale di stima non è stato quindi validato. In assenza del servizio, lo scanner deve consentire l’inserimento manuale.
-- Typecheck, build e pubblicazione del servizio risultavano riusciti dopo l’integrazione. La lettura reale da fotocamera e una risposta Gemini reale richiedono test separati.
-- Non esiste ancora una sincronizzazione offline-first completa con IndexedDB. La futura soluzione dovrà prevedere identificatori stabili, coda di sincronizzazione, deduplicazione dei pasti e risoluzione esplicita dei conflitti senza perdita o azzeramento dei conteggi.
-- USDA SR Legacy è stato valutato come fonte ampia, ma prevalentemente inglese; le traduzioni automatiche non sono sufficientemente affidabili senza revisione.
-- CREA/INRAN resta una possibile fonte italiana, da usare solo con modalità d’importazione, licenze e qualità verificabili.
-- Le segnalazioni di alimenti non trovati sono condivise tramite Supabase: ogni utente vede le proprie, mentre l’admin può leggere dati aggregati e copiarne l’elenco.
-- Dopo modifiche al catalogo o al codice vanno verificati typecheck, build, comportamento responsive e accessibilità reale.
+- Gemini viene chiamato tramite servizio server-side; il risultato è mostrato con avviso di verifica prima del salvataggio. In assenza del servizio è disponibile l’inserimento manuale.
+- Il catalogo e i dati applicativi usano Supabase per la persistenza server-side; le segnalazioni restano isolate per utente e aggregate per l’amministrazione.
+- La persistenza applicativa è ora offline-first tramite IndexedDB. I dati restano sul dispositivo e vengono sincronizzati alla riconnessione, senza dipendere da una singola copia locale sovrascritta.
+- I dati preesistenti nella vecchia memoria del browser vengono importati automaticamente al primo avvio del nuovo strato IndexedDB.
+- Il sync usa salvataggio condizionale sulla versione letta: se un altro dispositivo ha scritto, il client rilegge, unisce e riprova invece di sovrascrivere.
+- Il merge avviene per identificativo di pasti, giorni e settimane; le aggiunte offline di dispositivi diversi vengono conservate e i duplicati evitati. Se lo stesso pasto è modificato offline in conflitto, prevale la versione del dispositivo che sta sincronizzando.
+- Il logout lascia sul dispositivo i dati non ancora inviati, destinati alla sincronizzazione al successivo accesso dello stesso account. Reset locale e recupero da crash devono preservare i dati ancora non sincronizzati.
+- Il merge è stato verificato con sei prove isolate, inclusi aggiunte offline, duplicati, cancellazioni e modifiche concorrenti. Typecheck e build sono passati.
+- Non sono ancora disponibili test su telefono reale, modalità aereo o due dispositivi contemporaneamente.
 
 ## Open questions & assumptions
 
-- Configurare la chiave Gemini in ambiente server-side e verificare una risposta reale, inclusi timeout, errori, rate limiting e servizio non disponibile.
-- Definire e testare il contratto JSON minimo del fallback: macronutrienti obbligatori, unità, valori mancanti, identificazione del prodotto, confidenza e fonte.
-- Stabilire come mostrare e conservare la provenienza “Gemini/Open Food Facts/manuale” e impedire che una stima venga confusa con un alimento verificato.
-- Testare prodotti noti, codici sconosciuti, etichette ambigue e prodotti internazionali; confermare che il modello restituisca “non trovato” invece di valori plausibili ma inventati.
-- Verificare visivamente che ogni famiglia/sottomenu abbia un’icona pertinente e che i fallback non risultino ambigui o ripetitivi.
-- Testare lo scanner con fotocamera reale, immagini mosse/sfocate, codici validi e stringhe anomale; chiarire il comportamento per formati diversi da EAN/UPC.
-- Definire il percorso iOS standalone: input `capture`, modalità di selezione immagine e libreria/strategia di decodifica compatibile con Safari.
-- Progettare il modello offline IndexedDB: versionamento, record locali/server, ordinamento delle operazioni, retry, conflitti tra dispositivi e riconciliazione dei conteggi.
-- Completare l’audit con tastiera e lettore di schermo: focus, `aria-expanded`, pannelli dinamici, controlli icon-only e messaggi live.
-- Verificare il comportamento della tabella nutrizionale su mobile, inclusi valori mancanti, unità e contenuto esteso.
-- Definire fonti, licenze e pipeline di normalizzazione, deduplicazione semantica, controllo nutrizionale e tracciamento per arrivare a 4.000 e poi circa 10.000 alimenti.
+- Testare il sync reale con due dispositivi/account sessioni, offline prolungato, riconnessione simultanea, crash e retry falliti.
+- Definire e verificare la gestione di conflitti più fini: cancellazione contro modifica, modifica di campi diversi dello stesso pasto e ordine delle operazioni.
+- Confermare il comportamento di logout, cambio account e dispositivo condiviso per evitare che dati locali vengano associati all’account errato.
+- Valutare retention, cifratura e possibilità di eliminare esplicitamente i dati locali non sincronizzati.
+- Verificare versionamento IndexedDB, migrazioni future e compatibilità tra vecchi client e nuove strutture server.
+- Configurare la chiave Gemini in ambiente server-side e verificare timeout, errori, rate limiting e servizio non disponibile.
+- Definire il contratto JSON minimo del fallback Gemini, includendo unità, valori mancanti, identificazione, confidenza e fonte.
+- Verificare visivamente icone delle famiglie, tabella nutrizionale mobile, grafici Corpo, unità dei micronutrienti e stati senza dati.
+- Completare audit con tastiera e lettore di schermo per focus, pannelli dinamici, controlli icon-only e messaggi live.
+- Definire fonti, licenze e pipeline di normalizzazione, deduplicazione semantica e controllo nutrizionale per arrivare a 4.000 e poi circa 10.000 alimenti.
 - Verificare in ambiente reale RLS, ruoli admin, accesso alle segnalazioni, rate limiting, audit logging, retention e cancellazione associata all’account.
-- Valutare esportazione admin CSV/JSON e filtri per frequenza, data o lingua.
-- Verificare grafici Corpo, unità dei micronutrienti, periodi senza dati e valori mancanti.
