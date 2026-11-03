@@ -3,6 +3,24 @@ import { signIn, signUp } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { Flame, Mail, Lock, User, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 
+/**
+ * Signup failures must never reveal whether an address already has an account:
+ * the provider's own message does ("User already registered"), so we map it away.
+ */
+function signupErrorMessage(err: { message?: string; status?: number }): string {
+  const raw = (err.message ?? '').toLowerCase();
+  if (err.status === 429 || raw.includes('rate limit') || raw.includes('too many')) {
+    return 'Troppi tentativi. Riprova tra qualche minuto.';
+  }
+  if (raw.includes('password')) {
+    return 'Scegli una password piu robusta (almeno 6 caratteri).';
+  }
+  if (raw.includes('email') && (raw.includes('invalid') || raw.includes('valid'))) {
+    return 'Controlla l\'indirizzo email inserito.';
+  }
+  return 'Non e stato possibile completare la registrazione con questi dati. Controllali e riprova.';
+}
+
 export function AuthScreen() {
   const { refreshProfile } = useAuth();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
@@ -31,7 +49,7 @@ export function AuthScreen() {
       }
       const { error: err } = await signUp(email, password, displayName);
       if (err) {
-        setError(err.message);
+        setError(signupErrorMessage(err));
         setLoading(false);
         return;
       }

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { parseDietText } from '@/lib/dietText';
 import { buildDietWeeks, type DietBuildResult } from '@/lib/dietBuilder';
-import { analyzePlanText } from '@/lib/gemini';
+import { analyzePlanText, AiImportError } from '@/lib/gemini';
 import { reportMissingFoods } from '@/lib/supabase';
 
 export type PlanImportOutcome = { kind: 'diet'; firstWeekIndex: number } | { kind: 'workout' } | null;
@@ -56,7 +56,9 @@ export function usePlanImport() {
         }
         return addDiet(result, true);
       } catch (err) {
-        aiMessage = err instanceof Error ? err.message : 'Analisi IA non riuscita.';
+        // Only our own curated messages may reach the user; anything else stays internal.
+        if (!(err instanceof AiImportError)) console.error('plan import failed', err);
+        aiMessage = err instanceof AiImportError ? err.message : 'Analisi IA non riuscita.';
       }
 
       const diet = buildDietWeeks(parseDietText(clean), 'Dieta incollata', state.customFoods);
