@@ -129,6 +129,7 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
                   className="input"
                   placeholder="Bug, richiesta, domanda..."
                   value={subject}
+                  maxLength={200}
                   onChange={(e) => setSubject(e.target.value)}
                   required
                 />
@@ -139,6 +140,7 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
                   className="input min-h-[80px] resize-none"
                   placeholder="Descrivi il problema o la richiesta..."
                   value={message}
+                  maxLength={5000}
                   onChange={(e) => setMessage(e.target.value)}
                   required
                 />

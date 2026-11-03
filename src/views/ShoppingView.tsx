@@ -64,6 +64,15 @@ export function ShoppingView() {
     setShowExport(false);
   }
 
+  function escapeHtml(value: unknown): string {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   function exportPDF() {
     const printWin = window.open('', '_blank');
     if (!printWin) return;
@@ -77,7 +86,7 @@ export function ShoppingView() {
       </style></head><body>
       <h1>Lista della Spesa</h1>
       <p>Generata il ${new Date().toLocaleDateString('it-IT')}</p>
-      ${items.map((i) => `<div class="item">☐ ${i.name} - ${i.quantity} <span class="cat">(${i.category})</span></div>`).join('')}
+      ${items.map((i) => `<div class="item">☐ ${escapeHtml(i.name)} - ${escapeHtml(i.quantity)} <span class="cat">(${escapeHtml(i.category)})</span></div>`).join('')}
       <p style="margin-top:20px;color:#888">Totale: ${items.length} articoli</p>
       </body></html>
     `;
