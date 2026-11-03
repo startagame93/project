@@ -396,7 +396,8 @@ function AddToDietSheet({ food, onClose }: { food: CombinedFood; onClose: () => 
   const [asIngredient, setAsIngredient] = useState(true);
   const [recurring, setRecurring] = useState(false);
   const [recurringDays, setRecurringDays] = useState<string[]>([]);
-  const [grams, setGrams] = useState(100);
+  const [gramsInput, setGramsInput] = useState('100');
+  const grams = Math.round(parseFloat(gramsInput)) || 0;
 
   const factor = grams / 100;
 
@@ -499,9 +500,11 @@ function AddToDietSheet({ food, onClose }: { food: CombinedFood; onClose: () => 
             <input
               type="number"
               className="input flex-1"
-              value={grams}
+              value={gramsInput}
               min="1"
-              onChange={(e) => setGrams(Math.max(1, +e.target.value))}
+              inputMode="numeric"
+              onFocus={(e) => e.target.select()}
+              onChange={(e) => setGramsInput(e.target.value)}
               aria-label="Quantita in grammi"
             />
             <span className="text-sm text-gray-500">g</span>
@@ -598,7 +601,7 @@ function AddToDietSheet({ food, onClose }: { food: CombinedFood; onClose: () => 
           )}
         </div>
 
-        <button onClick={addToDiet} className="btn-primary w-full">
+        <button onClick={addToDiet} disabled={grams <= 0} className="btn-primary w-full">
           <Check className="w-4 h-4" /> Conferma aggiunta
         </button>
       </div>

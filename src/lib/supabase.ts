@@ -129,13 +129,15 @@ export async function saveRemoteState(state: Record<string, unknown>): Promise<b
 
 // === SUPPORT TICKETS ===
 
+export type TicketStatus = 'open' | 'in_progress' | 'closed';
+
 export interface SupportTicketRow {
   id: string;
   user_id: string;
   author_name: string;
   subject: string;
   message: string;
-  status: string;
+  status: TicketStatus;
   admin_reply: string | null;
   created_at: string;
 }
@@ -205,7 +207,16 @@ export async function adminToggleBan(userId: string, banned: boolean): Promise<b
   return !error;
 }
 
-export async function adminReplyTicket(ticketId: string, reply: string, status: string): Promise<boolean> {
+export async function adminSetTicketStatus(ticketId: string, status: TicketStatus): Promise<boolean> {
+  const { error } = await supabase
+    .from('support_tickets')
+    .update({ status })
+    .eq('id', ticketId);
+  if (error) console.error('ticket status failed', error);
+  return !error;
+}
+
+export async function adminReplyTicket(ticketId: string, reply: string, status: TicketStatus): Promise<boolean> {
   const { error } = await supabase
     .from('support_tickets')
     .update({ admin_reply: reply, status })

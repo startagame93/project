@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { createTicket, loadTickets, adminDeleteTicket, type SupportTicketRow } from '@/lib/supabase';
 import { Modal } from '@/components/Modal';
+import { TicketStatusBadge } from '@/components/TicketStatusBadge';
 import { MessageCircle, Send, Clock, CheckCircle2, AlertCircle, Loader2, Trash2, User } from 'lucide-react';
 
 export function SupportModal({ onClose }: { onClose: () => void }) {
@@ -88,13 +89,7 @@ export function SupportModal({ onClose }: { onClose: () => void }) {
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm font-medium text-gray-900 dark:text-white">{t.subject}</span>
                     <div className="flex items-center gap-1.5">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${
-                        t.status === 'open'
-                          ? 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400'
-                          : 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400'
-                      }`}>
-                        {t.status === 'open' ? 'Aperto' : 'Risolto'}
-                      </span>
+                      <TicketStatusBadge status={t.status} />
                       {isAdmin && (
                         <button
                           onClick={() => handleDelete(t.id)}

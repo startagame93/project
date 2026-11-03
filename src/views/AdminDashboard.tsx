@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  adminLoadUsers, adminToggleBan, loadTickets, adminReplyTicket, adminDeleteTicket,
+  adminLoadUsers, adminToggleBan, loadTickets, adminReplyTicket, adminDeleteTicket, adminSetTicketStatus,
   ONLINE_WINDOW_MS,
-  type AdminUserRow, type SupportTicketRow,
+  type AdminUserRow, type SupportTicketRow, type TicketStatus,
 } from '@/lib/supabase';
 import { BugReportCopySection } from '@/components/BugReportCopySection';
+import { TicketStatusBadge, TICKET_STATUSES, TICKET_STATUS_LABEL } from '@/components/TicketStatusBadge';
 import {
   Users, MessageSquare, Ban, CheckCircle, Send, Loader2, Mail, ChevronDown, ChevronUp,
   Crown, Trash2, RefreshCw, AlertTriangle, Search,
@@ -36,6 +37,7 @@ export function AdminDashboard() {
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [ticketFilter, setTicketFilter] = useState<TicketStatus>('open');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -70,6 +72,7 @@ export function AdminDashboard() {
   const filteredUsers = q
     ? users.filter((u) => u.email.toLowerCase().includes(q) || (u.display_name || '').toLowerCase().includes(q))
     : users;
+  const visibleTickets = tickets.filter((t) => t.status === ticketFilter);
 
   return (
     <div className="space-y-4">
@@ -189,11 +192,34 @@ export function AdminDashboard() {
         </div>
       ) : (
         <div className="space-y-2">
-          {tickets.map((t) => (
+          <div className="flex gap-2 overflow-x-auto no-scrollbar">
+            {TICKET_STATUSES.map((s) => {
+              const count = tickets.filter((t) => t.status === s).length;
+              return (
+                <button
+                  key={s}
+                  onClick={() => setTicketFilter(s)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium shrink-0 transition-colors ${
+                    ticketFilter === s
+                      ? 'bg-primary-600 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  {TICKET_STATUS_LABEL[s]} ({count})
+                </button>
+              );
+            })}
+          </div>
+          {visibleTickets.map((t) => (
             <TicketCard
               key={t.id}
               ticket={t}
               email={emailById.get(t.user_id)}
+              onStatusChange={async (status) => {
+                const ok = await adminSetTicketStatus(t.id, status);
+                if (ok) setTickets((prev) => prev.map((x) => x.id === t.id ? { ...x, status } : x));
+                else setError('Aggiornamento stato non riuscito. Riprova.');
+              }}
               onReply={async (reply) => {
                 const ok = await adminReplyTicket(t.id, reply, 'closed');
                 if (ok) setTickets((prev) => prev.map((x) => x.id === t.id ? { ...x, admin_reply: reply, status: 'closed' } : x));
@@ -207,8 +233,10 @@ export function AdminDashboard() {
               }}
             />
           ))}
-          {tickets.length === 0 && (
-            <p className="text-center text-gray-400 py-8 text-sm">Nessun ticket ricevuto</p>
+          {visibleTickets.length === 0 && (
+            <p className="text-center text-gray-400 py-8 text-sm">
+              {tickets.length === 0 ? 'Nessun ticket ricevuto' : 'Nessun ticket in questo stato'}
+            </p>
           )}
         </div>
       )}
@@ -216,15 +244,17 @@ export function AdminDashboard() {
   );
 }
 
-function TicketCard({ ticket, email, onReply, onDelete }: {
+function TicketCard({ ticket, email, onStatusChange, onReply, onDelete }: {
   ticket: SupportTicketRow;
   email?: string;
+  onStatusChange: (status: TicketStatus) => Promise<void>;
   onReply: (reply: string) => Promise<void>;
   onDelete: () => Promise<void>;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [reply, setReply] = useState('');
   const [sending, setSending] = useState(false);
+  const [statusBusy, setStatusBusy] = useState(false);
 
   async function handleReply() {
     if (!reply.trim()) return;
@@ -234,19 +264,19 @@ function TicketCard({ ticket, email, onReply, onDelete }: {
     setSending(false);
   }
 
+  async function changeStatus(status: TicketStatus) {
+    setStatusBusy(true);
+    await onStatusChange(status);
+    setStatusBusy(false);
+  }
+
   return (
     <div className="card p-4">
       <button onClick={() => setExpanded(!expanded)} className="w-full flex items-center justify-between text-left gap-2">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-sm font-medium text-gray-900 dark:text-white truncate">{ticket.subject}</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-full shrink-0 ${
-              ticket.status === 'open'
-                ? 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400'
-                : 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400'
-            }`}>
-              {ticket.status === 'open' ? 'Aperto' : 'Risolto'}
-            </span>
+            <TicketStatusBadge status={ticket.status} />
           </div>
           <p className="text-xs text-gray-500 truncate">{ticket.author_name}{email ? ` · ${email}` : ''}</p>
         </div>
@@ -267,7 +297,24 @@ function TicketCard({ ticket, email, onReply, onDelete }: {
             </div>
           )}
 
-          {ticket.status === 'open' && (
+          <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
+            {TICKET_STATUSES.map((s) => (
+              <button
+                key={s}
+                onClick={() => changeStatus(s)}
+                disabled={statusBusy || ticket.status === s}
+                className={`flex-1 py-1.5 rounded-md text-[11px] font-medium transition-all ${
+                  ticket.status === s
+                    ? 'bg-white dark:bg-gray-700 text-primary-600 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
+              >
+                {TICKET_STATUS_LABEL[s]}
+              </button>
+            ))}
+          </div>
+
+          {ticket.status !== 'closed' && (
             <div className="flex gap-2">
               <input
                 type="text"

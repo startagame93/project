@@ -65,6 +65,8 @@ function AppContent() {
   const { isAdmin, isBanned, isFounder, profile, refreshProfile, displayName: authName } = useAuth();
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
+  const touchStartY = useRef(0);
+  const touchStartedInScroller = useRef(false);
   const [showInfo, setShowInfo] = useState(false);
   const [showSupport, setShowSupport] = useState(false);
   const [showChangelog, setShowChangelog] = useState(false);
@@ -108,13 +110,17 @@ function AppContent() {
 
   function onTouchStart(e: React.TouchEvent) {
     touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    touchStartedInScroller.current = !!(e.target as HTMLElement).closest('.overflow-x-auto');
   }
 
   function onTouchEnd(e: React.TouchEvent) {
     touchEndX.current = e.changedTouches[0].clientX;
-    const diff = touchStartX.current - touchEndX.current;
-    if (Math.abs(diff) > 80) {
-      switchTab(diff > 0 ? 1 : -1);
+    const diffX = touchStartX.current - touchEndX.current;
+    const diffY = touchStartY.current - e.changedTouches[0].clientY;
+    const horizontal = Math.abs(diffX) > Math.abs(diffY) * 2;
+    if (Math.abs(diffX) > 80 && horizontal && !touchStartedInScroller.current) {
+      switchTab(diffX > 0 ? 1 : -1);
     }
   }
 
