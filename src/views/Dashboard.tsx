@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { calcTargetCalories, calcMacroTargets, todayISO } from '@/lib/data';
 import { ProgressRing } from '@/components/ProgressRing';
 import { ProgressBar } from '@/components/ProgressBar';
+import { WeeklyTrendsCard } from '@/components/WeeklyTrendsCard';
 import { Droplet, Flame, Beef, Wheat, Fish, Pill, Bell, Dumbbell, ChevronRight } from 'lucide-react';
 import { MICRONUTRIENT_TARGETS } from '@/types';
 
@@ -92,6 +93,8 @@ export function Dashboard({ onNavigate }: { onNavigate: (tab: 'diet' | 'nutritio
           </div>
         </div>
       </section>
+
+      <WeeklyTrendsCard />
 
       <section className="grid grid-cols-2 gap-4" aria-label="Riepilogo di oggi">
         <DashboardTile
