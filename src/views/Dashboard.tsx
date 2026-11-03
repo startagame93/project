@@ -1,14 +1,15 @@
+import type { ReactNode } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useAuth } from '@/context/AuthContext';
 import { calcTargetCalories, calcMacroTargets, todayISO } from '@/lib/data';
 import { ProgressRing } from '@/components/ProgressRing';
 import { ProgressBar } from '@/components/ProgressBar';
-import { Droplet, Flame, Beef, Wheat, Fish, Pill, Bell, Dumbbell } from 'lucide-react';
-import { MICRONUTRIENT_TARGETS, MEAL_TYPES } from '@/types';
+import { Droplet, Flame, Beef, Wheat, Fish, Pill, Bell, Dumbbell, ChevronRight } from 'lucide-react';
+import { MICRONUTRIENT_TARGETS } from '@/types';
 
 export function Dashboard({ onNavigate }: { onNavigate: (tab: 'diet' | 'nutrition' | 'body' | 'gym' | 'settings') => void }) {
   const { state } = useApp();
-  const { profile, displayName: authName } = useAuth();
+  const { displayName: authName } = useAuth();
   const displayName = authName || state.profile.name || 'Atleta';
   const today = todayISO();
   const activeWeek = state.weeks.find((w) => w.id === state.activeWeekId) ?? state.weeks[0];
@@ -51,26 +52,26 @@ export function Dashboard({ onNavigate }: { onNavigate: (tab: 'diet' | 'nutritio
   })();
 
   return (
-    <div className="space-y-4">
-      {/* Greeting */}
-      <div className="bg-gradient-to-br from-primary-600 to-primary-800 rounded-3xl p-5 text-white shadow-lg shadow-primary-600/20">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-primary-100 text-sm">{greeting}</p>
-            <h1 className="text-2xl font-bold">{displayName}</h1>
+    <div className="space-y-5">
+      <header className="card relative overflow-hidden p-5">
+        <div className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full bg-primary-500/25 blur-3xl" aria-hidden="true" />
+        <div className="pointer-events-none absolute -bottom-14 left-1/4 h-36 w-36 rounded-full bg-accent-500/20 blur-3xl" aria-hidden="true" />
+        <div className="relative flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-700 dark:text-primary-300">{greeting}</p>
+            <h1 className="mt-1 truncate text-2xl font-bold text-gray-900 dark:text-white">{displayName}</h1>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
-            <Flame className="w-6 h-6" />
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary-500/15 text-primary-700 ring-1 ring-inset ring-primary-500/25 dark:text-primary-300 dark:ring-primary-400/30">
+            <Flame className="h-6 w-6" strokeWidth={1.75} />
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Calorie ring */}
-      <div className="card p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="section-title">Calorie di Oggi</h2>
+      <section className="card p-5" aria-labelledby="calorie-title">
+        <div className="mb-5 flex items-center justify-between gap-3">
+          <h2 id="calorie-title" className="section-title">Calorie di oggi</h2>
           {todayBurned > 0 && (
-            <span className="chip bg-accent-100 text-accent-700 dark:bg-accent-900/30 dark:text-accent-300">
+            <span className="chip bg-accent-500/15 text-accent-700 dark:text-accent-300">
               +{todayBurned} kcal bruciate
             </span>
           )}
@@ -79,60 +80,107 @@ export function Dashboard({ onNavigate }: { onNavigate: (tab: 'diet' | 'nutritio
           <ProgressRing
             value={consumedCalories}
             max={targetCal + todayBurned}
-            size={130}
-            color="#10b981"
+            size={132}
+            color="#2f7fff"
             label={`${consumedCalories}`}
             sublabel={`/${targetCal + todayBurned} kcal`}
           />
-          <div className="flex-1 space-y-3">
-            <MacroBar icon={Beef} label="Proteine" value={consumedProtein} max={macroTargets.protein} color="bg-blue-500" unit="g" />
-            <MacroBar icon={Wheat} label="Carbo" value={consumedCarbs} max={macroTargets.carbs} color="bg-accent-500" unit="g" />
+          <div className="flex-1 space-y-4">
+            <MacroBar icon={Beef} label="Proteine" value={consumedProtein} max={macroTargets.protein} color="bg-primary-500" unit="g" />
+            <MacroBar icon={Wheat} label="Carboidrati" value={consumedCarbs} max={macroTargets.carbs} color="bg-accent-500" unit="g" />
             <MacroBar icon={Fish} label="Grassi" value={consumedFat} max={macroTargets.fat} color="bg-secondary-500" unit="g" />
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Quick navigation grid */}
-      <div className="grid grid-cols-2 gap-3">
-        <button onClick={() => onNavigate('diet')} className="card p-4 text-left active:scale-95 transition-transform" aria-label="Vai al piano alimentare">
-          <Flame className="w-7 h-7 text-primary-600 mb-2" />
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{completedMeals}/{totalMeals}</p>
-          <p className="text-xs text-gray-500">pasti completati</p>
-        </button>
-        <button onClick={() => onNavigate('gym')} className="card p-4 text-left active:scale-95 transition-transform" aria-label="Vai alla sezione palestra">
-          <Dumbbell className="w-7 h-7 text-accent-600 mb-2" />
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{todayWorkouts.length}</p>
-          <p className="text-xs text-gray-500">allenamenti oggi</p>
-        </button>
-        <button onClick={() => onNavigate('nutrition')} className="card p-4 text-left active:scale-95 transition-transform" aria-label="Vai alla sezione nutrizione">
-          <Droplet className="w-7 h-7 text-blue-500 mb-2" />
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{todayWater}</p>
-          <p className="text-xs text-gray-500">bicchieri / {waterTarget}</p>
-          <ProgressBar value={todayWater} max={waterTarget} color="bg-blue-500" height={6} />
-        </button>
-        <button onClick={() => onNavigate('nutrition')} className="card p-4 text-left active:scale-95 transition-transform" aria-label="Vai agli integratori">
-          <Pill className="w-7 h-7 text-accent-500 mb-2" />
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{takenSupps}</p>
-          <p className="text-xs text-gray-500">integratori presi</p>
-        </button>
-      </div>
+      <section className="grid grid-cols-2 gap-4" aria-label="Riepilogo di oggi">
+        <DashboardTile
+          icon={Flame}
+          tone="primary"
+          value={`${completedMeals}/${totalMeals}`}
+          label="Pasti completati"
+          ariaLabel="Vai al piano alimentare"
+          onClick={() => onNavigate('diet')}
+        />
+        <DashboardTile
+          icon={Dumbbell}
+          tone="accent"
+          value={`${todayWorkouts.length}`}
+          label="Allenamenti oggi"
+          ariaLabel="Vai alla sezione palestra"
+          onClick={() => onNavigate('gym')}
+        />
+        <DashboardTile
+          icon={Droplet}
+          tone="secondary"
+          value={`${todayWater}/${waterTarget}`}
+          label="Bicchieri d'acqua"
+          ariaLabel="Vai alla sezione nutrizione"
+          onClick={() => onNavigate('nutrition')}
+          footer={<ProgressBar value={todayWater} max={waterTarget} color="bg-secondary-500" height={5} />}
+        />
+        <DashboardTile
+          icon={Pill}
+          tone="accent"
+          value={`${takenSupps}`}
+          label="Integratori presi"
+          ariaLabel="Vai agli integratori"
+          onClick={() => onNavigate('nutrition')}
+        />
+      </section>
 
-      {/* Micronutrient alerts */}
       {lowMicros.length > 0 && (
-        <div className="card p-4 border-warning-200 dark:border-warning-800 bg-warning-50 dark:bg-warning-900/20">
-          <div className="flex items-center gap-2 mb-2">
-            <Bell className="w-5 h-5 text-warning-600" />
+        <section className="card border-warning-500/40 p-5">
+          <div className="mb-2 flex items-center gap-2">
+            <Bell className="h-5 w-5 text-warning-600 dark:text-warning-400" strokeWidth={1.75} />
             <h3 className="font-semibold text-warning-800 dark:text-warning-300">Carenze rilevate</h3>
           </div>
-          <p className="text-sm text-warning-700 dark:text-warning-400">
+          <p className="text-sm text-warning-800 dark:text-warning-300">
             Assunzione bassa di: {lowMicros.map((k) => MICRONUTRIENT_TARGETS[k].label).join(', ')}
           </p>
-          <button onClick={() => onNavigate('nutrition')} className="mt-2 text-sm font-medium text-warning-700 dark:text-warning-300">
-            Registra assunzione →
+          <button
+            onClick={() => onNavigate('nutrition')}
+            className="tap-press mt-3 inline-flex items-center gap-1 text-sm font-semibold text-warning-800 hover:underline dark:text-warning-300"
+          >
+            Registra assunzione
+            <ChevronRight className="h-4 w-4" aria-hidden="true" />
           </button>
-        </div>
+        </section>
       )}
     </div>
+  );
+}
+
+const TONE_CLASSES = {
+  primary: 'bg-primary-500/15 text-primary-700 ring-primary-500/25 dark:text-primary-300 dark:ring-primary-400/30',
+  accent: 'bg-accent-500/15 text-accent-700 ring-accent-500/25 dark:text-accent-300 dark:ring-accent-400/30',
+  secondary: 'bg-secondary-500/15 text-secondary-700 ring-secondary-500/25 dark:text-secondary-300 dark:ring-secondary-400/30',
+} as const;
+
+function DashboardTile({ icon: Icon, tone, value, label, ariaLabel, onClick, footer }: {
+  icon: typeof Flame;
+  tone: keyof typeof TONE_CLASSES;
+  value: string;
+  label: string;
+  ariaLabel: string;
+  onClick: () => void;
+  footer?: ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label={ariaLabel}
+      className="card tap-press flex flex-col gap-3 p-4 text-left transition-shadow hover:shadow-lg"
+    >
+      <span className={`flex h-10 w-10 items-center justify-center rounded-xl ring-1 ring-inset ${TONE_CLASSES[tone]}`}>
+        <Icon className="h-5 w-5" strokeWidth={1.75} />
+      </span>
+      <span>
+        <span className="block text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{value}</span>
+        <span className="mt-0.5 block text-xs font-medium text-gray-500 dark:text-gray-400">{label}</span>
+      </span>
+      {footer}
+    </button>
   );
 }
 
@@ -141,11 +189,11 @@ function MacroBar({ icon: Icon, label, value, max, color, unit }: {
 }) {
   return (
     <div>
-      <div className="flex items-center justify-between mb-1">
-        <span className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
-          <Icon className="w-4 h-4" /> {label}
+      <div className="mb-1.5 flex items-center justify-between">
+        <span className="flex items-center gap-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">
+          <Icon className="h-4 w-4" strokeWidth={1.75} /> {label}
         </span>
-        <span className="text-xs font-medium text-gray-500">{value}/{max}{unit}</span>
+        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">{value}/{max}{unit}</span>
       </div>
       <ProgressBar value={value} max={max} color={color} height={6} />
     </div>

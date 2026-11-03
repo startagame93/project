@@ -17,15 +17,6 @@ function isCustom(food: CombinedFood): boolean {
   return !FOOD_DATABASE.some((f) => f.id === food.id);
 }
 
-const CATEGORY_EMOJI: Record<string, string> = {
-  'Cereali': '🌾', 'Legumi': '🫘', 'Carni Bianche': '🍗', 'Carni Rosse': '🥩',
-  'Pesce': '🐟', 'Verdure': '🥬', 'Frutta': '🍎', 'Condimenti': '🫒',
-  'Latticini': '🧀', 'Uova': '🥚', 'Sushi / Piatti Misti': '🍣',
-  'Snack / Dolci': '🍫', 'Bevande': '🥤', 'Frutta Secca': '🥜',
-  'Pasta': '🍝', 'Pane e Pizza': '🍕', 'Salumi': '🍖', 'Vini e Alcolici': '🍷',
-  'Fast Food': '🍔',
-};
-
 export function FoodDatabaseView() {
   const { state, setState } = useApp();
   const [query, setQuery] = useState('');
@@ -137,7 +128,7 @@ export function FoodDatabaseView() {
           </div>
         </>
       ) : (
-        <FoodCatalogTree foods={allFoods} categoryEmoji={CATEGORY_EMOJI} renderFood={renderFood} />
+        <FoodCatalogTree foods={allFoods} renderFood={renderFood} />
       )}
 
       <button
