@@ -1,8 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { calcBMR, calcTDEE, calcLeanMass, calcBMI, getBodyStatus, getBodyAdvice, uid, todayISO, type BodyStatus } from '@/lib/data';
 import { Sheet } from '@/components/Sheet';
 import { Modal } from '@/components/Modal';
+import { ProgressChartsSection } from '@/components/ProgressChartsSection';
 import { ACTIVITY_LEVELS, type BodyMetric, type UserProfile, type Sex } from '@/types';
 import {
   Scale, Plus, TrendingDown, TrendingUp, Activity, Ruler, Trash2,
@@ -33,29 +34,6 @@ export function BodyView() {
   const statusCfg = STATUS_CONFIG[bodyStatus];
   const advice = getBodyAdvice(bodyStatus, state.profile.goal);
   const StatusIcon = statusCfg.icon;
-
-  const chartData = useMemo(() => {
-    if (metrics.length === 0) return null;
-    const weights = metrics.map((m) => m.weight);
-    const fats = metrics.map((m) => m.bodyFat);
-    const minW = Math.min(...weights), maxW = Math.max(...weights);
-    const minF = Math.min(...fats), maxF = Math.max(...fats);
-    const rangeW = maxW - minW || 1;
-    const rangeF = maxF - minF || 1;
-
-    const width = 300, height = 140, padding = 20;
-    const points = metrics.map((m, i) => {
-      const x = padding + (i / Math.max(metrics.length - 1, 1)) * (width - padding * 2);
-      const yW = height - padding - ((m.weight - minW) / rangeW) * (height - padding * 2);
-      const yF = height - padding - ((m.bodyFat - minF) / rangeF) * (height - padding * 2);
-      return { x, yW, yF, date: m.date, weight: m.weight, bodyFat: m.bodyFat };
-    });
-
-    const pathW = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.yW}`).join(' ');
-    const pathF = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.yF}`).join(' ');
-
-    return { points, pathW, pathF, width, height, minW, maxW, minF, maxF };
-  }, [metrics]);
 
   function addMetric(metric: BodyMetric) {
     setState((prev) => ({
@@ -144,45 +122,7 @@ export function BodyView() {
         </div>
       )}
 
-      {/* Progress chart */}
-      {chartData ? (
-        <div className="card p-5">
-          <h2 className="section-title mb-3">Progressi nel Tempo</h2>
-          <svg viewBox={`0 0 ${chartData.width} ${chartData.height}`} className="w-full">
-            {[0, 0.25, 0.5, 0.75, 1].map((t) => (
-              <line
-                key={t}
-                x1={20} x2={chartData.width - 20}
-                y1={20 + t * (chartData.height - 40)}
-                y2={20 + t * (chartData.height - 40)}
-                className="stroke-gray-200 dark:stroke-gray-800"
-                strokeWidth="1"
-              />
-            ))}
-            <path d={chartData.pathW} fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d={chartData.pathF} fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="4 2" />
-            {chartData.points.map((p, i) => (
-              <g key={i}>
-                <circle cx={p.x} cy={p.yW} r="4" fill="#10b981" />
-                <circle cx={p.x} cy={p.yF} r="4" fill="#f59e0b" />
-              </g>
-            ))}
-          </svg>
-          <div className="flex items-center gap-4 mt-2 text-xs">
-            <span className="flex items-center gap-1.5">
-              <span className="w-3 h-0.5 bg-primary-500"></span> Peso (kg)
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-3 h-0.5 bg-accent-500" style={{ borderTop: '2px dashed #f59e0b' }}></span> Body Fat (%)
-            </span>
-          </div>
-        </div>
-      ) : (
-        <div className="card p-8 text-center">
-          <Scale className="w-10 h-10 text-gray-300 dark:text-gray-700 mx-auto mb-2" />
-          <p className="text-gray-500 mb-4">Nessuna misurazione registrata</p>
-        </div>
-      )}
+      <ProgressChartsSection />
 
       {/* History */}
       {metrics.length > 0 && (
