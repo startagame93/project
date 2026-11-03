@@ -7,8 +7,8 @@ interface ProgressBarProps {
 }
 
 export function ProgressBar({ value, max, color = 'bg-primary-500', height = 8, showOverflow = false }: ProgressBarProps) {
-  const pct = Math.min((value / max) * 100, showOverflow ? 100 : 100);
-  const overflow = value > max;
+  const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
+  const overflow = max > 0 && value > max;
 
   return (
     <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden" style={{ height }}>

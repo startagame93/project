@@ -81,17 +81,26 @@ export function LineChart({ points, unit, color, band }: LineChartProps) {
         )}
         <path d={path} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
         {coords.map((c, i) => (
-          <circle
-            key={points[i].date + i}
-            cx={c.x}
-            cy={c.y}
-            r={i === active ? 5 : 3.5}
-            fill={color}
-            className="cursor-pointer"
-            onClick={() => setSelected(i)}
-          >
-            <title>{`${longDate(points[i].date)}: ${formatValue(points[i].value)} ${unit}`}</title>
-          </circle>
+          <g key={points[i].date + i}>
+            <circle
+              cx={c.x}
+              cy={c.y}
+              r={i === active ? 5 : 3.5}
+              fill={color}
+              className="pointer-events-none"
+            >
+              <title>{`${longDate(points[i].date)}: ${formatValue(points[i].value)} ${unit}`}</title>
+            </circle>
+            <circle
+              cx={c.x}
+              cy={c.y}
+              r={14}
+              fill="transparent"
+              className="cursor-pointer"
+              onClick={() => setSelected(i)}
+              aria-label={`${longDate(points[i].date)}: ${formatValue(points[i].value)} ${unit}`}
+            />
+          </g>
         ))}
       </svg>
       <div className="mt-2 flex items-center justify-between rounded-xl bg-gray-50 dark:bg-gray-800 px-3 py-2">
