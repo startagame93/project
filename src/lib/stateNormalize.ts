@@ -33,6 +33,7 @@ export function mergeState(input: unknown): AppState {
     notifications: { ...base.notifications, ...(isObj(parsed.notifications) ? parsed.notifications : {}) },
     onboardingComplete: parsed.onboardingComplete === true,
     lastChangelogVersion: typeof parsed.lastChangelogVersion === 'string' ? parsed.lastChangelogVersion : '',
+    seenManualSections: arr<unknown>(parsed.seenManualSections).filter((s): s is string => typeof s === 'string'),
     mealHistory: isObj(parsed.mealHistory) ? (parsed.mealHistory as AppState['mealHistory']) : {},
     dayChecks: isObj(parsed.dayChecks) ? (parsed.dayChecks as AppState['dayChecks']) : {},
   };

@@ -28,6 +28,7 @@
 - Le interfacce di catalogo, privacy, segnalazioni, amministrazione e sincronizzazione devono restare leggibili e utilizzabili su mobile e desktop.
 - Lo scanner deve mostrare il codice riconosciuto e lasciare all’utente il controllo esplicito dell’avvio della ricerca; prevedere un’azione chiara per ripetere la scansione quando la lettura è dubbia.
 - I risultati Gemini devono essere distinguibili dai dati verificati e richiedere conferma o revisione manuale prima del salvataggio.
+- Nel manuale d’uso, le funzioni introdotte di recente sono marcate con un tag “New/Nuovo”; il tag scompare quando l’utente espande la relativa sezione, evitando di riproporre una novità già consultata.
 
 ## Decisions, constraints & rationale
 
@@ -40,16 +41,18 @@
 - Quando il codice non è disponibile nel catalogo locale, il flusso prova Open Food Facts e usa Gemini come ulteriore fallback per ottenere macronutrienti sintetici per 100 g.
 - Gemini viene chiamato tramite servizio server-side; il risultato è mostrato con avviso di verifica prima del salvataggio. In assenza del servizio è disponibile l’inserimento manuale.
 - Il catalogo e i dati applicativi usano Supabase per la persistenza server-side; le segnalazioni restano isolate per utente e aggregate per l’amministrazione.
-- La persistenza applicativa è ora offline-first tramite IndexedDB. I dati restano sul dispositivo e vengono sincronizzati alla riconnessione, senza dipendere da una singola copia locale sovrascritta.
+- La persistenza applicativa è offline-first tramite IndexedDB. I dati restano sul dispositivo e vengono sincronizzati alla riconnessione, senza dipendere da una singola copia locale sovrascritta.
 - I dati preesistenti nella vecchia memoria del browser vengono importati automaticamente al primo avvio del nuovo strato IndexedDB.
 - Il sync usa salvataggio condizionale sulla versione letta: se un altro dispositivo ha scritto, il client rilegge, unisce e riprova invece di sovrascrivere.
 - Il merge avviene per identificativo di pasti, giorni e settimane; le aggiunte offline di dispositivi diversi vengono conservate e i duplicati evitati. Se lo stesso pasto è modificato offline in conflitto, prevale la versione del dispositivo che sta sincronizzando.
 - Il logout lascia sul dispositivo i dati non ancora inviati, destinati alla sincronizzazione al successivo accesso dello stesso account. Reset locale e recupero da crash devono preservare i dati ancora non sincronizzati.
+- Le sezioni già aperte del manuale vengono registrate nello stato applicativo con riferimento alla versione corrente delle novità; il tag resta nascosto dopo il reload e sugli altri dispositivi dell’account.
+- Il comportamento del tag è implementato; typecheck e build passano. Rimane un warning relativo alla dimensione del bundle, non bloccante.
 - Il merge è stato verificato con sei prove isolate, inclusi aggiunte offline, duplicati, cancellazioni e modifiche concorrenti. Typecheck e build sono passati.
-- Non sono ancora disponibili test su telefono reale, modalità aereo o due dispositivi contemporaneamente.
 
 ## Open questions & assumptions
 
+- Verificare nell’app in esecuzione che il tag del manuale sparisca all’espansione, resti nascosto dopo un reload e si comporti correttamente per versioni successive delle novità.
 - Testare il sync reale con due dispositivi/account sessioni, offline prolungato, riconnessione simultanea, crash e retry falliti.
 - Definire e verificare la gestione di conflitti più fini: cancellazione contro modifica, modifica di campi diversi dello stesso pasto e ordine delle operazioni.
 - Confermare il comportamento di logout, cambio account e dispositivo condiviso per evitare che dati locali vengano associati all’account errato.
@@ -61,3 +64,4 @@
 - Completare audit con tastiera e lettore di schermo per focus, pannelli dinamici, controlli icon-only e messaggi live.
 - Definire fonti, licenze e pipeline di normalizzazione, deduplicazione semantica e controllo nutrizionale per arrivare a 4.000 e poi circa 10.000 alimenti.
 - Verificare in ambiente reale RLS, ruoli admin, accesso alle segnalazioni, rate limiting, audit logging, retention e cancellazione associata all’account.
+- Non sono ancora disponibili test su telefono reale, modalità aereo o due dispositivi c…

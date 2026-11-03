@@ -3,6 +3,7 @@ import { Modal } from '@/components/Modal';
 import { Info, Flame, ChevronDown, ChevronUp } from 'lucide-react';
 import { MANUAL_SECTIONS, NEW_SECTIONS, APP_VERSION, APP_VERSION_LABEL } from '@/lib/manual';
 import { GuideContent } from '@/components/GuideContent';
+import { useApp } from '@/context/AppContext';
 
 function NewBadge() {
   return (
@@ -12,6 +13,15 @@ function NewBadge() {
 
 export function InfoScreen({ onClose }: { onClose: () => void }) {
   const [expanded, setExpanded] = useState<string | null>(null);
+  const { state, setState } = useApp();
+  const seen = state.seenManualSections ?? [];
+
+  const toggleSection = (title: string, opening: boolean) => {
+    setExpanded(opening ? title : null);
+    if (opening && !seen.includes(title)) {
+      setState((prev) => ({ ...prev, seenManualSections: [...(prev.seenManualSections ?? []), title] }));
+    }
+  };
 
   return (
     <Modal open onClose={onClose} title="Manuale d'uso" icon={Info}>
@@ -20,10 +30,11 @@ export function InfoScreen({ onClose }: { onClose: () => void }) {
         {MANUAL_SECTIONS.map((section) => {
           const Icon = section.icon;
           const isOpen = expanded === section.title;
+          const isNew = section.since === APP_VERSION && !seen.includes(section.title);
           return (
             <div key={section.title} className="rounded-xl bg-gray-50 dark:bg-gray-800 overflow-hidden">
               <button
-                onClick={() => setExpanded(isOpen ? null : section.title)}
+                onClick={() => toggleSection(section.title, !isOpen)}
                 className="w-full flex items-center gap-3 p-3 text-left"
                 aria-expanded={isOpen}
               >
@@ -31,7 +42,7 @@ export function InfoScreen({ onClose }: { onClose: () => void }) {
                   <Icon className="w-5 h-5 text-primary-600 dark:text-primary-400" />
                 </div>
                 <span className="flex-1 text-sm font-medium text-gray-900 dark:text-white">{section.title}</span>
-                {section.since === APP_VERSION && <NewBadge />}
+                {isNew && <NewBadge />}
                 {isOpen ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
               </button>
               {isOpen && (

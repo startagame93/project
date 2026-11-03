@@ -273,6 +273,7 @@ export interface AppState {
   workoutLogs: WorkoutLog[];
   onboardingComplete: boolean;
   lastChangelogVersion?: string;
+  seenManualSections?: string[];
   palette?: string;
   mealHistory?: Record<string, MealHistoryEntry[]>;
   dayChecks?: Record<string, boolean>;
