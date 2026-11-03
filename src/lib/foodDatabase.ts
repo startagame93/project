@@ -1,5 +1,9 @@
 import { EXTRA_FOODS } from '@/lib/foodExtra';
 import { CUISINE_FOODS } from '@/lib/foodCuisine';
+import { PRODUCE_FOODS } from '@/lib/foodCatalogProduce';
+import { PROTEIN_FOODS } from '@/lib/foodCatalogProteins';
+import { WORLD_FOODS } from '@/lib/foodCatalogWorld';
+import { PANTRY_FOODS } from '@/lib/foodCatalogPantry';
 
 export interface FoodEntry {
   id: string;
@@ -792,11 +796,11 @@ const BASE_FOODS: FoodEntry[] = [
 ];
 
 const baseIds = new Set(BASE_FOODS.map((f) => f.id));
-export const FOOD_DATABASE: FoodEntry[] = [
-  ...BASE_FOODS,
-  ...EXTRA_FOODS.filter((f) => !baseIds.has(f.id)),
-  ...CUISINE_FOODS.filter((f) => !baseIds.has(f.id)),
-];
+const addedById = new Map<string, FoodEntry>();
+for (const f of [...EXTRA_FOODS, ...CUISINE_FOODS, ...PRODUCE_FOODS, ...PROTEIN_FOODS, ...WORLD_FOODS, ...PANTRY_FOODS]) {
+  if (!baseIds.has(f.id) && !addedById.has(f.id)) addedById.set(f.id, f);
+}
+export const FOOD_DATABASE: FoodEntry[] = [...BASE_FOODS, ...addedById.values()];
 
 // Synonyms map for fuzzy matching: normalized name -> FoodEntry id
 const SYNONYMS: Record<string, string> = {
