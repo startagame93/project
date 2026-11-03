@@ -59,7 +59,7 @@ function cutoffFor(range: RangeKey, today: string): string | null {
   return localISO(d);
 }
 
-function inRange(date: string, range: RangeKey, today: string): boolean {
+export function inRange(date: string, range: RangeKey, today: string): boolean {
   const cutoff = cutoffFor(range, today);
   return cutoff === null || date >= cutoff;
 }

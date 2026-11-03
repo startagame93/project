@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { Flame, Scale, Sprout, type LucideIcon } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
-import { localISO, todayISO } from '@/lib/data';
+import { todayISO } from '@/lib/data';
 import { LineChart } from '@/components/LineChart';
-import type { SeriesPoint } from '@/lib/progressSeries';
+import {
+  RANGE_OPTIONS, buildBodySeries, buildMicroSeries, inRange,
+  type RangeKey, type SeriesPoint,
+} from '@/lib/progressSeries';
 import { MICRONUTRIENT_TARGETS, type AppState, type MicronutrientKey } from '@/types';
 
 type Metric = 'weight' | 'calories' | 'micro';
@@ -16,47 +19,29 @@ const METRICS: { value: Metric; label: string; icon: LucideIcon; color: string }
 
 const MICRO_KEYS = Object.keys(MICRONUTRIENT_TARGETS) as MicronutrientKey[];
 
-function lastDays(today: string, count: number): string[] {
-  const base = new Date(`${today}T00:00:00`);
-  return Array.from({ length: count }, (_, i) => {
-    const d = new Date(base);
-    d.setDate(base.getDate() - (count - 1 - i));
-    return localISO(d);
-  });
-}
-
-function valueOn(state: AppState, metric: Metric, micro: MicronutrientKey, date: string): number | null {
-  if (metric === 'weight') {
-    const entries = state.bodyMetrics.filter((m) => m.date === date && m.weight > 0);
-    return entries.length ? entries[entries.length - 1].weight : null;
-  }
-  if (metric === 'calories') {
-    const meals = state.mealHistory?.[date];
-    if (!meals || meals.length === 0) return null;
-    return meals.reduce((sum, m) => sum + m.calories, 0);
-  }
-  const log = state.micronutrientLogs.find((l) => l.date === date);
-  const value = log?.[micro];
-  return typeof value === 'number' && value > 0 ? value : null;
+function seriesFor(state: AppState, metric: Metric, micro: MicronutrientKey, range: RangeKey, today: string): SeriesPoint[] {
+  if (metric === 'weight') return buildBodySeries(state.bodyMetrics, 'weight', range, today);
+  if (metric === 'micro') return buildMicroSeries(state.micronutrientLogs, micro, range, today);
+  return Object.entries(state.mealHistory ?? {})
+    .filter(([date, meals]) => meals.length > 0 && inRange(date, range, today))
+    .map(([date, meals]) => ({ date, value: meals.reduce((sum, m) => sum + m.calories, 0) }))
+    .sort((a, b) => a.date.localeCompare(b.date));
 }
 
 function formatNumber(value: number): string {
   return value.toLocaleString('it-IT', { maximumFractionDigits: 1 });
 }
 
-export function WeeklyTrendsCard() {
+export function TrendsCard() {
   const { state } = useApp();
   const [metric, setMetric] = useState<Metric>('weight');
   const [micro, setMicro] = useState<MicronutrientKey>('potassium');
+  const [range, setRange] = useState<RangeKey>('3m');
 
-  const days = lastDays(todayISO(), 7);
+  const today = todayISO();
   const active = METRICS.find((m) => m.value === metric) ?? METRICS[0];
   const target = MICRONUTRIENT_TARGETS[micro];
-
-  const points: SeriesPoint[] = days.flatMap((date) => {
-    const value = valueOn(state, metric, micro, date);
-    return value === null ? [] : [{ date, value }];
-  });
+  const points = seriesFor(state, metric, micro, range, today);
 
   const unit = metric === 'weight' ? 'kg' : metric === 'calories' ? 'kcal' : target.unit;
   const band = metric === 'micro' ? { min: target.min, max: target.max } : undefined;
@@ -66,10 +51,10 @@ export function WeeklyTrendsCard() {
   const change = points.length >= 2 ? points[points.length - 1].value - points[0].value : null;
 
   return (
-    <section className="card p-5 space-y-4" aria-labelledby="weekly-trends-title">
+    <section className="card space-y-4 p-5" aria-labelledby="trends-title">
       <div>
-        <h2 id="weekly-trends-title" className="section-title">Andamento settimanale</h2>
-        <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">Ultimi 7 giorni</p>
+        <h2 id="trends-title" className="section-title">Andamento nel tempo</h2>
+        <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">Tocca un punto del grafico per leggere il valore</p>
       </div>
 
       <div className="flex gap-1 rounded-xl bg-gray-100 p-1 dark:bg-white/5" role="tablist" aria-label="Dato da visualizzare">
@@ -115,7 +100,25 @@ export function WeeklyTrendsCard() {
         </div>
       )}
 
-      <div key={`${metric}-${micro}`} className="animate-fade-in">
+      <div className="flex gap-1.5" role="radiogroup" aria-label="Periodo">
+        {RANGE_OPTIONS.map((r) => (
+          <button
+            key={r.value}
+            role="radio"
+            aria-checked={range === r.value}
+            onClick={() => setRange(r.value)}
+            className={`tap-press flex-1 rounded-lg border py-1.5 text-xs font-medium transition-colors ${
+              range === r.value
+                ? 'border-primary-500 bg-primary-500/10 text-primary-700 dark:text-primary-300'
+                : 'border-gray-200 text-gray-500 dark:border-white/10 dark:text-gray-400'
+            }`}
+          >
+            {r.label}
+          </button>
+        ))}
+      </div>
+
+      <div key={`${metric}-${micro}-${range}`} className="animate-fade-in">
         <LineChart points={points} unit={unit} color={active.color} band={band} />
       </div>
 
