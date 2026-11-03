@@ -92,10 +92,10 @@ export function FoodCatalogTree<T extends FoodEntry>({ foods, categoryEmoji, ren
               type="button"
               onClick={() => toggleCategory(category.name)}
               aria-expanded={categoryOpen}
-              className="w-full flex items-center justify-between gap-3 p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+              className={`group tap-press w-full flex items-center justify-between gap-3 p-4 text-left hover:bg-primary-50/60 dark:hover:bg-primary-900/20 ${categoryOpen ? 'bg-primary-50/70 dark:bg-primary-900/20' : ''}`}
             >
               <span className="flex items-center gap-3 min-w-0">
-                <span className="text-xl" aria-hidden="true">{categoryEmoji[category.name] ?? '🍽️'}</span>
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary-100/80 dark:bg-primary-900/40 text-xl transition-transform duration-300 group-hover:scale-105" aria-hidden="true">{categoryEmoji[category.name] ?? '🍽️'}</span>
                 <span className="font-semibold text-gray-900 dark:text-white truncate">{category.name}</span>
               </span>
               <span className="flex items-center gap-2 text-xs text-gray-500 shrink-0">
@@ -108,7 +108,7 @@ export function FoodCatalogTree<T extends FoodEntry>({ foods, categoryEmoji, ren
             </button>
 
             {categoryOpen && (
-              <div className="border-t border-gray-100 dark:border-gray-800 p-2 space-y-1 animate-fade-in">
+              <div className="border-t border-white/60 dark:border-white/[0.06] p-2 space-y-1 animate-slide-down">
                 {category.families.map((family) => {
                   const key = `${category.name}::${family.name}`;
                   const familyOpen = openFamily === key;
@@ -118,10 +118,10 @@ export function FoodCatalogTree<T extends FoodEntry>({ foods, categoryEmoji, ren
                         type="button"
                         onClick={() => toggleFamily(key)}
                         aria-expanded={familyOpen}
-                        className="w-full flex items-center justify-between gap-3 px-3 py-3 rounded-xl text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                        className={`group tap-press w-full flex items-center justify-between gap-3 px-3 py-3 rounded-xl text-left hover:bg-primary-50/60 dark:hover:bg-primary-900/20 ${familyOpen ? 'bg-primary-50/80 dark:bg-primary-900/25' : ''}`}
                       >
                         <span className="flex items-center gap-3 min-w-0">
-                          <span className="text-base" aria-hidden="true">{familyEmoji(family.name, categoryEmoji[category.name])}</span>
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/80 dark:bg-gray-800/70 text-base transition-transform duration-300 group-hover:scale-105" aria-hidden="true">{familyEmoji(family.name, categoryEmoji[category.name])}</span>
                           <span className="font-medium text-sm text-gray-800 dark:text-gray-200 truncate">{family.name}</span>
                         </span>
                         <span className="flex items-center gap-2 text-xs text-gray-500 shrink-0">
@@ -134,7 +134,7 @@ export function FoodCatalogTree<T extends FoodEntry>({ foods, categoryEmoji, ren
                       </button>
 
                       {familyOpen && (
-                        <div className="pl-2 pb-2 pt-1 space-y-2 animate-fade-in">
+                        <div className="pl-2 pb-2 pt-1 space-y-2 animate-slide-down">
                           {family.foods.map((food) => (
                             <Fragment key={food.id}>{renderFood(food)}</Fragment>
                           ))}

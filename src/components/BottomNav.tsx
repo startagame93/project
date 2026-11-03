@@ -26,7 +26,7 @@ interface BottomNavProps {
 
 export function BottomNav({ active, onChange }: BottomNavProps) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 safe-bottom" role="navigation" aria-label="Barra di navigazione principale">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border-t border-white/80 dark:border-white/[0.07] safe-bottom" role="navigation" aria-label="Barra di navigazione principale">
       <div className="max-w-md mx-auto flex items-center justify-around px-1 py-1.5 overflow-x-auto no-scrollbar">
         {TABS.map((tab) => {
           const Icon = tab.icon;
@@ -35,16 +35,16 @@ export function BottomNav({ active, onChange }: BottomNavProps) {
             <button
               key={tab.key}
               onClick={() => onChange(tab.key)}
-              className="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all duration-200 shrink-0"
+              className="tap-press flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl shrink-0"
               aria-label={tab.label}
               aria-current={isActive ? 'page' : undefined}
               role="tab"
               aria-selected={isActive}
             >
-              <div className={`p-1 rounded-lg transition-all duration-200 ${isActive ? 'bg-primary-100 dark:bg-primary-900/30 scale-110' : 'scale-100'}`}>
-                <Icon className={`w-5 h-5 ${isActive ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400 dark:text-gray-600'}`} strokeWidth={isActive ? 2.5 : 2} />
+              <div className={`p-1 rounded-lg transition-all duration-300 ${isActive ? 'bg-primary-100 dark:bg-primary-900/40 scale-110 shadow-[0_0_16px_-2px_rgb(var(--c-primary-400)/0.6)]' : 'scale-100'}`}>
+                <Icon className={`w-5 h-5 transition-colors duration-200 ${isActive ? 'text-primary-700 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400'}`} strokeWidth={isActive ? 2.5 : 2} />
               </div>
-              <span className={`text-[9px] font-medium ${isActive ? 'text-primary-600 dark:text-primary-400 opacity-100' : 'text-gray-400 dark:text-gray-600 opacity-70'}`}>{tab.label}</span>
+              <span className={`text-[9px] font-medium transition-colors duration-200 ${isActive ? 'text-primary-700 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400'}`}>{tab.label}</span>
             </button>
           );
         })}

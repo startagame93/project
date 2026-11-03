@@ -14,6 +14,7 @@ const RAMPS = {
   cyan: 'ecfeff cffafe a5f3fc 67e8f9 22d3ee 06b6d4 0891b2 0e7490 155e75 164e63 083344',
   slate: 'f8fafc f1f5f9 e2e8f0 cbd5e1 94a3b8 64748b 475569 334155 1e293b 0f172a 020617',
   zinc: 'fafafa f4f4f5 e4e4e7 d4d4d8 a1a1aa 71717a 52525b 3f3f46 27272a 18181b 09090b',
+  neon: 'f0fff5 d9ffe8 b3ffd0 7dfbb0 42f08a 1fdc6e 0b7a32 087031 075a2a 06441f 022d13',
   pink: 'fdf2f8 fce7f3 fbcfe8 f9a8d4 f472b6 ec4899 db2777 be185d 9d174d 831843 500724',
   yellow: 'fefce8 fef9c3 fef08a fde047 facc15 eab308 ca8a04 a16207 854d0e 713f12 422006',
   stone: 'fafaf9 f5f5f4 e7e5e4 d6d3d1 a8a29e 78716c 57534e 44403c 292524 1c1917 0c0a09',
@@ -40,6 +41,7 @@ export interface Palette {
 }
 
 export const PALETTES: Palette[] = [
+  { id: 'neon', name: 'Fresh Organic & Neon', primary: 'neon', secondary: 'emerald', accent: 'orange', neutral: { hue: 150, satLight: 18, satDark: 32 } },
   { id: 'smeraldo', name: 'Smeraldo', primary: 'emerald', secondary: 'teal', accent: 'amber', neutral: { hue: 220, satLight: 14, satDark: 18 } },
   { id: 'oceano', name: 'Oceano', primary: 'blue', secondary: 'sky', accent: 'orange', neutral: { hue: 215, satLight: 30, satDark: 42 } },
   { id: 'petrolio', name: 'Petrolio', primary: 'cyan', secondary: 'teal', accent: 'rose', neutral: { hue: 195, satLight: 28, satDark: 45 } },
@@ -54,7 +56,7 @@ export const PALETTES: Palette[] = [
   { id: 'cyberpunk', name: 'Cyberpunk', primary: 'pink', secondary: 'cyan', accent: 'yellow', neutral: { hue: 265, satLight: 12, satDark: 30, black: true }, amoled: true },
 ];
 
-export const DEFAULT_PALETTE = 'smeraldo';
+export const DEFAULT_PALETTE = 'neon';
 
 const NEUTRAL_LIGHTNESS = [98, 96, 91, 84, 65, 46, 34, 26, 17, 11, 6];
 

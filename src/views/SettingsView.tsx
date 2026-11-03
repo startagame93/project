@@ -3,7 +3,7 @@ import { useApp, type SyncStatus } from '@/context/AppContext';
 import { mergeState } from '@/lib/stateNormalize';
 import { useAuth } from '@/context/AuthContext';
 import { signOut, updateProfileMetrics } from '@/lib/supabase';
-import { PALETTES, paletteSwatch } from '@/lib/palettes';
+import { PALETTES, DEFAULT_PALETTE, paletteSwatch } from '@/lib/palettes';
 import { buildCsv, downloadFile } from '@/lib/exportData';
 import { Modal } from '@/components/Modal';
 import { DeleteAccountSection } from '@/components/DeleteAccountSection';
@@ -106,7 +106,7 @@ export function SettingsView({ onNavigate }: { onNavigate: (tab: 'shopping') => 
         <p className="text-xs font-medium text-gray-500 mt-4 mb-2">Palette colori</p>
         <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 snap-x" role="radiogroup" aria-label="Palette colori">
           {PALETTES.map((p) => {
-            const active = (state.palette ?? 'smeraldo') === p.id;
+            const active = (state.palette ?? DEFAULT_PALETTE) === p.id;
             const sw = paletteSwatch(p);
             return (
               <button
