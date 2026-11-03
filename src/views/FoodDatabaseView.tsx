@@ -3,10 +3,10 @@ import { useApp } from '@/context/AppContext';
 import { FOOD_DATABASE, FOOD_CATEGORIES, type FoodEntry } from '@/lib/foodDatabase';
 import { uid, parseNonNegative } from '@/lib/data';
 import { Sheet } from '@/components/Sheet';
-import { FOOD_FAMILIES, getFoodFamily } from '@/lib/foodFamilies';
 import { FoodPicker } from '@/components/food/FoodPicker';
+import { FoodCatalogTree } from '@/components/food/FoodCatalogTree';
 import { BarcodeScanner } from '@/components/food/BarcodeScanner';
-import { Search, Plus, Pencil, Trash2, BookOpen, Check, ChevronDown, ChevronUp, Calendar, Utensils, Repeat, ArrowRight, ScanBarcode } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, BookOpen, Check, ChevronDown, Calendar, Utensils, Repeat, ArrowRight, ScanBarcode } from 'lucide-react';
 import type { CustomFoodEntry, MealType, Meal } from '@/types';
 import { MEAL_TYPES, DAYS_OF_WEEK } from '@/types';
 
@@ -25,108 +25,25 @@ const CATEGORY_EMOJI: Record<string, string> = {
   'Fast Food': '🍔',
 };
 
-const KEYWORD_EMOJI: { kw: string; emoji: string }[] = [
-  { kw: 'riso', emoji: '🍚' }, { kw: 'pasta', emoji: '🍝' }, { kw: 'pane', emoji: '🍞' },
-  { kw: 'pizza', emoji: '🍕' }, { kw: 'pollo', emoji: '🍗' }, { kw: 'tacchino', emoji: '🦃' },
-  { kw: 'manzo', emoji: '🥩' }, { kw: 'salmone', emoji: '🐟' }, { kw: 'tonno', emoji: '🐟' },
-  { kw: 'merluzzo', emoji: '🐟' }, { kw: 'gamberi', emoji: '🦐' }, { kw: 'calamari', emoji: '🦑' },
-  { kw: 'cozze', emoji: '🦪' }, { kw: 'uovo', emoji: '🥚' }, { kw: 'albume', emoji: '🥚' },
-  { kw: 'latte', emoji: '🥛' }, { kw: 'yogurt', emoji: '🥛' }, { kw: 'mozzarella', emoji: '🧀' },
-  { kw: 'parmigiano', emoji: '🧀' }, { kw: 'formaggio', emoji: '🧀' }, { kw: 'ricotta', emoji: '🧀' },
-  { kw: 'mela', emoji: '🍎' }, { kw: 'banana', emoji: '🍌' }, { kw: 'arancia', emoji: '🍊' },
-  { kw: 'limone', emoji: '🍋' }, { kw: 'uva', emoji: '🍇' }, { kw: 'fragole', emoji: '🍓' },
-  { kw: 'kiwi', emoji: '🥝' }, { kw: 'ananas', emoji: '🍍' }, { kw: 'anguria', emoji: '🍉' },
-  { kw: 'melone', emoji: '🍈' }, { kw: 'avocado', emoji: '🥑' }, { kw: 'pomodoro', emoji: '🍅' },
-  { kw: 'patate', emoji: '🥔' }, { kw: 'carote', emoji: '🥕' }, { kw: 'broccoli', emoji: '🥦' },
-  { kw: 'insalata', emoji: '🥗' }, { kw: 'spinaci', emoji: '🥬' }, { kw: 'cipolle', emoji: '🧅' },
-  { kw: 'aglio', emoji: '🧄' }, { kw: 'peperoni', emoji: '🫑' }, { kw: 'zucchine', emoji: '🥒' },
-  { kw: 'melanzane', emoji: '🍆' }, { kw: 'funghi', emoji: '🍄' }, { kw: 'zucca', emoji: '🎃' },
-  { kw: 'mandorle', emoji: '🌰' }, { kw: 'noci', emoji: '🌰' }, { kw: 'nocciole', emoji: '🌰' },
-  { kw: 'pistacchi', emoji: '🌰' }, { kw: 'arachidi', emoji: '🥜' }, { kw: 'datteri', emoji: '🌴' },
-  { kw: 'olio', emoji: '🫒' }, { kw: 'burro', emoji: '🧈' }, { kw: 'miele', emoji: '🍯' },
-  { kw: 'zucchero', emoji: '🧂' }, { kw: 'sale', emoji: '🧂' }, { kw: 'caffe', emoji: '☕' },
-  { kw: 'the', emoji: '🍵' }, { kw: 'cappuccino', emoji: '☕' }, { kw: 'cioccolato', emoji: '🍫' },
-  { kw: 'gelato', emoji: '🍦' }, { kw: 'biscotti', emoji: '🍪' }, { kw: 'croissant', emoji: '🥐' },
-  { kw: 'patatine', emoji: '🍟' }, { kw: 'popcorn', emoji: '🍿' }, { kw: 'sushi', emoji: '🍣' },
-  { kw: 'sashimi', emoji: '🍣' }, { kw: 'tempura', emoji: '🍤' }, { kw: 'ramen', emoji: '🍜' },
-  { kw: 'udon', emoji: '🍜' }, { kw: 'gyoza', emoji: '🥟' }, { kw: 'tofu', emoji: '🧈' },
-  { kw: 'edamame', emoji: '🫛' }, { kw: 'hummus', emoji: '🥙' }, { kw: 'pesto', emoji: '🌿' },
-  { kw: 'soia', emoji: '🫘' }, { kw: 'lenticchie', emoji: '🫘' }, { kw: 'ceci', emoji: '🫘' },
-  { kw: 'fagioli', emoji: '🫘' }, { kw: 'piselli', emoji: '🫛' }, { kw: 'fave', emoji: '🫛' },
-  { kw: 'prosciutto', emoji: '🍖' }, { kw: 'bresaola', emoji: '🍖' }, { kw: 'salsiccia', emoji: '🌭' },
-  { kw: 'pancetta', emoji: '🥓' }, { kw: 'wurstel', emoji: '🌭' }, { kw: 'acqua', emoji: '💧' },
-  { kw: 'birra', emoji: '🍺' }, { kw: 'vino', emoji: '🍷' }, { kw: 'succo', emoji: '🧃' },
-  { kw: 'smoothie', emoji: '🥤' }, { kw: 'frullato', emoji: '🥤' }, { kw: 'kefir', emoji: '🥛' },
-  { kw: 'frittata', emoji: '🍳' }, { kw: 'tuorlo', emoji: '🥚' }, { kw: 'cous', emoji: '🍚' },
-  { kw: 'quinoa', emoji: '🌾' }, { kw: 'avena', emoji: '🥣' }, { kw: 'farro', emoji: '🌾' },
-  { kw: 'grano', emoji: '🌾' }, { kw: 'crackers', emoji: '🍘' }, { kw: 'tortilla', emoji: '🫓' },
-  { kw: 'polenta', emoji: '🌽' }, { kw: 'muesli', emoji: '🥣' }, { kw: 'cornflakes', emoji: '🥣' },
-  { kw: 'nutella', emoji: '🍫' }, { kw: 'marmellata', emoji: '🍯' }, { kw: 'ketchup', emoji: '🥫' },
-  { kw: 'maionese', emoji: '🥚' }, { kw: 'salsa', emoji: '🥫' }, { kw: 'aceto', emoji: '🫗' },
-  { kw: 'passata', emoji: '🍅' }, { kw: 'olive', emoji: '🫒' }, { kw: 'barretta', emoji: '🍫' },
-  { kw: 'pudding', emoji: '🍮' }, { kw: 'tisana', emoji: '🍵' }, { kw: 'chinotto', emoji: '🥤' },
-  { kw: 'cocco', emoji: '🥥' }, { kw: 'mandarino', emoji: '🍊' }, { kw: 'pompelmo', emoji: '🍊' },
-  { kw: 'mango', emoji: '🥭' }, { kw: 'pesca', emoji: '🍑' }, { kw: 'ciliegie', emoji: '🍒' },
-  { kw: 'fichi', emoji: '🍂' }, { kw: 'albicocca', emoji: '🍑' }, { kw: 'pera', emoji: '🍐' },
-  { kw: 'sedano', emoji: '🌱' }, { kw: 'asparagi', emoji: '🌱' }, { kw: 'finocchi', emoji: '🌱' },
-  { kw: 'radicchio', emoji: '🥬' }, { kw: 'cavolo', emoji: '🥬' }, { kw: 'verze', emoji: '🥬' },
-  { kw: 'rape', emoji: '🥬' }, { kw: 'cetrioli', emoji: '🥒' }, { kw: 'rucola', emoji: '🌿' },
-  { kw: 'cicoria', emoji: '🌿' }, { kw: 'lattuga', emoji: '🥬' }, { kw: 'fagiolini', emoji: '🫛' },
-  { kw: 'surgelati', emoji: '🧊' }, { kw: 'scatola', emoji: '🥫' }, { kw: 'affumicato', emoji: '💨' },
-  { kw: 'arrosto', emoji: '🍗' }, { kw: 'cantonese', emoji: '🍚' }, { kw: 'noodles', emoji: '🍜' },
-  { kw: 'jolly', emoji: '🍽️' }, { kw: 'misto', emoji: '🍽️' }, { kw: 'caciotta', emoji: '🧀' },
-  { kw: 'feta', emoji: '🧀' }, { kw: 'gorgonzola', emoji: '🧀' }, { kw: 'stracchino', emoji: '🧀' },
-  { kw: 'fontina', emoji: '🧀' }, { kw: 'asiago', emoji: '🧀' }, { kw: 'philadelphia', emoji: '🧀' },
-  { kw: 'robiola', emoji: '🧀' }, { kw: 'cottage', emoji: '🧀' }, { kw: 'grana', emoji: '🧀' },
-  { kw: 'pecorino', emoji: '🧀' }, { kw: 'uvetta', emoji: '🍇' }, { kw: 'prugne', emoji: '🌑' },
-  { kw: 'semi', emoji: '🌱' }, { kw: 'tahina', emoji: '🥜' }, { kw: 'harissa', emoji: '🌶️' },
-  { kw: 'senape', emoji: '🌶️' }, { kw: 'worchester', emoji: '🥫' }, { kw: 'tartara', emoji: '🥽' },
-  { kw: 'vinaigrette', emoji: '🫗' }, { kw: 'panna', emoji: '🥛' }, { kw: 'margarina', emoji: '🧈' },
-  { kw: 'sorbetto', emoji: '🍧' }, { kw: 'tiramisu', emoji: '🍰' }, { kw: 'ciambella', emoji: '🍩' },
-];
-
-function getFoodEmoji(name: string, category: string): string {
-  const lower = name.toLowerCase();
-  for (const { kw, emoji } of KEYWORD_EMOJI) {
-    if (lower.includes(kw)) return emoji;
-  }
-  return CATEGORY_EMOJI[category] ?? '🍽️';
-}
-
 export function FoodDatabaseView() {
   const { state, setState } = useApp();
   const [query, setQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [editingFood, setEditingFood] = useState<CustomFoodEntry | null>(null);
   const [addingFood, setAddingFood] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
   const [addToDietFood, setAddToDietFood] = useState<CombinedFood | null>(null);
-  const [selectedFamily, setSelectedFamily] = useState('all');
   const [scanning, setScanning] = useState(false);
 
   const allFoods: CombinedFood[] = useMemo(() => {
     return [...FOOD_DATABASE, ...state.customFoods];
   }, [state.customFoods]);
 
-  const filtered = useMemo(() => {
-    let result = allFoods;
-    if (selectedCategory !== 'all') {
-      result = result.filter((f) => f.category === selectedCategory);
-      if (selectedFamily !== 'all') {
-        result = result.filter((f) => getFoodFamily(f) === selectedFamily);
-      }
-    }
-    if (query.trim()) {
-      const q = query.toLowerCase().trim();
-      result = result.filter((f) => f.name.toLowerCase().includes(q));
-    }
-    return result.sort((a, b) => a.name.localeCompare(b.name));
-  }, [allFoods, query, selectedCategory, selectedFamily]);
-
-  function pickCategory(cat: string) {
-    setSelectedCategory(cat);
-    setSelectedFamily('all');
-  }
+  const searchResults = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return null;
+    return allFoods
+      .filter((f) => f.name.toLowerCase().includes(q))
+      .sort((a, b) => a.name.localeCompare(b.name, 'it'));
+  }, [allFoods, query]);
 
   function deleteCustomFood(id: string) {
     setState((prev) => ({ ...prev, customFoods: prev.customFoods.filter((f) => f.id !== id) }));
@@ -155,6 +72,18 @@ export function FoodDatabaseView() {
     setEditingFood(food as CustomFoodEntry);
   }
 
+  function renderFood(food: CombinedFood) {
+    return (
+      <FoodCard
+        food={food}
+        custom={isCustom(food)}
+        onEdit={() => startEdit(food)}
+        onDelete={() => deleteCustomFood(food.id)}
+        onAddToDiet={() => setAddToDietFood(food)}
+      />
+    );
+  }
+
   return (
     <div className="space-y-4">
       <button
@@ -173,7 +102,6 @@ export function FoodDatabaseView() {
 
       <FoodPicker onAdd={setAddToDietFood} />
 
-      {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" aria-hidden="true" />
         <input
@@ -186,86 +114,27 @@ export function FoodDatabaseView() {
         />
       </div>
 
-      {/* Collapsible category filter */}
-      <div className="card p-3">
-        <button
-          onClick={() => setShowFilters((s) => !s)}
-          className="w-full flex items-center justify-between text-sm font-medium text-gray-700 dark:text-gray-300"
-          aria-expanded={showFilters}
-          aria-label="Mostra o nascondi i filtri per categoria"
-        >
-          <span>
-            Filtra per categoria
-            {selectedCategory !== 'all' && (
-              <span className="chip bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 ml-2">{selectedCategory}</span>
+      {searchResults ? (
+        <>
+          <p className="text-sm text-gray-500" aria-live="polite">
+            {searchResults.length} alimenti trovati
+          </p>
+          <div className="space-y-2">
+            {searchResults.map((food) => (
+              <div key={food.id}>{renderFood(food)}</div>
+            ))}
+            {searchResults.length === 0 && (
+              <div className="card p-8 text-center">
+                <BookOpen className="w-10 h-10 text-gray-300 dark:text-gray-700 mx-auto mb-2" aria-hidden="true" />
+                <p className="text-gray-500">Nessun alimento trovato per "{query}"</p>
+              </div>
             )}
-          </span>
-          {showFilters ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-        </button>
-
-        {showFilters && (
-          <div className="flex flex-wrap gap-2 mt-3 animate-fade-in" role="group" aria-label="Categorie alimentari">
-            <button
-              onClick={() => pickCategory('all')}
-              className={`chip ${selectedCategory === 'all' ? 'bg-primary-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}
-              aria-pressed={selectedCategory === 'all'}
-            >
-              Tutti
-            </button>
-            {FOOD_CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => pickCategory(cat)}
-                className={`chip ${selectedCategory === cat ? 'bg-primary-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'}`}
-                aria-pressed={selectedCategory === cat}
-              >
-                {CATEGORY_EMOJI[cat]} {cat}
-              </button>
-            ))}
           </div>
-        )}
+        </>
+      ) : (
+        <FoodCatalogTree foods={allFoods} categoryEmoji={CATEGORY_EMOJI} renderFood={renderFood} />
+      )}
 
-        {selectedCategory !== 'all' && (FOOD_FAMILIES.get(selectedCategory)?.length ?? 0) > 1 && (
-          <select
-            className="input mt-3"
-            value={selectedFamily}
-            onChange={(e) => setSelectedFamily(e.target.value)}
-            aria-label="Filtra per tipologia"
-          >
-            <option value="all">Tutte le tipologie</option>
-            {FOOD_FAMILIES.get(selectedCategory)?.map((fam) => (
-              <option key={fam.name} value={fam.name}>{fam.name} ({fam.foods.length})</option>
-            ))}
-          </select>
-        )}
-      </div>
-
-      {/* Results count */}
-      <p className="text-sm text-gray-500" aria-live="polite">
-        {filtered.length} alimenti trovati
-      </p>
-
-      {/* Food list */}
-      <div className="space-y-2">
-        {filtered.map((food) => (
-          <FoodCard
-            key={food.id}
-            food={food}
-            custom={isCustom(food)}
-            onEdit={() => startEdit(food)}
-            onDelete={() => deleteCustomFood(food.id)}
-            onAddToDiet={() => setAddToDietFood(food)}
-          />
-        ))}
-        {filtered.length === 0 && (
-          <div className="card p-8 text-center">
-            <BookOpen className="w-10 h-10 text-gray-300 dark:text-gray-700 mx-auto mb-2" aria-hidden="true" />
-            <p className="text-gray-500">Nessun alimento trovato per "{query}"</p>
-          </div>
-        )}
-      </div>
-
-      {/* Add button */}
       <button
         onClick={() => setAddingFood(true)}
         className="btn-primary w-full"
@@ -274,7 +143,6 @@ export function FoodDatabaseView() {
         <Plus className="w-4 h-4" /> Aggiungi Alimento Personalizzato
       </button>
 
-      {/* Add/Edit sheet */}
       {(addingFood || editingFood) && (
         <FoodEditor
           food={editingFood}
@@ -285,7 +153,6 @@ export function FoodDatabaseView() {
 
       {scanning && <BarcodeScanner onClose={() => setScanning(false)} onSave={saveScanned} />}
 
-      {/* Add to diet sheet */}
       {addToDietFood && (
         <AddToDietSheet
           food={addToDietFood}
@@ -306,40 +173,30 @@ function FoodCard({ food, custom, onEdit, onDelete, onAddToDiet }: {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="card p-4">
+    <div className="card overflow-hidden">
       <button
         onClick={() => setExpanded((e) => !e)}
-        className="w-full flex items-center justify-between text-left gap-3"
+        className="w-full flex items-center justify-between gap-3 p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
         aria-expanded={expanded}
-        aria-label={`Valori nutrizionali di ${food.name}, ${food.calories} calorie per 100 grammi. Tocca per dettagli.`}
       >
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          <span
-            className="w-11 h-11 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-2xl shrink-0"
-            aria-hidden="true"
-          >
-            {getFoodEmoji(food.name, food.category)}
-          </span>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold text-gray-900 dark:text-white">{food.name}</span>
-              {custom && (
-                <span className="chip bg-accent-100 text-accent-700 dark:bg-accent-900/30 dark:text-accent-300 text-[10px]">
-                  Personalizzato
-                </span>
-              )}
-            </div>
-            <span className="text-xs text-gray-500">{food.category} · {getFoodFamily(food as FoodEntry)}</span>
-          </div>
-        </div>
-        <div className="text-right shrink-0">
-          <span className="text-lg font-bold text-primary-600 dark:text-primary-400">{food.calories}</span>
-          <span className="text-xs text-gray-500 ml-1">kcal/100g</span>
-        </div>
+        <span className="flex items-center gap-2 flex-wrap min-w-0">
+          <span className="font-medium text-gray-900 dark:text-white">{food.name}</span>
+          {custom && (
+            <span className="chip bg-accent-100 text-accent-700 dark:bg-accent-900/30 dark:text-accent-300 text-[10px]">
+              Personalizzato
+            </span>
+          )}
+        </span>
+        <ChevronDown
+          className={`w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+          aria-hidden="true"
+        />
       </button>
 
       {expanded && (
-        <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800 space-y-2 animate-fade-in" role="region" aria-label={`Dettagli nutrizionali di ${food.name}`}>
+        <div className="px-4 pb-4 pt-3 border-t border-gray-100 dark:border-gray-800 space-y-2 animate-fade-in" role="region" aria-label={`Valori nutrizionali di ${food.name} per 100 grammi`}>
+          <p className="text-xs text-gray-500">Valori per 100 g</p>
+          <NutrientRow label="Calorie" value={food.calories} unit="kcal" />
           <NutrientRow label="Proteine" value={food.protein} unit="g" />
           <NutrientRow label="Carboidrati" value={food.carbs} unit="g" />
           <NutrientRow label="Grassi" value={food.fat} unit="g" />
