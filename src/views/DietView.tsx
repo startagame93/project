@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useApp } from '@/context/AppContext';
-import { createEmptyWeek, createEmptyMeal, uid, todayISO, dateForWeekday } from '@/lib/data';
+import { createEmptyWeek, createEmptyMeal, uid, todayISO, dateForWeekday, parseNonNegative } from '@/lib/data';
 import { PlanImportPanel } from '@/components/PlanImportPanel';
 import { isUnknownFood, stripUnknown, resolveFood, foodLabel, NUTRIENT_KEYS } from '@/lib/dietBuilder';
 import { parseFood } from '@/lib/dietText';
-import { DAYS_OF_WEEK, MEAL_TYPES, MEAL_ICONS, type Meal, type MealType, type WeekPlan } from '@/types';
+import { DAYS_OF_WEEK, MEAL_TYPES, MEAL_ICONS, type CustomFoodEntry, type Meal, type MealType, type WeekPlan } from '@/types';
 import { Modal } from '@/components/Modal';
 import { Sheet } from '@/components/Sheet';
 import {
@@ -74,10 +74,27 @@ export function DietView() {
   }
 
   function saveMeal(dayIdx: number, meal: Meal) {
-    updateDay(dayIdx, (meals) => {
-      const exists = meals.find((m) => m.id === meal.id);
-      if (exists) return meals.map((m) => m.id === meal.id ? meal : m);
-      return [...meals, meal];
+    const date = dateForWeekday(dayIdx);
+    setState((prev) => {
+      const history = { ...(prev.mealHistory ?? {}) };
+      const dayLog = history[date];
+      if (meal.completed && dayLog?.some((h) => h.id === meal.id)) {
+        history[date] = dayLog.map((h) => (h.id === meal.id
+          ? { ...h, type: meal.type, name: meal.name || meal.type, calories: meal.calories }
+          : h));
+      }
+      return {
+        ...prev,
+        mealHistory: history,
+        weeks: prev.weeks.map((w, wi) => wi !== weekIdx ? w : {
+          ...w,
+          days: w.days.map((d, di) => {
+            if (di !== dayIdx) return d;
+            const exists = d.meals.some((m) => m.id === meal.id);
+            return { ...d, meals: exists ? d.meals.map((m) => (m.id === meal.id ? meal : m)) : [...d.meals, meal] };
+          }),
+        }),
+      };
     });
     setEditingMeal(null);
   }
@@ -410,6 +427,16 @@ export function DietView() {
   );
 }
 
+function withoutFoodLine(meal: Meal, text: string, customFoods: CustomFoodEntry[]): Meal {
+  const parsed = parseFood(text);
+  if (!parsed || parsed.grams <= 0) return meal;
+  const line = resolveFood(parsed.name, parsed.grams, customFoods);
+  if (!line.matched) return meal;
+  const next = { ...meal };
+  NUTRIENT_KEYS.forEach((k) => { next[k] = Math.max(0, Math.round((meal[k] - line.values[k]) * 10) / 10); });
+  return next;
+}
+
 function MealEditor({ meal, onSave, onClose }: { meal: Meal; onSave: (m: Meal) => void; onClose: () => void }) {
   const { state } = useApp();
   const [draft, setDraft] = useState<Meal>(meal);
@@ -418,7 +445,7 @@ function MealEditor({ meal, onSave, onClose }: { meal: Meal; onSave: (m: Meal) =
   const [note, setNote] = useState<string | null>(null);
   const unknownCount = draft.foods.filter(isUnknownFood).length;
 
-  function lookUp(text: string, addValues: boolean, base: Meal): { label: string; meal: Meal } {
+  function lookUp(text: string, base: Meal): { label: string; meal: Meal } {
     const parsed = parseFood(text);
     if (!parsed) return { label: text, meal: base };
     const line = resolveFood(parsed.name, parsed.grams, state.customFoods);
@@ -427,7 +454,7 @@ function MealEditor({ meal, onSave, onClose }: { meal: Meal; onSave: (m: Meal) =
       return { label: foodLabel(parsed.name, parsed.grams), meal: base };
     }
     setNote(parsed.grams > 0 ? `Trovato: ${line.label}. Valori aggiunti al pasto.` : `Trovato: ${line.label}. Indica i grammi (es. 80 g) per calcolare i valori.`);
-    if (!addValues || parsed.grams <= 0) return { label: line.label, meal: base };
+    if (parsed.grams <= 0) return { label: line.label, meal: base };
     const next = { ...base };
     NUTRIENT_KEYS.forEach((k) => { next[k] = Math.round((base[k] + line.values[k]) * 10) / 10; });
     return { label: line.label, meal: next };
@@ -436,7 +463,7 @@ function MealEditor({ meal, onSave, onClose }: { meal: Meal; onSave: (m: Meal) =
   function addFood() {
     const text = foodInput.trim();
     if (!text) return;
-    const { label, meal: next } = lookUp(text, true, draft);
+    const { label, meal: next } = lookUp(text, draft);
     setDraft({ ...next, foods: [...next.foods, label] });
     setFoodInput('');
   }
@@ -444,15 +471,16 @@ function MealEditor({ meal, onSave, onClose }: { meal: Meal; onSave: (m: Meal) =
   function confirmEdit() {
     if (!editing) return;
     const text = editing.text.trim();
-    const original = draft.foods[editing.index];
     if (!text) return removeFood(editing.index);
-    const { label, meal: next } = lookUp(text, isUnknownFood(original), draft);
+    const base = withoutFoodLine(draft, draft.foods[editing.index], state.customFoods);
+    const { label, meal: next } = lookUp(text, base);
     setDraft({ ...next, foods: next.foods.map((f, i) => (i === editing.index ? label : f)) });
     setEditing(null);
   }
 
   function removeFood(index: number) {
-    setDraft({ ...draft, foods: draft.foods.filter((_, i) => i !== index) });
+    const next = withoutFoodLine(draft, draft.foods[index], state.customFoods);
+    setDraft({ ...next, foods: next.foods.filter((_, i) => i !== index) });
     setEditing(null);
   }
 
@@ -555,47 +583,47 @@ function MealEditor({ meal, onSave, onClose }: { meal: Meal; onSave: (m: Meal) =
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="label">Calorie (kcal)</label>
-            <input type="number" className="input" value={draft.calories || ''} onChange={(e) => setDraft({ ...draft, calories: +e.target.value })} />
+            <input type="number" className="input" value={draft.calories || ''} onChange={(e) => setDraft({ ...draft, calories: parseNonNegative(e.target.value) })} />
           </div>
           <div>
             <label className="label">Proteine (g)</label>
-            <input type="number" className="input" value={draft.protein || ''} onChange={(e) => setDraft({ ...draft, protein: +e.target.value })} />
+            <input type="number" className="input" value={draft.protein || ''} onChange={(e) => setDraft({ ...draft, protein: parseNonNegative(e.target.value) })} />
           </div>
           <div>
             <label className="label">Carboidrati (g)</label>
-            <input type="number" className="input" value={draft.carbs || ''} onChange={(e) => setDraft({ ...draft, carbs: +e.target.value })} />
+            <input type="number" className="input" value={draft.carbs || ''} onChange={(e) => setDraft({ ...draft, carbs: parseNonNegative(e.target.value) })} />
           </div>
           <div>
             <label className="label">Grassi (g)</label>
-            <input type="number" className="input" value={draft.fat || ''} onChange={(e) => setDraft({ ...draft, fat: +e.target.value })} />
+            <input type="number" className="input" value={draft.fat || ''} onChange={(e) => setDraft({ ...draft, fat: parseNonNegative(e.target.value) })} />
           </div>
           <div>
             <label className="label">Grassi Saturi (g)</label>
-            <input type="number" className="input" value={draft.saturatedFat || ''} onChange={(e) => setDraft({ ...draft, saturatedFat: +e.target.value })} />
+            <input type="number" className="input" value={draft.saturatedFat || ''} onChange={(e) => setDraft({ ...draft, saturatedFat: parseNonNegative(e.target.value) })} />
           </div>
           <div>
             <label className="label">Zuccheri (g)</label>
-            <input type="number" className="input" value={draft.sugar || ''} onChange={(e) => setDraft({ ...draft, sugar: +e.target.value })} />
+            <input type="number" className="input" value={draft.sugar || ''} onChange={(e) => setDraft({ ...draft, sugar: parseNonNegative(e.target.value) })} />
           </div>
           <div>
             <label className="label">Fibre (g)</label>
-            <input type="number" className="input" value={draft.fiber || ''} onChange={(e) => setDraft({ ...draft, fiber: +e.target.value })} />
+            <input type="number" className="input" value={draft.fiber || ''} onChange={(e) => setDraft({ ...draft, fiber: parseNonNegative(e.target.value) })} />
           </div>
           <div>
             <label className="label">Sodio (mg)</label>
-            <input type="number" className="input" value={draft.sodium || ''} onChange={(e) => setDraft({ ...draft, sodium: +e.target.value })} />
+            <input type="number" className="input" value={draft.sodium || ''} onChange={(e) => setDraft({ ...draft, sodium: parseNonNegative(e.target.value) })} />
           </div>
           <div>
             <label className="label">Potassio (mg)</label>
-            <input type="number" className="input" value={draft.potassium || ''} onChange={(e) => setDraft({ ...draft, potassium: +e.target.value })} />
+            <input type="number" className="input" value={draft.potassium || ''} onChange={(e) => setDraft({ ...draft, potassium: parseNonNegative(e.target.value) })} />
           </div>
           <div>
             <label className="label">Calcio (mg)</label>
-            <input type="number" className="input" value={draft.calcium || ''} onChange={(e) => setDraft({ ...draft, calcium: +e.target.value })} />
+            <input type="number" className="input" value={draft.calcium || ''} onChange={(e) => setDraft({ ...draft, calcium: parseNonNegative(e.target.value) })} />
           </div>
           <div>
             <label className="label">Ferro (mg)</label>
-            <input type="number" className="input" value={draft.iron || ''} onChange={(e) => setDraft({ ...draft, iron: +e.target.value })} />
+            <input type="number" className="input" value={draft.iron || ''} onChange={(e) => setDraft({ ...draft, iron: parseNonNegative(e.target.value) })} />
           </div>
         </div>
 

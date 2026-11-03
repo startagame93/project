@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '@/context/AppContext';
-import { todayISO, uid } from '@/lib/data';
+import { todayISO, uid, parseNonNegative } from '@/lib/data';
 import { calcTargetCalories, calcMacroTargets } from '@/lib/data';
 import { ProgressRing } from '@/components/ProgressRing';
 import { ProgressBar } from '@/components/ProgressBar';
@@ -12,7 +12,7 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import {
   SUPPLEMENT_TYPES, MICRONUTRIENT_TARGETS, type SupplementType, type SupplementLog,
-  type MicronutrientKey, type MicronutrientLog,
+  type MicronutrientKey, type MicronutrientLog, type AppState, type Meal,
 } from '@/types';
 
 type SubTab = 'macro' | 'supp' | 'micro';
@@ -24,6 +24,29 @@ const SUPP_ICONS: Record<SupplementType, LucideIcon> = {
   bcaa: Activity,
   proteine: Dumbbell,
 };
+
+type MealTrackedKey = 'sodium' | 'potassium' | 'calcium' | 'iron';
+
+const MEAL_TRACKED_KEYS: readonly MealTrackedKey[] = ['sodium', 'potassium', 'calcium', 'iron'];
+
+const EMPTY_MICRO_VALUES: Omit<MicronutrientLog, 'id' | 'date'> = {
+  sodium: 0, potassium: 0, magnesium: 0, calcium: 0, iron: 0,
+  vitaminC: 0, vitaminD: 0, vitaminB12: 0, zinc: 0,
+};
+
+function isMealTracked(key: MicronutrientKey): key is MealTrackedKey {
+  return (MEAL_TRACKED_KEYS as readonly string[]).includes(key);
+}
+
+function getTodayMeals(state: AppState): Meal[] {
+  const activeWeek = state.weeks.find((w) => w.id === state.activeWeekId) ?? state.weeks[0];
+  const dayIdx = (new Date().getDay() + 6) % 7;
+  return activeWeek?.days[dayIdx]?.meals ?? [];
+}
+
+function sumMealNutrient(meals: Meal[], key: MealTrackedKey): number {
+  return Math.round(meals.reduce((s, m) => s + m[key], 0) * 100) / 100;
+}
 
 export function NutritionView() {
   const { state, setState } = useApp();
@@ -61,9 +84,7 @@ export function NutritionView() {
 
 function MacroTab({ today }: { today: string }) {
   const { state, setState } = useApp();
-  const activeWeek = state.weeks.find((w) => w.id === state.activeWeekId) ?? state.weeks[0];
-  const dayIdx = (new Date().getDay() + 6) % 7;
-  const todayMeals = activeWeek?.days[dayIdx]?.meals ?? [];
+  const todayMeals = getTodayMeals(state);
 
   const consumed = {
     cal: todayMeals.filter((m) => m.completed).reduce((s, m) => s + m.calories, 0),
@@ -332,26 +353,31 @@ function MicronutrientsTab({ today }: { today: string }) {
   const { state, setState } = useApp();
   const [editing, setEditing] = useState(false);
 
-  const todayLog = state.micronutrientLogs.find((m) => m.date === today) ?? {
-    id: uid(), date: today, sodium: 0, potassium: 0, magnesium: 0, calcium: 0,
-    iron: 0, vitaminC: 0, vitaminD: 0, vitaminB12: 0, zinc: 0,
-  };
+  const manualLog = state.micronutrientLogs.find((m) => m.date === today);
+  const completedMeals = getTodayMeals(state).filter((m) => m.completed);
+
+  function valueOf(key: MicronutrientKey): number {
+    if (isMealTracked(key)) return sumMealNutrient(completedMeals, key);
+    return manualLog?.[key] ?? 0;
+  }
 
   function updateMicro(key: MicronutrientKey, value: number) {
     setState((prev) => {
       const logs = [...prev.micronutrientLogs];
       const idx = logs.findIndex((m) => m.date === today);
-      const updated = { ...(idx >= 0 ? logs[idx] : todayLog), [key]: value, date: today };
+      const base = idx >= 0 ? logs[idx] : { ...EMPTY_MICRO_VALUES, id: uid(), date: today };
+      const updated: MicronutrientLog = { ...base, [key]: Number.isFinite(value) && value >= 0 ? Math.min(value, 100000) : 0 };
       if (idx >= 0) logs[idx] = updated;
-      else logs.push(updated as MicronutrientLog);
+      else logs.push(updated);
       return { ...prev, micronutrientLogs: logs };
     });
   }
 
   const microKeys = Object.keys(MICRONUTRIENT_TARGETS) as MicronutrientKey[];
+  const manualKeys = microKeys.filter((k) => !isMealTracked(k));
 
   function getStatus(key: MicronutrientKey): 'low' | 'ok' | 'high' {
-    const val = todayLog[key] as number;
+    const val = valueOf(key);
     const target = MICRONUTRIENT_TARGETS[key];
     if (val < target.min) return 'low';
     if (val > target.max) return 'high';
@@ -389,7 +415,7 @@ function MicronutrientsTab({ today }: { today: string }) {
       <div className="space-y-2">
         {microKeys.map((key) => {
           const target = MICRONUTRIENT_TARGETS[key];
-          const val = todayLog[key] as number;
+          const val = valueOf(key);
           const status = getStatus(key);
           const colors = statusColors[status];
           const pct = Math.min((val / target.max) * 100, 100);
@@ -419,9 +445,10 @@ function MicronutrientsTab({ today }: { today: string }) {
       {editing && (
         <Sheet open onClose={() => setEditing(false)} title="Registra Micronutrienti" icon={FlaskConical}>
           <div className="space-y-3">
-            {microKeys.map((key) => {
+            <p className="text-xs text-gray-500">Sodio, potassio, calcio e ferro si calcolano dai pasti completati di oggi.</p>
+            {manualKeys.map((key) => {
               const target = MICRONUTRIENT_TARGETS[key];
-              const val = todayLog[key] as number;
+              const val = valueOf(key);
               return (
                 <div key={key}>
                   <label className="label">{target.label} ({target.unit})</label>

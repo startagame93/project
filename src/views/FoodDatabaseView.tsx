@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
 import { FOOD_DATABASE, FOOD_CATEGORIES, type FoodEntry } from '@/lib/foodDatabase';
-import { uid } from '@/lib/data';
+import { uid, parseNonNegative } from '@/lib/data';
 import { Sheet } from '@/components/Sheet';
 import { FOOD_FAMILIES, getFoodFamily } from '@/lib/foodFamilies';
 import { FoodPicker } from '@/components/food/FoodPicker';
@@ -601,7 +601,7 @@ function AddToDietSheet({ food, onClose }: { food: CombinedFood; onClose: () => 
           )}
         </div>
 
-        <button onClick={addToDiet} disabled={grams <= 0} className="btn-primary w-full">
+        <button onClick={addToDiet} disabled={grams <= 0 || grams > 5000} className="btn-primary w-full">
           <Check className="w-4 h-4" /> Conferma aggiunta
         </button>
       </div>
@@ -691,7 +691,7 @@ function NumberField({ label, value, onChange }: { label: string; value: number;
         type="number"
         className="input"
         value={value || ''}
-        onChange={(e) => onChange(+e.target.value)}
+        onChange={(e) => onChange(parseNonNegative(e.target.value))}
         aria-label={label}
       />
     </div>

@@ -5,6 +5,12 @@ export function uid(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
 
+export function parseNonNegative(raw: string, max = 100000): number {
+  const n = Number(raw.replace(',', '.'));
+  if (!Number.isFinite(n) || n < 0) return 0;
+  return Math.min(n, max);
+}
+
 export function todayISO(): string {
   return localISO(new Date());
 }
