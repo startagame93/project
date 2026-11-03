@@ -1,27 +1,9 @@
 import { useEffect, useState } from 'react';
 import { ClipboardCopy, Check, AlertCircle, Trash2, SearchX } from 'lucide-react';
 import { readMissingFoods, formatMissingFoods, clearMissingFoods } from '@/lib/missingFoods';
+import { copyText } from '@/lib/clipboard';
 
 type Toast = { kind: 'ok' | 'error'; text: string } | null;
-
-async function copyText(text: string): Promise<boolean> {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {
-    // Older WebViews without the async clipboard: fall back to a hidden textarea
-    const area = document.createElement('textarea');
-    area.value = text;
-    area.setAttribute('readonly', '');
-    area.style.position = 'fixed';
-    area.style.opacity = '0';
-    document.body.appendChild(area);
-    area.select();
-    const ok = document.execCommand('copy');
-    area.remove();
-    return ok;
-  }
-}
 
 export function MissingFoodsSection() {
   const [foods, setFoods] = useState(readMissingFoods);

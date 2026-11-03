@@ -214,6 +214,20 @@ export async function adminReplyTicket(ticketId: string, reply: string, status: 
   return !error;
 }
 
+export async function adminLoadBugReports(): Promise<string[] | null> {
+  const { data, error } = await supabase
+    .from('support_tickets')
+    .select('message')
+    .order('created_at', { ascending: true });
+  if (error) {
+    console.error('bug reports load failed', error);
+    return null;
+  }
+  return ((data ?? []) as { message: string }[])
+    .map((row) => row.message.trim())
+    .filter(Boolean);
+}
+
 export async function adminDeleteTicket(ticketId: string): Promise<boolean> {
   const { error } = await supabase
     .from('support_tickets')

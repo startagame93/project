@@ -4,6 +4,7 @@ import {
   ONLINE_WINDOW_MS,
   type AdminUserRow, type SupportTicketRow,
 } from '@/lib/supabase';
+import { BugReportCopySection } from '@/components/BugReportCopySection';
 import {
   Users, MessageSquare, Ban, CheckCircle, Send, Loader2, Mail, ChevronDown, ChevronUp,
   Crown, Trash2, RefreshCw, AlertTriangle, Search,
@@ -91,6 +92,8 @@ export function AdminDashboard() {
           <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
         </button>
       </div>
+
+      <BugReportCopySection />
 
       <div className="flex gap-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
         {([
