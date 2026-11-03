@@ -1,0 +1,13 @@
+{
+  "projectId": "71494060",
+  "functions": {
+    "analyze-plan": {
+      "hasChanged": false,
+      "hash": "fed54c8407b22311be46afb87e8f15d619841c999d4b63fdc06a6f82a6356189"
+    },
+    "delete-account": {
+      "hasChanged": false,
+      "hash": "0378b7b5ef3b6b74c55dd3182d6d48489f411040d22c92721ce5faaf3ad0b9c9"
+    }
+  }
+}

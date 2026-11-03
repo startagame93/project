@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { parseDietText } from '@/lib/dietText';
 import { buildDietWeeks, type DietBuildResult } from '@/lib/dietBuilder';
-import { analyzePlanText, getGeminiKey, AiImportError } from '@/lib/gemini';
+import { analyzePlanText } from '@/lib/gemini';
 import { recordMissingFoods } from '@/lib/missingFoods';
 
 export type PlanImportOutcome = { kind: 'diet'; firstWeekIndex: number } | { kind: 'workout' } | null;
@@ -43,24 +43,20 @@ export function usePlanImport() {
     setLoading(true);
     setError(null);
     try {
-      const key = getGeminiKey();
       let aiMessage: string | undefined;
-      if (key) {
-        try {
-          const result = await analyzePlanText(clean, key, state.customFoods);
-          if (result.kind === 'workout') {
-            setState((prev) => ({
-              ...prev,
-              workoutPlan: result.plan,
-              pdfText: `Scheda "${result.plan.title}" importata: ${result.totalExercises} esercizi in ${result.plan.days.length} giorni (vedi Palestra)`,
-            }));
-            return { kind: 'workout' };
-          }
-          return addDiet(result, true);
-        } catch (err) {
-          if (err instanceof AiImportError && err.reason === 'key') throw err;
-          aiMessage = err instanceof AiImportError ? err.message : 'Analisi IA non riuscita.';
+      try {
+        const result = await analyzePlanText(clean, state.customFoods);
+        if (result.kind === 'workout') {
+          setState((prev) => ({
+            ...prev,
+            workoutPlan: result.plan,
+            pdfText: `Scheda "${result.plan.title}" importata: ${result.totalExercises} esercizi in ${result.plan.days.length} giorni (vedi Palestra)`,
+          }));
+          return { kind: 'workout' };
         }
+        return addDiet(result, true);
+      } catch (err) {
+        aiMessage = err instanceof Error ? err.message : 'Analisi IA non riuscita.';
       }
 
       const diet = buildDietWeeks(parseDietText(clean), 'Dieta incollata', state.customFoods);
@@ -69,13 +65,13 @@ export function usePlanImport() {
         return null;
       }
       return addDiet(diet, false);
-    } catch (err) {
-      setError(err instanceof AiImportError ? err.message : 'Errore durante l\'analisi del testo. Riprova.');
+    } catch {
+      setError('Errore durante l\'analisi del testo. Riprova.');
       return null;
     } finally {
       setLoading(false);
     }
   }
 
-  return { importText, loading, error, setError, hasAiKey: !!getGeminiKey() };
+  return { importText, loading, error, setError };
 }

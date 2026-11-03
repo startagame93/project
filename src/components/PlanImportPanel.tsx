@@ -15,7 +15,7 @@ Cena: salmone 150 g, patate 200 g, insalata`;
 
 export function PlanImportPanel({ onImported }: { onImported?: (outcome: PlanImportOutcome) => void }) {
   const { state, setState } = useApp();
-  const { importText, loading, error, setError, hasAiKey } = usePlanImport();
+  const { importText, loading, error, setError } = usePlanImport();
   const [text, setText] = useState('');
   const [pasteFailed, setPasteFailed] = useState(false);
   const ready = text.trim().length >= MIN_PLAN_CHARS;
@@ -41,12 +41,10 @@ export function PlanImportPanel({ onImported }: { onImported?: (outcome: PlanImp
 
   return (
     <div className="space-y-4">
-      <div className={`flex items-start gap-3 p-3 rounded-xl ${hasAiKey ? 'bg-primary-50 dark:bg-primary-900/20' : 'bg-gray-50 dark:bg-gray-800'}`}>
-        <Sparkles className={`w-5 h-5 shrink-0 mt-0.5 ${hasAiKey ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400'}`} aria-hidden="true" />
+      <div className="flex items-start gap-3 p-3 rounded-xl bg-primary-50 dark:bg-primary-900/20">
+        <Sparkles className="w-5 h-5 shrink-0 mt-0.5 text-primary-600 dark:text-primary-400" aria-hidden="true" />
         <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-          {hasAiKey
-            ? 'Copia il testo della dieta o della scheda da PDF, Word o note e incollalo qui. L\'IA lo legge e lo posiziona nei giorni e nei pasti giusti.'
-            : 'Copia il testo della dieta da PDF, Word o note e incollalo qui. Per testi disordinati e schede di allenamento aggiungi la chiave Gemini gratuita in Impostazioni.'}
+          Copia il testo della dieta o della scheda da PDF, Word o note e incollalo qui. L'IA lo legge e lo posiziona nei giorni e nei pasti giusti.
         </p>
       </div>
 
@@ -87,7 +85,7 @@ export function PlanImportPanel({ onImported }: { onImported?: (outcome: PlanImp
 
       <button onClick={analyze} disabled={!ready || loading} className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed">
         {loading ? (
-          <><Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> {hasAiKey ? 'L\'IA sta analizzando...' : 'Analisi in corso...'}</>
+          <><Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> L'IA sta analizzando...</>
         ) : (
           <><Wand2 className="w-4 h-4" aria-hidden="true" /> Analizza e importa</>
         )}

@@ -5,7 +5,7 @@ import { signOut, updateProfileMetrics } from '@/lib/supabase';
 import { PALETTES, paletteSwatch } from '@/lib/palettes';
 import { buildCsv, downloadFile } from '@/lib/exportData';
 import { Modal } from '@/components/Modal';
-import { AiKeySection } from '@/components/AiKeySection';
+import { DeleteAccountSection } from '@/components/DeleteAccountSection';
 import { MissingFoodsSection } from '@/components/MissingFoodsSection';
 import type { Theme, NotificationConfig, AppState } from '@/types';
 import {
@@ -175,8 +175,6 @@ export function SettingsView({ onNavigate }: { onNavigate: (tab: 'shopping') => 
       </div>
 
       {/* Backup & Restore */}
-      <AiKeySection />
-
       <BackupRestoreSection state={state} setState={setState} />
 
       <MissingFoodsSection />
@@ -202,6 +200,8 @@ export function SettingsView({ onNavigate }: { onNavigate: (tab: 'shopping') => 
       <button onClick={clearAllData} className="btn-danger w-full">
         <Trash2 className="w-4 h-4" /> Cancella dati locali
       </button>
+
+      <DeleteAccountSection />
 
       {showProfile && <ProfileModal onClose={() => setShowProfile(false)} />}
       {showNotif && <NotifModal onClose={() => setShowNotif(false)} />}

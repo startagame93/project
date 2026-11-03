@@ -1,6 +1,6 @@
 import {
   Flame, Salad, Dumbbell, Scale, BookOpen, Droplet, Pill, ShoppingCart, Palette, Bell,
-  CalendarDays, ScanBarcode, CloudOff, MessageCircle, Layers, ClipboardPaste, KeyRound, type LucideIcon,
+  CalendarDays, ScanBarcode, CloudOff, MessageCircle, Layers, ClipboardPaste, type LucideIcon,
 } from 'lucide-react';
 
 // Single source of truth is "version" in package.json: bump the minor (1.5.0 -> 1.6.0 ... 1.9.0 -> 2.0.0) for each release.
@@ -36,35 +36,13 @@ export const PASTE_IMPORT_GUIDE: ManualSection = {
     'Le alternative introdotte da "oppure" o "in alternativa" vengono saltate: resta la prima scelta.',
     'Le quantità scritte come cucchiaio, cucchiaino, fetta, vasetto, tazza o numero di pezzi (es. "2 uova") vengono convertite in grammi.',
     'Se la dieta è già vuota, l\'importazione la sostituisce; altrimenti le nuove settimane vengono aggiunte in coda.',
-    'Con la chiave Gemini attiva la lettura è ancora più precisa sui testi disordinati, ed è necessaria per le schede di allenamento.',
-  ],
-};
-
-export const GEMINI_KEY_GUIDE: ManualSection = {
-  since: '1.5',
-  icon: KeyRound,
-  title: 'Come ottenere la chiave Gemini (gratis)',
-  content: 'La chiave Gemini permette all\'app di usare l\'intelligenza artificiale di Google per leggere diete e schede incollate. È gratuita, si crea in pochi passaggi e resta salvata solo sul tuo telefono.',
-  steps: [
-    'Dal browser del telefono o del computer apri il sito aistudio.google.com/apikey.',
-    'Accedi con il tuo account Google (lo stesso di Gmail). Al primo accesso accetta i termini di servizio.',
-    'Tocca "Create API key" (o "Crea chiave API"). Se ti chiede un progetto, scegli quello proposto o creane uno nuovo: va bene qualsiasi nome.',
-    'Quando compare la chiave (una lunga sequenza che inizia con "AIza"), tocca l\'icona di copia accanto.',
-    'Apri NutriPlan, vai in Impostazioni e cerca la scheda "Lettura testi con IA".',
-    'Incolla la chiave nel campo "Chiave API Gemini" e tocca "Verifica e salva". Se compare "IA attiva" è tutto pronto.',
-  ],
-  tips: [
-    'Il piano gratuito ha un limite di richieste al minuto: se l\'app segnala "troppe richieste", aspetta un minuto e riprova.',
-    'Se la verifica fallisce, controlla di aver copiato la chiave per intero, senza spazi, e di essere connesso a internet.',
-    'Non condividere la chiave con nessuno. Puoi eliminarla in qualsiasi momento dal cestino nell\'app o dal sito AI Studio, e crearne una nuova.',
-    'Senza chiave l\'importazione delle diete funziona comunque, con la lettura di base dell\'app.',
+    'La lettura con IA è più precisa sui testi disordinati, ed è necessaria per le schede di allenamento.',
   ],
 };
 
 // Add new features here with `since` set to the release version: they get the "New" badge and appear in the news popup.
 export const MANUAL_SECTIONS: ManualSection[] = [
   PASTE_IMPORT_GUIDE,
-  GEMINI_KEY_GUIDE,
   {
     since: '1.5', icon: Salad, title: 'Gestire le settimane della dieta',
     content: 'Il piano alimentare può avere più settimane, ognuna con 7 giorni e i suoi pasti.',

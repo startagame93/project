@@ -52,6 +52,12 @@ export async function signOut() {
   }
 }
 
+export async function deleteAccount(): Promise<boolean> {
+  const { error } = await supabase.functions.invoke('delete-account', { method: 'POST' });
+  if (error) console.error('account delete failed', error);
+  return !error;
+}
+
 export async function getCurrentSession(): Promise<Session | null> {
   const { data } = await supabase.auth.getSession();
   return data.session;
@@ -223,20 +229,6 @@ export async function adminReplyTicket(ticketId: string, reply: string, status: 
     .eq('id', ticketId);
   if (error) console.error('ticket reply failed', error);
   return !error;
-}
-
-export async function adminLoadBugReports(): Promise<string[] | null> {
-  const { data, error } = await supabase
-    .from('support_tickets')
-    .select('message')
-    .order('created_at', { ascending: true });
-  if (error) {
-    console.error('bug reports load failed', error);
-    return null;
-  }
-  return ((data ?? []) as { message: string }[])
-    .map((row) => row.message.trim())
-    .filter(Boolean);
 }
 
 export async function adminDeleteTicket(ticketId: string): Promise<boolean> {
