@@ -3,6 +3,7 @@ import { ScanBarcode, Search, Loader2, CameraOff, Check } from 'lucide-react';
 import { Sheet } from '@/components/Sheet';
 import { uid } from '@/lib/data';
 import { isValidBarcode, lookupBarcode, type ScannedProduct } from '@/lib/openFoodFacts';
+import { estimateBarcodeNutrition } from '@/lib/barcodeEstimate';
 import type { CustomFoodEntry } from '@/types';
 
 type Detector = { detect: (src: HTMLVideoElement) => Promise<{ rawValue: string }[]> };
@@ -90,6 +91,15 @@ export function BarcodeScanner({ onClose, onSave }: {
     };
   }, [scanning]);
 
+  async function estimateOrNull(clean: string): Promise<ScannedProduct | null> {
+    try {
+      return await estimateBarcodeNutrition(clean);
+    } catch (err) {
+      console.error('barcode estimate failed', err);
+      return null;
+    }
+  }
+
   async function search(value = code) {
     const clean = value.replace(/\s/g, '');
     if (!isValidBarcode(clean)) {
@@ -100,8 +110,15 @@ export function BarcodeScanner({ onClose, onSave }: {
     setMessage('');
     try {
       const found = await lookupBarcode(clean);
-      if (found) setProduct(found);
-      else {
+      if (found) {
+        setProduct(found);
+        return;
+      }
+      const estimate = await estimateOrNull(clean);
+      if (estimate) {
+        setProduct(estimate);
+        setMessage('Prodotto non presente nel database: valori stimati dall\'IA. Controllali con l\'etichetta prima di salvare.');
+      } else {
         setProduct({ ...EMPTY, name: `Prodotto ${clean}` });
         setMessage('Prodotto non trovato. Puoi inserire tu i valori riportati in etichetta (per 100 g).');
       }

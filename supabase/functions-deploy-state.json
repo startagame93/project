@@ -8,6 +8,10 @@
     "delete-account": {
       "hasChanged": false,
       "hash": "0378b7b5ef3b6b74c55dd3182d6d48489f411040d22c92721ce5faaf3ad0b9c9"
+    },
+    "estimate-barcode-nutrition": {
+      "hasChanged": false,
+      "hash": "83c506637e2c5abea5098c31ed05d580ec4acdca46071b8a971ff59fb578bdfe"
     }
   }
 }
