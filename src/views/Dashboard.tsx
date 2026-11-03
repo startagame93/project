@@ -38,10 +38,10 @@ export function Dashboard({ onNavigate }: { onNavigate: (tab: 'diet' | 'nutritio
 
   const todayMicro = state.micronutrientLogs.find((m) => m.date === today);
   const microKeys = Object.keys(MICRONUTRIENT_TARGETS) as (keyof typeof MICRONUTRIENT_TARGETS)[];
-  const lowMicros = microKeys.filter((k) => {
-    const val = todayMicro?.[k] ?? 0;
-    return val < MICRONUTRIENT_TARGETS[k].min;
-  });
+  const hasDietToday = todayMeals.length > 0;
+  const lowMicros = hasDietToday && todayMicro
+    ? microKeys.filter((k) => todayMicro[k] < MICRONUTRIENT_TARGETS[k].min)
+    : [];
 
   const greeting = (() => {
     const h = new Date().getHours();
